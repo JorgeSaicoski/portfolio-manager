@@ -1,0 +1,77 @@
+# ===== Global =====
+.DS_Store
+*.swp
+*.swo
+*.swm
+*.log
+.idea/
+.vscode/
+node_modules/
+coverage/
+dist/
+build/
+
+# ===== Frontend (Next.js) =====
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/coverage/
+frontend/dist/
+
+# ===== Backend (Go) =====
+backend/bin/
+backend/tmp/
+backend/.env
+backend/.env.local
+backend/coverage/
+backend/dist/
+
+# Go build artifacts
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+backend/*.test
+backend/*.out
+
+# Go workspace
+backend/go.work
+backend/go.work.sum
+
+# Go modules
+backend/vendor/
+
+# ===== Infra =====
+infra/.env
+infra/.env.local
+infra/keycloak/themes/**/resources/img/*.png
+infra/keycloak/themes/**/resources/img/*.svg
+infra/keycloak/themes/**/resources/css/*.css
+infra/keycloak/themes/**/login/*.ftl
+infra/volumes/
+infra/data/
+infra/logs/
+infra/tmp/
+infra/*.pem
+infra/*.crt
+infra/*.key
+infra/*.secret
+infra/*.bak
+infra/*.old
+
+# Podman/Compose generated volumes (if mapped to host)
+infra/pg_data/
+infra/kc_data/
+infra/caddy_data/
+infra/caddy_config/
+
+# ===== OS / Editor trash =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini
