@@ -1,0 +1,63 @@
+/* Very small, dev-friendly overrides */
+:root {
+  --kc-accent: #0ea5e9; /* cyan-ish */
+  --kc-bg: #0b1220;
+  --kc-card: #111827;
+  --kc-text: #e5e7eb;
+  --kc-muted: #9ca3af;
+}
+
+html, body {
+  background: var(--kc-bg);
+  color: var(--kc-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.kc-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.25rem 1rem; border-bottom: 1px solid #1f2937;
+  background: linear-gradient(180deg, rgba(14,165,233,0.08), rgba(0,0,0,0));
+}
+
+.kc-logo { height: 36px; width: auto; display: block; }
+.kc-title { font-size: 1.125rem; font-weight: 600; margin: 0; color: var(--kc-text); }
+
+.kc-main {
+  min-height: calc(100dvh - 120px);
+  display: grid; place-items: start center;
+  padding: 2rem 1rem;
+}
+
+#kc-locale, #kc-header-wrapper { /* legacy ids Keycloak uses in base templates */
+  color: var(--kc-muted);
+}
+
+#kc-content {
+  width: 100%;
+}
+
+#kc-content-wrapper, .card-pf {
+  max-width: 420px; margin: 2rem auto; padding: 1.25rem 1.25rem 1.5rem;
+  background: var(--kc-card); border: 1px solid #1f2937; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+#kc-form-buttons input[type=submit],
+#kc-login, .pf-c-button, input[type=submit] {
+  appearance: none; border: none; cursor: pointer;
+  background: var(--kc-accent); color: #0b1220;
+  padding: 0.65rem 0.9rem; border-radius: 10px; font-weight: 700;
+  width: 100%;
+}
+
+#kc-info, #kc-attempted-username, .instruction {
+  color: var(--kc-muted);
+}
+
+input[type=text], input[type=password], input[type=email] {
+  width: 100%; padding: 0.6rem 0.7rem; border-radius: 10px;
+  background: #0f172a; border: 1px solid #1f2937; color: var(--kc-text);
+}
+
+a { color: var(--kc-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }

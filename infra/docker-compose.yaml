@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  keycloak:
+    image: docker.io/keycloak/keycloak:26.0
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"   
+    volumes:
+      - ./keycloak/themes:/opt/keycloak/themes:ro 
+      - kc_data:/opt/keycloak/data
+
+volumes:
+  kc_data:
