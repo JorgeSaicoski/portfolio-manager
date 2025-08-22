@@ -1,9 +1,10 @@
-// stores/auth.ts
+// src/lib/stores/auth.ts
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 // Auth API base URL - adjust this to match your backend
 const AUTH_API_URL = 'http://localhost:8001/api/auth';
+const API_BASE_URL = 'http://localhost:8001/api';
 
 // Type definitions
 export interface User {
@@ -221,7 +222,7 @@ function createAuthStore(): AuthStore {
       }
 
       try {
-        const response = await fetch(`${AUTH_API_URL.replace('/auth', '')}/profile`, {
+        const response = await fetch(`${API_BASE_URL}/profile`, {
           headers: {
             'Authorization': `Bearer ${state.token}`
           }
@@ -264,7 +265,7 @@ function createAuthStore(): AuthStore {
       this.setLoading(true);
 
       try {
-        const response = await fetch(`${AUTH_API_URL.replace('/auth', '')}/profile`, {
+        const response = await fetch(`${API_BASE_URL}/profile`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -313,7 +314,7 @@ function createAuthStore(): AuthStore {
       this.setLoading(true);
 
       try {
-        const response = await fetch(`${AUTH_API_URL.replace('/auth', '')}/profile`, {
+        const response = await fetch(`${API_BASE_URL}/profile`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${state.token}`
