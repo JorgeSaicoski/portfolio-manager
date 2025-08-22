@@ -1,18 +1,102 @@
 version: "3.8"
 
 services:
-  keycloak:
-    image: docker.io/keycloak/keycloak:26.0
-    container_name: keycloak
+  # Shared PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: portfolio-postgres
     restart: unless-stopped
-    command: start-dev
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_db}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
     ports:
-      - "8080:8080"   
+      - "5432:5432"
     volumes:
-      - ./keycloak/themes:/opt/keycloak/themes:ro 
-      - kc_data:/opt/keycloak/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: portfolio-auth
+    restart: unless-stopped
+    ports:
+      - "8001:8080"
+    environment:
+      - PORT=8080
+      - GIN_MODE=release
+      - LOG_LEVEL=info
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-portfolio_db}
+      - DB_USER=${POSTGRES_USER:-portfolio_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
+      - DB_SSLMODE=disable
+      - DB_TIMEZONE=UTC
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API Service
+  backend-api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GO_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-portfolio_db}
+      - DB_USER=${POSTGRES_USER:-portfolio_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
+      - DB_SSL_MODE=disable
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-portfolio}
+      - AUTH_SERVICE_URL=http://auth-service:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - portfolio-network
+    volumes:
+      - ../backend:/app:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  kc_data:
+  postgres_data:
+    driver: local
+  keycloak_data:
+    driver: local
+
+networks:
+  portfolio-network:
+    driver: bridge

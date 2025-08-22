@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 // User represents the user model
@@ -234,11 +235,11 @@ func initDB() {
 
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.New(
+		Logger: gormlogger.New(
 			log.New(logger.Writer(), "\r\n", log.LstdFlags),
-			logger.Config{
+			gormlogger.Config{
 				SlowThreshold:             time.Second,
-				LogLevel:                  logger.Info,
+				LogLevel:                  gormlogger.Info,
 				IgnoreRecordNotFoundError: true,
 				Colorful:                  false,
 			},
@@ -620,7 +621,7 @@ func healthCheckHandler(c *gin.Context) {
 
 func readinessCheckHandler(c *gin.Context) {
 	// More comprehensive readiness check
-	sqlDB, err := db.DB()
+	_, err := db.DB()
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"ready":  false,
