@@ -1,6 +1,6 @@
 <!-- AuthWrapper.svelte -->
 <script lang="ts">
-  import { auth } from '../stores/auth';
+  import { auth } from '../../stores/auth';
   
   // Import your login and register components
   import Login from './Login.svelte';

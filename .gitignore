@@ -6,30 +6,37 @@
 *.log
 .idea/
 .vscode/
-node_modules/
-coverage/
-dist/
-build/
+*.tmp
+*.bak
+*.old
 
-# ===== Frontend (Next.js) =====
-frontend/.next/
-frontend/out/
+# ===== Frontend (Svelte) =====
 frontend/node_modules/
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-frontend/coverage/
+frontend/.svelte-kit/
+frontend/build/
 frontend/dist/
+frontend/.output/
+frontend/.vercel/
+frontend/.netlify/
+frontend/.wrangler/
+frontend/coverage/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+!frontend/.env.test
+frontend/vite.config.js.timestamp-*
+frontend/vite.config.ts.timestamp-*
 
 # ===== Backend (Go) =====
 backend/bin/
 backend/tmp/
-backend/.env
-backend/.env.local
+backend/vendor/
 backend/coverage/
 backend/dist/
+backend/.env
+backend/go.sum
+backend/.env.*
+!backend/.env.example
 
 # Go build artifacts
 backend/*.exe
@@ -39,39 +46,63 @@ backend/*.so
 backend/*.dylib
 backend/*.test
 backend/*.out
+backend/main
 
 # Go workspace
 backend/go.work
 backend/go.work.sum
 
-# Go modules
-backend/vendor/
-
-# ===== Infra =====
+# ===== Infrastructure =====
 infra/.env
-infra/.env.local
-infra/keycloak/themes/**/resources/img/*.png
-infra/keycloak/themes/**/resources/img/*.svg
-infra/keycloak/themes/**/resources/css/*.css
-infra/keycloak/themes/**/login/*.ftl
+infra/.env.*
+!infra/.env.example
 infra/volumes/
 infra/data/
 infra/logs/
 infra/tmp/
+
+# Certificates and secrets
 infra/*.pem
 infra/*.crt
 infra/*.key
 infra/*.secret
-infra/*.bak
-infra/*.old
 
-# Podman/Compose generated volumes (if mapped to host)
+# Auth service
+infra/auth/auth-service
+infra/auth/.env
+infra/auth/.env.*
+
+# Docker volumes (if mapped to host)
 infra/pg_data/
+infra/postgres_data/
 infra/kc_data/
 infra/caddy_data/
 infra/caddy_config/
 
-# ===== OS / Editor trash =====
+# Keycloak themes (if you add them back)
+infra/keycloak/themes/**/resources/img/*.png
+infra/keycloak/themes/**/resources/img/*.svg
+infra/keycloak/themes/**/resources/css/*.css
+infra/keycloak/themes/**/login/*.ftl
+
+# ===== Docker =====
+.docker/
+docker-compose.override.yml
+
+# ===== Node.js (any Node modules) =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ===== OS =====
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/
+
+# ===== Editor =====
+*.code-workspace
+.history/
+.vs/
