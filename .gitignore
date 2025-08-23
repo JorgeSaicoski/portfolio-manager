@@ -34,7 +34,6 @@ backend/vendor/
 backend/coverage/
 backend/dist/
 backend/.env
-backend/go.sum
 backend/.env.*
 !backend/.env.example
 
