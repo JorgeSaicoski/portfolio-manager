@@ -1,11 +1,11 @@
-<!-- src/lib/components/ProfileModal.svelte -->
 <script lang="ts">
   import { auth, type User } from '$lib/stores/auth';
 
   // Props
   export let user: User;
-  export let onClose: () => void;
-  export let onUpdate: (user: User) => void;
+  export let onClose: () => void = () => {};
+  export let onUpdate: (user: User) => void = () => {};
+
 
   // Form state
   let username = user.username;
