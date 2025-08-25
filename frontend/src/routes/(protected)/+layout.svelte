@@ -7,7 +7,7 @@
   // Use your existing auth store
   $effect(() => {
     if (!$auth.isAuthenticated) {
-      goto('/login');
+      goto('/auth/login');
     }
   });
 

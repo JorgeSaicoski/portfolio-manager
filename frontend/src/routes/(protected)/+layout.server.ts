@@ -5,7 +5,7 @@ export const load: LayoutServerLoad = async ({ cookies }: RequestEvent) => {
   const token = cookies.get('auth-token');
   
   if (!token) {
-    throw redirect(302, '/login');
+    throw redirect(302, '/auth/login');
   }
 
   // Basic token validation
@@ -13,11 +13,11 @@ export const load: LayoutServerLoad = async ({ cookies }: RequestEvent) => {
     const payload = JSON.parse(atob(token.split('.')[1]));
     if (payload.exp < Date.now() / 1000) {
       cookies.delete('auth-token', { path: '/' });
-      throw redirect(302, '/login');
+      throw redirect(302, '/auth/login');
     }
   } catch {
     cookies.delete('auth-token', { path: '/' });
-    throw redirect(302, '/login');
+    throw redirect(302, '/auth/login');
   }
 
   return {};

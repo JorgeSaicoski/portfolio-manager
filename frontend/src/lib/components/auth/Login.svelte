@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+
   // Props for event callbacks
   export let onLoginSuccess:
     | ((data: { token: string; user: any }) => void)
@@ -81,10 +83,7 @@
         token: data.token,
         user: data.user,
       });
-
-      // Clear form
-      email = "";
-      password = "";
+      goto('/dashboard');
     } catch (err) {
       error = err instanceof Error ? err.message : "fallback message";
     } finally {
