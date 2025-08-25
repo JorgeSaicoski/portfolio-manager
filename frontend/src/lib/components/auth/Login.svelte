@@ -78,6 +78,9 @@
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      // Set cookie for server-side authentication
+      document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+
       // Dispatch success event
       onLoginSuccess?.({
         token: data.token,
