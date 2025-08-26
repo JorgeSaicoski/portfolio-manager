@@ -1,4 +1,3 @@
-<!-- AuthWrapper.svelte -->
 <script lang="ts">
   import { auth } from '../../stores/auth';
   

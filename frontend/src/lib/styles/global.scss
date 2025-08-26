@@ -3,6 +3,15 @@
 // Protective. Professional. Trustworthy.
 // ===================================
 
+
+// === COMPONENT IMPORTS ===
+@use 'components/buttons';
+@use 'components/forms';
+@use 'components/cards';
+@use 'components/navigation';
+@use 'components/modal';
+@use 'components/hero';
+
 // === FONT IMPORTS ===
 @font-face {
   font-family: 'PatrickHand';
@@ -444,11 +453,3 @@ img, svg {
     content: " (" attr(href) ")";
   }
 }
-
-// === COMPONENT IMPORTS ===
-@use 'components/buttons';
-@use 'components/forms';
-@use 'components/cards';
-@use 'components/navigation';
-@use 'components/modal';
-@use 'components/hero';

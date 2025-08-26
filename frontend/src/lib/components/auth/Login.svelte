@@ -2,7 +2,7 @@
   import { auth } from '../../stores/auth';
 
   // Props
-  export let onLoginSuccess: ((data: { token: string; user: any }) => void) | undefined = undefined;
+  export let onLoginSuccess: (() => void) | undefined = undefined;
   export let onShowRegister: (() => void) | undefined = undefined;
 
   // Form data
@@ -55,21 +55,14 @@
     error = '';
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
-      });
 
-      const data = await response.json();
+      const result = await auth.login(email.trim(), password);
 
-      if (response.ok) {
+      if (result.success) {
         // Login successful
-        onLoginSuccess?.(data);
+        onLoginSuccess?.();
       } else {
-        error = data.error || 'Login failed';
+        error = result.error || 'Login failed';
       }
     } catch (err) {
       error = 'Network error. Please try again.';
@@ -206,7 +199,7 @@
         </button>
         
         <div class="forgot-password">
-          <a href="#" style="color: var(--color-primary-dark); text-decoration: none;">Forgot your password?</a>
+          <p>Forgot your password?</p>
         </div>
       </div>
     </form>

@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { auth } from "$lib/stores/auth";
+
   // Props for event callbacks
-  export let onRegisterSuccess:
-    | ((data: { token: string; user: any }) => void)
-    | undefined = undefined;
+  export let onRegisterSuccess: (() => void) | undefined = undefined;
   export let onShowLogin: (() => void) | undefined = undefined;
 
   // Form state
@@ -86,39 +86,12 @@
     error = "";
 
     try {
-      const response = await fetch(`${AUTH_API_URL}/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          email: email.trim(),
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Registration failed");
+      const result = await auth.register(username.trim(), email.trim(), password);
+      if (result.success){
+        // Dispatch success event
+        onRegisterSuccess?.();
       }
-
-      // Store token in localStorage (you might want to use a more secure approach)
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Dispatch success event
-      onRegisterSuccess?.({
-        token: data.token,
-        user: data.user,
-      });
-
-      // Clear form
-      username = "";
-      email = "";
-      password = "";
-      confirmPassword = "";
+      
     } catch (err) {
       error = (err as Error).message || "fallback message";
     } finally {

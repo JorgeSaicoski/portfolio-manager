@@ -8,7 +8,7 @@
 </script>
 
 {#if isAuthenticated && user}
-  <Dashboard {user} onLogout={auth.logout} />
+  <Dashboard {user}/>
 {:else}
   <div>Loading user...</div>
 {/if}

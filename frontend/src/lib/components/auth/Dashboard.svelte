@@ -4,7 +4,6 @@
 
   // Props
   export let user: User;
-  export let onLogout: (() => Promise<void>) | undefined = undefined;
 
   // Component state
   let showProfileModal = false;
@@ -23,12 +22,7 @@
 
   // Handle logout
   async function handleLogout() {
-    loading = true;
-    try {
-      await onLogout?.();
-    } finally {
-      loading = false;
-    }
+    await auth.logout();
   }
 
   // Handle profile update
