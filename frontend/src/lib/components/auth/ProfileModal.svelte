@@ -159,17 +159,16 @@
 <div 
   class="modal-backdrop" 
   on:click={handleBackdropClick}
-  on:keydown={handleBackdropKeydown}
   role="dialog"
   aria-modal="true"
   aria-labelledby="modal-title"
   tabindex="-1"
 >
-  <div class="modal-container">
+  <div class="modal-content">
     <div class="modal-header">
       <h2 id="modal-title">Edit Profile</h2>
       <button 
-        class="close-button" 
+        class="btn btn-ghost btn-icon" 
         on:click={onClose} 
         disabled={loading}
         aria-label="Close profile modal"
@@ -183,7 +182,7 @@
     <div class="modal-body">
       {#if !showDeleteConfirm}
         <!-- Profile Edit Form -->
-        <form on:submit|preventDefault={handleUpdate} class="profile-form">
+        <form on:submit|preventDefault={handleUpdate} class="form">
           <!-- Username Field -->
           <div class="form-group">
             <label for="edit-username" class="form-label">Username</label>
@@ -198,16 +197,20 @@
               autocomplete="username"
               minlength="3"
               maxlength="50"
-              aria-describedby={usernameError ? "username-error" : undefined}
             />
             {#if usernameError}
-              <span class="error-message" id="username-error">{usernameError}</span>
+              <div class="form-error">
+                <svg class="icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                {usernameError}
+              </div>
             {/if}
           </div>
 
           <!-- Email Field -->
           <div class="form-group">
-            <label for="edit-email" class="form-label">Email Address</label>
+            <label for="edit-email" class="form-label">Email</label>
             <input
               id="edit-email"
               type="email"
@@ -217,139 +220,110 @@
               class:error={emailError}
               disabled={loading}
               autocomplete="email"
-              aria-describedby={emailError ? "email-error" : undefined}
             />
             {#if emailError}
-              <span class="error-message" id="email-error">{emailError}</span>
+              <div class="form-error">
+                <svg class="icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                {emailError}
+              </div>
             {/if}
           </div>
 
-          <!-- Success/Error Messages -->
-          {#if success}
-            <div class="alert success-alert" role="status" aria-live="polite">
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              {success}
-            </div>
-          {/if}
-
+          <!-- Error Message -->
           {#if error}
-            <div class="alert error-alert" role="alert" aria-live="assertive">
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            <div class="form-error">
+              <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
               {error}
             </div>
           {/if}
 
           <!-- Action Buttons -->
-          <div class="button-group">
+          <div class="card-actions">
+            <button type="submit" class="btn btn-primary" disabled={loading}>
+              {#if loading}
+                <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                Updating...
+              {:else}
+                Update Profile
+              {/if}
+            </button>
+
             <button
               type="button"
-              class="cancel-button"
-              on:click={onClose}
+              class="btn btn-outline"
+              style="border-color: #ef4444; color: #ef4444;"
+              on:click={() => showDeleteConfirm = true}
               disabled={loading}
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="save-button"
-              disabled={loading || (username === user.username && email === user.email)}
-            >
-              {#if loading}
-                <div class="button-spinner" aria-hidden="true"></div>
-                <span class="sr-only">Saving changes...</span>
-                Saving...
-              {:else}
-                Save Changes
-              {/if}
+              Delete Account
             </button>
           </div>
         </form>
-
-        <!-- Danger Zone -->
-        <div class="danger-zone">
-          <h3>Danger Zone</h3>
-          <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
-          <button
-            class="delete-button"
-            on:click={() => showDeleteConfirm = true}
-            disabled={loading}
-          >
-            Delete Account
-          </button>
-        </div>
-
       {:else}
         <!-- Delete Confirmation -->
-        <div class="delete-confirmation">
-          <div class="warning-icon" aria-hidden="true">
+        <div class="text-center">
+          <div style="color: #f59e0b; margin: 0 auto 1rem; display: flex; justify-content: center;">
             <svg width="48" height="48" fill="currentColor" viewBox="0 0 24 24">
               <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
             </svg>
           </div>
           
-          <h3>Delete Account</h3>
-          <p>
-            This action cannot be undone. This will permanently delete your account
-            and remove all associated data from our servers.
-          </p>
+          <h3 style="font-size: 1.25rem; font-weight: 600; color: #ef4444; margin: 0 0 1rem 0;">Delete Account</h3>
           
-          <div class="confirmation-input">
-            <label for="delete-confirm">
-              Please type <strong>{user.username}</strong> to confirm:
+          <p style="color: var(--color-gray-600); line-height: 1.6; margin: 0 0 1.5rem 0;">
+            This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+          </p>
+
+          <!-- Confirmation Input -->
+          <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+            <label class="form-label" for="delete-confirm">
+              Type <strong style="font-family: monospace; background: var(--color-gray-100); padding: 2px 4px; border-radius: 3px;">{user.username}</strong> to confirm:
             </label>
             <input
               id="delete-confirm"
               type="text"
               bind:value={deleteConfirmInput}
-              placeholder="Enter your username"
+              placeholder="Type your username here"
               class="form-input"
               disabled={loading}
-              aria-describedby="delete-instructions"
             />
-            <div id="delete-instructions" class="sr-only">
-              Type your username "{user.username}" to confirm account deletion
-            </div>
           </div>
 
+          <!-- Error Message -->
           {#if error}
-            <div class="alert error-alert" role="alert" aria-live="assertive">
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            <div class="form-error">
+              <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
               {error}
             </div>
           {/if}
 
-          <div class="button-group">
+          <div class="card-actions">
             <button
-              type="button"
-              class="cancel-button"
-              on:click={() => {
-                showDeleteConfirm = false;
-                deleteConfirmInput = "";
-                error = "";
-              }}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="confirm-delete-button"
+              class="btn"
+              style="background: #dc2626; color: white;"
               on:click={handleDelete}
               disabled={loading || deleteConfirmInput !== user.username}
             >
               {#if loading}
-                <div class="button-spinner" aria-hidden="true"></div>
-                <span class="sr-only">Deleting account...</span>
+                <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
                 Deleting...
               {:else}
-                Delete Account
+                Delete My Account
               {/if}
+            </button>
+
+            <button
+              class="btn btn-ghost"
+              on:click={() => { showDeleteConfirm = false; error = ''; deleteConfirmInput = ''; }}
+              disabled={loading}
+            >
+              Cancel
             </button>
           </div>
         </div>
@@ -359,362 +333,8 @@
 </div>
 
 <style>
-  .modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-  }
-
-  .modal-container {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.2s ease-out;
-  }
-
-  @keyframes modalSlideIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  .modal-header {
-    padding: 1.5rem 2rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-  }
-
-  .modal-header h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1a202c;
-    margin: 0;
-  }
-
-  .close-button {
-    background: none;
-    border: none;
-    color: #718096;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 4px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .close-button:hover:not(:disabled) {
-    color: #2d3748;
-    background: #f7fafc;
-  }
-
-  .close-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .modal-body {
-    padding: 0 2rem 2rem;
-  }
-
-  .profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-label {
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.875rem;
-  }
-
-  .form-input {
-    padding: 0.75rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.2s;
-    outline: none;
-  }
-
-  .form-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  .form-input.error {
-    border-color: #ef4444;
-  }
-
-  .form-input:disabled {
-    background-color: #f9fafb;
-    cursor: not-allowed;
-  }
-
-  .error-message {
-    color: #ef4444;
-    font-size: 0.875rem;
-  }
-
-  .alert {
-    padding: 0.75rem;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .success-alert {
-    background-color: #f0fff4;
-    color: #38a169;
-    border: 1px solid #9ae6b4;
-  }
-
-  .error-alert {
-    background-color: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-  }
-
-  .button-group {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-  }
-
-  .cancel-button {
-    background: #f7fafc;
-    color: #4a5568;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .cancel-button:hover:not(:disabled) {
-    background: #edf2f7;
-    border-color: #cbd5e0;
-  }
-
-  .cancel-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .save-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .save-button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  .save-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .button-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
-
-  .danger-zone {
-    border-top: 1px solid #fed7d7;
-    padding-top: 2rem;
-    margin-top: 2rem;
-  }
-
-  .danger-zone h3 {
-    color: #c53030;
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .danger-zone p {
-    color: #718096;
-    font-size: 0.875rem;
-    margin: 0 0 1rem 0;
-    line-height: 1.5;
-  }
-
-  .delete-button {
-    background: #fed7d7;
-    color: #c53030;
-    border: 1px solid #feb2b2;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .delete-button:hover:not(:disabled) {
-    background: #fbb6ce;
-    border-color: #f687b3;
-  }
-
-  .delete-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .delete-confirmation {
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  .warning-icon {
-    color: #f59e0b;
-    margin: 0 auto 1rem;
-    display: flex;
-    justify-content: center;
-  }
-
-  .delete-confirmation h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #c53030;
-    margin: 0 0 1rem 0;
-  }
-
-  .delete-confirmation p {
-    color: #718096;
-    line-height: 1.6;
-    margin: 0 0 1.5rem 0;
-  }
-
-  .confirmation-input {
-    text-align: left;
-    margin-bottom: 1.5rem;
-  }
-
-  .confirmation-input label {
-    display: block;
-    font-size: 0.875rem;
-    color: #374151;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-  }
-
-  .confirmation-input strong {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    background: #f7fafc;
-    padding: 0.125rem 0.25rem;
-    border-radius: 3px;
-    font-size: 0.875rem;
-  }
-
-  .confirm-delete-button {
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .confirm-delete-button:hover:not(:disabled) {
-    background: #b91c1c;
-  }
-
-  .confirm-delete-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  /* Responsive design */
-  @media (max-width: 480px) {
-    .modal-backdrop {
-      padding: 0.5rem;
-    }
-
-    .modal-header {
-      padding: 1rem 1.5rem 0;
-    }
-
-    .modal-body {
-      padding: 0 1.5rem 1.5rem;
-    }
-
-    .button-group {
-      flex-direction: column;
-    }
-
-    .button-group button {
-      width: 100%;
-    }
   }
 </style>
