@@ -36,6 +36,7 @@
 .form-label {
   display: block;
   font-size: var(--text-sm);
+  font-family: var(--font-handwritten); // Add this line
   font-weight: 500;
   color: var(--color-secondary);
   margin-bottom: var(--space-2);
@@ -58,6 +59,7 @@
   width: 100%;
   padding: var(--space-3) var(--space-4);
   font-family: inherit;
+  font-family: var(--font-written);
   font-size: var(--text-base);
   line-height: 1.5;
   color: var(--color-gray-800);
@@ -110,6 +112,7 @@
 .form-textarea {
   @extend .form-input;
   min-height: 120px;
+  font-family: var(--font-written);
   resize: vertical;
   font-family: inherit;
   line-height: 1.6;

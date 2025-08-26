@@ -446,9 +446,9 @@ img, svg {
 }
 
 // === COMPONENT IMPORTS ===
-@import 'components/buttons';
-@import 'components/forms';
-@import 'components/cards';
-@import 'components/navigation';
-@import 'components/modal';
-@import 'components/hero';
+@use 'components/buttons';
+@use 'components/forms';
+@use 'components/cards';
+@use 'components/navigation';
+@use 'components/modal';
+@use 'components/hero';

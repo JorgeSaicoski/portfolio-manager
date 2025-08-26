@@ -1,4 +1,3 @@
-<!-- src/lib/components/auth/Login.svelte -->
 <script lang="ts">
   import { auth } from '../../stores/auth';
 
