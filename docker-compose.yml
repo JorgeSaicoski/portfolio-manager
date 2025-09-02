@@ -1,6 +1,6 @@
 services:
   # Database
-  portfolio-postgres:  # Fixed: was "postgres"
+  portfolio-postgres:  
     image: postgres:16-alpine
     container_name: portfolio-postgres
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
       retries: 5
 
   # Auth Service
-  portfolio-auth:  # Fixed: was "auth-service"
+  portfolio-auth:  
     build:
       context: ./infra/auth
       dockerfile: Dockerfile
@@ -33,7 +33,7 @@ services:
       - PORT=8080
       - GIN_MODE=release
       - LOG_LEVEL=info
-      - DB_HOST=portfolio-postgres  # Fixed: was "postgres"
+      - DB_HOST=portfolio-postgres  
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB:-portfolio_db}
       - DB_USER=${POSTGRES_USER:-portfolio_user}
@@ -42,7 +42,7 @@ services:
       - DB_TIMEZONE=UTC
       - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
     depends_on:
-      portfolio-postgres:  # Fixed: was "postgres"
+      portfolio-postgres:  
         condition: service_healthy
     networks:
       - portfolio-network
@@ -66,19 +66,19 @@ services:
       - PORT=8000
       - GIN_MODE=release
       - LOG_LEVEL=info
-      - DB_HOST=portfolio-postgres # Fixed: was "postgres"
+      - DB_HOST=portfolio-postgres 
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB:-portfolio_db}
       - DB_USER=${POSTGRES_USER:-portfolio_user}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
       - DB_SSLMODE=disable
       - DB_TIMEZONE=UTC
-      - AUTH_SERVICE_URL=http://portfolio-auth:8080 # Fixed: was "auth-service"
+      - AUTH_SERVICE_URL=http://portfolio-auth:8080 
       - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
     depends_on:
-      portfolio-postgres: # Fixed: was "postgres"
+      portfolio-postgres: 
         condition: service_healthy
-      portfolio-auth: # Fixed: was "auth-service"
+      portfolio-auth: 
         condition: service_healthy
     networks:
       - portfolio-network
@@ -97,7 +97,7 @@ services:
       retries: 3
 
   # Frontend
-  portfolio-frontend:  # Fixed: was "frontend"
+  portfolio-frontend:  
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -107,11 +107,10 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # Fixed: Browser needs localhost URLs, not internal Docker network URLs
       - VITE_API_URL=http://localhost:8000/api
       - VITE_AUTH_API_URL=http://localhost:8080/api/auth
     depends_on:
-      - portfolio-auth  # Fixed: was "auth-service"
+      - portfolio-auth  
       - portfolio-backend
     networks:
       - portfolio-network

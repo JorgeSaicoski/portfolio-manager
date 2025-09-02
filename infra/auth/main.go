@@ -224,8 +224,9 @@ func setupRouter() *gin.Engine {
 	}
 
 	// Health check
-	r.GET("/health", healthCheckHandler)
 	r.GET("/ready", readinessCheckHandler)
+	r.GET("/health", healthCheckHandler)
+	r.HEAD("/health", healthCheckHandler)
 
 	return r
 }
