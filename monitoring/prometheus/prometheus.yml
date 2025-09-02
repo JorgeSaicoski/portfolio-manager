@@ -11,7 +11,7 @@ scrape_configs:
   # Auth Service Metrics
   - job_name: 'auth-service'
     static_configs:
-      - targets: ['host.docker.internal:8001']
+      - targets: ['host.docker.internal:8080']
     metrics_path: '/metrics'
     scrape_interval: 10s
 

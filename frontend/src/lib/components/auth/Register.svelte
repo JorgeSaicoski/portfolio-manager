@@ -21,8 +21,6 @@
   let passwordError = "";
   let confirmPasswordError = "";
 
-  // Auth API base URL - adjust this to match your backend
-  const AUTH_API_URL = "http://localhost:8001/api/auth";
 
   // Email validation
   function validateEmail(email: string) {

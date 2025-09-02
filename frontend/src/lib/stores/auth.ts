@@ -1,9 +1,10 @@
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-// Auth API base URL - adjust this to match your backend
-const AUTH_API_URL = 'http://localhost:8001/api/auth';
-const API_BASE_URL = 'http://localhost:8001/api';
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8080/api/auth';
 
 // Type definitions
 export interface User {
