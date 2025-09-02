@@ -10,6 +10,77 @@
 *.bak
 *.old
 
+# ===== Environment Files =====
+# Root level
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Any .env files in subdirectories
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.test
+
+# ===== Images and Media =====
+# Image files (commonly versioned accidentally)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.avif
+*.bmp
+*.tiff
+*.ico
+
+# Vector graphics
+*.svg
+
+# Video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+
+# Exclude common static assets that should be versioned
+!**/static/**/*.png
+!**/static/**/*.jpg
+!**/static/**/*.jpeg
+!**/static/**/*.gif
+!**/static/**/*.svg
+!**/static/**/*.webp
+!**/static/**/*.ico
+!**/public/**/*.png
+!**/public/**/*.jpg
+!**/public/**/*.jpeg
+!**/public/**/*.gif
+!**/public/**/*.svg
+!**/public/**/*.webp
+!**/public/**/*.ico
+!**/assets/**/*.png
+!**/assets/**/*.jpg
+!**/assets/**/*.jpeg
+!**/assets/**/*.gif
+!**/assets/**/*.svg
+!**/assets/**/*.webp
+!**/assets/**/*.ico
+!src/assets/**/*.png
+!src/assets/**/*.jpg
+!src/assets/**/*.jpeg
+!src/assets/**/*.gif
+!src/assets/**/*.svg
+!src/assets/**/*.webp
+!src/assets/**/*.ico
+
 # ===== Frontend (Svelte) =====
 frontend/node_modules/
 frontend/.svelte-kit/
@@ -20,10 +91,6 @@ frontend/.vercel/
 frontend/.netlify/
 frontend/.wrangler/
 frontend/coverage/
-frontend/.env
-frontend/.env.*
-!frontend/.env.example
-!frontend/.env.test
 frontend/vite.config.js.timestamp-*
 frontend/vite.config.ts.timestamp-*
 
@@ -33,9 +100,6 @@ backend/tmp/
 backend/vendor/
 backend/coverage/
 backend/dist/
-backend/.env
-backend/.env.*
-!backend/.env.example
 
 # Go build artifacts
 backend/*.exe
@@ -46,15 +110,13 @@ backend/*.dylib
 backend/*.test
 backend/*.out
 backend/main
+backend/backend-service
 
 # Go workspace
 backend/go.work
 backend/go.work.sum
 
 # ===== Infrastructure =====
-infra/.env
-infra/.env.*
-!infra/.env.example
 infra/volumes/
 infra/data/
 infra/logs/
@@ -65,11 +127,14 @@ infra/*.pem
 infra/*.crt
 infra/*.key
 infra/*.secret
+**/*.pem
+**/*.crt
+**/*.key
+**/*.secret
 
-# Auth service
+# Auth service build artifacts
 infra/auth/auth-service
-infra/auth/.env
-infra/auth/.env.*
+infra/auth/main
 
 # Docker volumes (if mapped to host)
 infra/pg_data/
@@ -77,12 +142,6 @@ infra/postgres_data/
 infra/kc_data/
 infra/caddy_data/
 infra/caddy_config/
-
-# Keycloak themes (if you add them back)
-infra/keycloak/themes/**/resources/img/*.png
-infra/keycloak/themes/**/resources/img/*.svg
-infra/keycloak/themes/**/resources/css/*.css
-infra/keycloak/themes/**/login/*.ftl
 
 # ===== Docker =====
 .docker/
@@ -95,6 +154,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# ===== Logs =====
+*.log
+logs/
+**/*.log
+**/logs/
+
 # ===== OS =====
 Thumbs.db
 ehthumbs.db
@@ -105,3 +170,37 @@ $RECYCLE.BIN/
 *.code-workspace
 .history/
 .vs/
+
+# ===== IDE Files =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Build Artifacts =====
+dist/
+build/
+*.tar.gz
+*.zip
+*.rar
+
+# ===== Database Files =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Backup Files =====
+*.backup
+*.bak
+*.old
+*.orig
+*~
+
+# ===== Cache =====
+.cache/
+**/.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
