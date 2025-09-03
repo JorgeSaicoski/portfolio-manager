@@ -1,10 +1,38 @@
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
-
-
+import { goto } from '$app/navigation';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8080/api/auth';
+
+// Cookie helper functions
+function setCookie(name: string, value: string, days: number = 7) {
+  if (!browser) return;
+  
+  const expires = new Date();
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+  
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+}
+
+function getCookie(name: string): string | null {
+  if (!browser) return null;
+  
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name: string) {
+  if (!browser) return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+}
 
 // Type definitions
 export interface User {
@@ -45,17 +73,6 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
-export interface UpdateProfileRequest {
-  username: string;
-  email: string;
-}
-
-export interface JWTPayload {
-  user_id: number;
-  exp: number;
-  iat: number;
-}
-
 // Initial state
 const initialState: AuthState = {
   isAuthenticated: false,
@@ -72,11 +89,11 @@ function createAuthStore(): AuthStore {
   return {
     subscribe,
     
-    // Initialize auth state from localStorage
+    // Initialize auth state from cookies and localStorage
     init(): void {
       if (browser) {
-        const token = localStorage.getItem('authToken');
-        const userStr = localStorage.getItem('user');
+        const token = getCookie('auth-token') || localStorage.getItem('authToken');
+        const userStr = getCookie('auth-user') || localStorage.getItem('user');
         
         if (token && userStr) {
           try {
@@ -101,6 +118,9 @@ function createAuthStore(): AuthStore {
       }));
 
       if (browser) {
+        // Store in both cookies and localStorage for compatibility
+        setCookie('auth-token', token, 7); // 7 days
+        setCookie('auth-user', JSON.stringify(user), 7);
         localStorage.setItem('authToken', token);
         localStorage.setItem('user', JSON.stringify(user));
       }
@@ -111,6 +131,9 @@ function createAuthStore(): AuthStore {
       set(initialState);
       
       if (browser) {
+        // Clear both cookies and localStorage
+        deleteCookie('auth-token');
+        deleteCookie('auth-user');
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
       }
@@ -139,6 +162,7 @@ function createAuthStore(): AuthStore {
       this.setError('');
 
       try {
+        console.log('Starting login attempt...');
         const response = await fetch(`${AUTH_API_URL}/login`, {
           method: 'POST',
           headers: {
@@ -153,7 +177,9 @@ function createAuthStore(): AuthStore {
           throw new Error((data as any).error || 'Login failed');
         }
 
+        console.log('Auth response received:', data);
         this.setAuth(data.token, data.user);
+        console.log('Auth state updated');
         return { success: true, data };
 
       } catch (error) {
@@ -201,150 +227,19 @@ function createAuthStore(): AuthStore {
     async logout(): Promise<void> {
       this.clearAuth();
       
-      // Optionally call backend logout endpoint if you implement one
-      // try {
-      //   await fetch(`${AUTH_API_URL}/logout`, {
-      //     method: 'POST',
-      //     headers: {
-      //       'Authorization': `Bearer ${token}`
-      //     }
-      //   });
-      // } catch (error) {
-      //   console.error('Logout error:', error);
-      // }
-    },
-
-    // Get user profile
-    async getProfile(): Promise<User> {
-      const state = this.getCurrentState();
-      if (!state.token) {
-        throw new Error('No authentication token');
-      }
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/profile`, {
-          headers: {
-            'Authorization': `Bearer ${state.token}`
-          }
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            this.clearAuth();
-          }
-          throw new Error('Failed to fetch profile');
-        }
-
-        const user: User = await response.json();
-        
-        update(state => ({
-          ...state,
-          user
-        }));
-
-        if (browser) {
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        return user;
-
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        this.setError(errorMessage);
-        throw error;
+      // Navigate to login page
+      if (browser) {
+        goto('/auth/login');
       }
     },
 
-    // Update user profile
-    async updateProfile(username: string, email: string): Promise<ApiResponse<User>> {
-      const state = this.getCurrentState();
-      if (!state.token) {
-        throw new Error('No authentication token');
-      }
-
-      this.setLoading(true);
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.token}`
-          },
-          body: JSON.stringify({ username, email } as UpdateProfileRequest)
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            this.clearAuth();
-          }
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to update profile');
-        }
-
-        const user: User = await response.json();
-        
-        update(state => ({
-          ...state,
-          user
-        }));
-
-        if (browser) {
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        return { success: true, data: user };
-
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        this.setError(errorMessage);
-        return { success: false, error: errorMessage };
-      } finally {
-        this.setLoading(false);
-      }
-    },
-
-    // Delete user profile
-    async deleteProfile(): Promise<ApiResponse<void>> {
-      const state = this.getCurrentState();
-      if (!state.token) {
-        throw new Error('No authentication token');
-      }
-
-      this.setLoading(true);
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/profile`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${state.token}`
-          }
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            this.clearAuth();
-          }
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to delete profile');
-        }
-
-        this.clearAuth();
-        return { success: true };
-
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        this.setError(errorMessage);
-        return { success: false, error: errorMessage };
-      } finally {
-        this.setLoading(false);
-      }
-    },
-
-    // Get current state (useful for non-reactive contexts)
+    // Get current state (helper for non-reactive contexts)
     getCurrentState(): AuthState {
       let currentState: AuthState;
-      subscribe(state => currentState = state)();
+      const unsubscribe = subscribe(state => {
+        currentState = state;
+      });
+      unsubscribe();
       return currentState!;
     },
 
@@ -354,7 +249,7 @@ function createAuthStore(): AuthStore {
       if (!state.token) return true;
 
       try {
-        const payload: JWTPayload = JSON.parse(atob(state.token.split('.')[1]));
+        const payload: any = JSON.parse(atob(state.token.split('.')[1]));
         const now = Date.now() / 1000;
         return payload.exp < now;
       } catch (error) {
@@ -385,9 +280,6 @@ export interface AuthStore {
   login(email: string, password: string): Promise<ApiResponse<AuthResponse>>;
   register(username: string, email: string, password: string): Promise<ApiResponse<AuthResponse>>;
   logout(): Promise<void>;
-  getProfile(): Promise<User>;
-  updateProfile(username: string, email: string): Promise<ApiResponse<User>>;
-  deleteProfile(): Promise<ApiResponse<void>>;
   getCurrentState(): AuthState;
   isTokenExpired(): boolean;
   ensureAuth(): Promise<boolean>;

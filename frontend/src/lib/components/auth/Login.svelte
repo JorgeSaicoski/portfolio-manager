@@ -55,16 +55,20 @@
     error = '';
 
     try {
-
+      console.log('Starting login attempt...');
       const result = await auth.login(email.trim(), password);
+      console.log('Login result:', result);
 
       if (result.success) {
+        console.log('Login successful, calling onLoginSuccess');
         // Login successful
         onLoginSuccess?.();
       } else {
+        console.log('Login failed:', result.error);
         error = result.error || 'Login failed';
       }
     } catch (err) {
+      console.error('Login error:', err);
       error = 'Network error. Please try again.';
     } finally {
       loading = false;
@@ -207,23 +211,10 @@
     <div class="form-footer">
       <p>
         Don't have an account?
-        <button
-          type="button"
-          class="btn btn-ghost"
-          style="padding: 0; height: auto; font-size: inherit;"
-          on:click={handleRegisterClick}
-          disabled={loading}
-        >
+        <button type="button" class="btn-link" on:click={handleRegisterClick}>
           Sign up here
         </button>
       </p>
     </div>
   </div>
 </div>
-
-<style>
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-</style>

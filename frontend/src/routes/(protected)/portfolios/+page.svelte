@@ -207,11 +207,6 @@
                     </svg>
                     View Portfolio
                   </button>
-                  <button class="btn btn-ghost btn-sm">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z"/>
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>

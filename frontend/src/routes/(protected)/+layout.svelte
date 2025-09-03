@@ -1,13 +1,30 @@
 <script lang="ts">
   import { auth } from '$lib/stores/auth';
-  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
 
-  let { children } = $props();
+  interface LayoutData {
+    user: {
+      id: number;
+      username: string;
+      email: string;
+      created_at: string;
+      updated_at: string;
+    };
+    token?: string;
+  }
 
-  // Use your existing auth store
-  $effect(() => {
-    if (!$auth.isAuthenticated) {
-      goto('/auth/login');
+  interface Props {
+    children: any;
+    data: LayoutData;
+  }
+
+  let { children, data }: Props = $props();
+
+  // Initialize auth store with server data
+  onMount(() => {
+    if (data.user && data.token) {
+      // Update client store with server data
+      auth.setAuth(data.token, data.user);
     }
   });
 
@@ -16,23 +33,19 @@
   }
 </script>
 
-{#if $auth.isAuthenticated}
-  <div class="protected-layout">
-    <header>
-      <h1>Protected Area</h1>
-      {#if $auth.user}
-        <span>Welcome, {$auth.user.username}!</span>
-      {/if}
-      <button onclick={handleLogout}>Logout</button>
-    </header>
-    
-    <main>
-      {@render children?.()}
-    </main>
-  </div>
-{:else}
-  <div>Loading...</div>
-{/if}
+<div class="protected-layout">
+  <header>
+    <h1>Protected Area</h1>
+    {#if data.user}
+      <span>Welcome, {data.user.username}!</span>
+    {/if}
+    <button onclick={handleLogout}>Logout</button>
+  </header>
+  
+  <main>
+    {@render children?.()}
+  </main>
+</div>
 
 <style>
   .protected-layout {
