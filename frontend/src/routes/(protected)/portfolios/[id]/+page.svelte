@@ -1,12 +1,16 @@
 <script lang="ts">
-  import { page } from "$app/stores";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { portfolioStore, type Portfolio } from "$lib/stores/portfolio";
-  import { auth } from "$lib/stores/auth";
+
+
+
+  // Get data from load function
+  export let data: { id: string };
 
   // Page parameters
-  $: portfolioId = parseInt($page.params.id);
+  $: portfolioId = parseInt(data.id);
+
 
   // Component state
   let portfolio: Portfolio | null = null;
@@ -25,8 +29,6 @@
   let titleError = "";
   let descriptionError = "";
 
-  $: user = $auth.user;
-
   // Load portfolio on mount
   onMount(async () => {
     await loadPortfolio();
@@ -35,23 +37,22 @@
   async function loadPortfolio() {
     loading = true;
     error = null;
-    
+    console.log(portfolioId)
+
     try {
-      // Since there's no getById method in store, we'll get all portfolios and find the one we need
-      await portfolioStore.getOwn();
+      // Use the new getById function for public access
+      await portfolioStore.getById(portfolioId);
       const state = $portfolioStore;
-      portfolio = state.portfolios.find(p => p.id === portfolioId) || null;
-      
-      if (!portfolio) {
-        error = "Portfolio not found";
-      } else {
+      portfolio = state.currentPortfolio;
+
+      if (portfolio) {
         // Initialize edit form with current data
         editTitle = portfolio.title;
         editDescription = portfolio.description;
       }
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to load portfolio";
-      console.error("Error loading portfolio:", err);
+      portfolio = null;
     } finally {
       loading = false;
     }
@@ -59,10 +60,10 @@
 
   function validateEditForm() {
     let isValid = true;
-    
+
     titleError = "";
     descriptionError = "";
-    
+
     if (!editTitle.trim()) {
       titleError = "Portfolio title is required";
       isValid = false;
@@ -73,7 +74,7 @@
       titleError = "Title must be less than 100 characters";
       isValid = false;
     }
-    
+
     if (!editDescription.trim()) {
       descriptionError = "Portfolio description is required";
       isValid = false;
@@ -84,7 +85,7 @@
       descriptionError = "Description must be less than 500 characters";
       isValid = false;
     }
-    
+
     return isValid;
   }
 
@@ -108,7 +109,7 @@
 
   async function saveEdit() {
     if (!portfolio || !validateEditForm()) return;
-    
+
     isSubmitting = true;
     editError = "";
 
@@ -117,12 +118,13 @@
         title: editTitle.trim(),
         description: editDescription.trim(),
       });
-      
+
       // Reload portfolio to get updated data
       await loadPortfolio();
       isEditing = false;
     } catch (err) {
-      editError = err instanceof Error ? err.message : "Failed to update portfolio";
+      editError =
+        err instanceof Error ? err.message : "Failed to update portfolio";
     } finally {
       isSubmitting = false;
     }
@@ -185,13 +187,17 @@
         {#if portfolio && !isEditing}
           <button class="btn btn-outline" on:click={startEdit}>
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              />
             </svg>
             Edit
           </button>
           <button class="btn btn-error" on:click={openDeleteModal}>
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
             </svg>
             Delete
           </button>
@@ -216,8 +222,16 @@
         <div class="card">
           <div class="card-body">
             <div class="text-center">
-              <svg width="48" height="48" fill="currentColor" viewBox="0 0 24 24" class="text-error">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              <svg
+                width="48"
+                height="48"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                class="text-error"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                />
               </svg>
               <h3 class="text-error">Error</h3>
               <p class="text-muted">{error}</p>
@@ -248,11 +262,21 @@
               <div class="card-body">
                 <!-- Edit Error display -->
                 {#if editError}
-                  <div class="card" style="background-color: rgba(239, 68, 68, 0.1); color: var(--color-error); border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: var(--space-6);">
+                  <div
+                    class="card"
+                    style="background-color: rgba(239, 68, 68, 0.1); color: var(--color-error); border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: var(--space-6);"
+                  >
                     <div class="card-body">
                       <div class="flex">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <svg
+                          width="20"
+                          height="20"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                          />
                         </svg>
                         <span>{editError}</span>
                       </div>
@@ -279,8 +303,16 @@
                     />
                     {#if titleError}
                       <div class="form-error">
-                        <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <svg
+                          class="icon"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                          />
                         </svg>
                         {titleError}
                       </div>
@@ -309,8 +341,16 @@
                     ></textarea>
                     {#if descriptionError}
                       <div class="form-error">
-                        <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <svg
+                          class="icon"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                          />
                         </svg>
                         {descriptionError}
                       </div>
@@ -333,7 +373,9 @@
                     <button
                       type="submit"
                       class="btn btn-primary"
-                      disabled={isSubmitting || !editTitle.trim() || !editDescription.trim()}
+                      disabled={isSubmitting ||
+                        !editTitle.trim() ||
+                        !editDescription.trim()}
                     >
                       {#if isSubmitting}
                         Saving...
@@ -349,14 +391,24 @@
             <!-- View Mode -->
             <div class="card protected">
               <div class="card-header">
-                <div class="flex" style="justify-content: space-between; align-items: flex-start;">
+                <div
+                  class="flex"
+                  style="justify-content: space-between; align-items: flex-start;"
+                >
                   <div>
                     <h2>{portfolio.title}</h2>
                     <p class="text-muted">Portfolio #{portfolio.id}</p>
                   </div>
                   <div class="feature-icon">
-                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    <svg
+                      width="24"
+                      height="24"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -368,7 +420,10 @@
                   <p class="text-base">{portfolio.description}</p>
                 </div>
 
-                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6);">
+                <div
+                  class="grid"
+                  style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6);"
+                >
                   <div>
                     <span class="form-label">Created</span>
                     <p class="text-base">{formatDate(portfolio.created_at)}</p>
@@ -399,7 +454,8 @@
                 <div class="text-center">
                   <h4>Portfolio Sections</h4>
                   <p class="text-muted">
-                    Portfolio sections and content management will be available here.
+                    Portfolio sections and content management will be available
+                    here.
                   </p>
                   <button class="btn btn-outline" disabled>
                     Manage Sections

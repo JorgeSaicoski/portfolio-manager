@@ -1,8 +1,10 @@
 import { writable, type Writable } from "svelte/store";
 import { authenticatedFetch } from "./auth";
-import { browser } from '$app/environment';
+import { browser } from "$app/environment";
 
-const API_BASE_URL = browser ? import.meta.env.VITE_API_URL || 'http://localhost:8000/api' : 'http://localhost:8000/api';
+const API_BASE_URL = browser
+  ? import.meta.env.VITE_API_URL || "http://localhost:8000/api"
+  : "http://localhost:8000/api";
 const PORTFOLIO_API_URL = `${API_BASE_URL}/portfolios`;
 
 export interface Portfolio {
@@ -47,6 +49,38 @@ function createPortfolioStore() {
             portfolios: data.portfolios,
             loading: false,
           }));
+          console.log("Portfolios")
+          console.log(data.portfolios)
+          return data.portfolios;
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        update((state) => ({
+          ...state,
+          loading: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+
+    async getById(id: number) {
+      update((state) => ({ ...state, loading: true, error: null }));
+
+      try {
+        // Use regular fetch (not authenticatedFetch) since it's a public route
+        const response = await fetch(`${API_BASE_URL}/portfolios/id/${id}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          update((state) => ({
+            ...state,
+            currentPortfolio: data.portfolio,
+            loading: false,
+          }));
           return data;
         } else {
           throw new Error(data.error);
@@ -58,6 +92,7 @@ function createPortfolioStore() {
           ...state,
           loading: false,
           error: errorMessage,
+          currentPortfolio: null,
         }));
         throw error;
       }
