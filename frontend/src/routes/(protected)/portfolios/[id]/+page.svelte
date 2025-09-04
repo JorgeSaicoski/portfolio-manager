@@ -114,7 +114,7 @@
     editError = "";
 
     try {
-      await portfolioStore.update(portfolio.id, {
+      await portfolioStore.update(portfolio.ID, {
         title: editTitle.trim(),
         description: editDescription.trim(),
       });
@@ -397,7 +397,7 @@
                 >
                   <div>
                     <h2>{portfolio.title}</h2>
-                    <p class="text-muted">Portfolio #{portfolio.id}</p>
+                    <p class="text-muted">Portfolio #{portfolio.ID}</p>
                   </div>
                   <div class="feature-icon">
                     <svg
@@ -426,11 +426,11 @@
                 >
                   <div>
                     <span class="form-label">Created</span>
-                    <p class="text-base">{formatDate(portfolio.created_at)}</p>
+                    <p class="text-base">{formatDate(portfolio.CreatedAt)}</p>
                   </div>
                   <div>
                     <span class="form-label">Last Updated</span>
-                    <p class="text-base">{formatDate(portfolio.updated_at)}</p>
+                    <p class="text-base">{formatDate(portfolio.UpdatedAt)}</p>
                   </div>
                   <div>
                     <span class="form-label">Owner</span>

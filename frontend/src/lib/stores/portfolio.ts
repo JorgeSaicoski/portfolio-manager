@@ -8,12 +8,12 @@ const API_BASE_URL = browser
 const PORTFOLIO_API_URL = `${API_BASE_URL}/portfolios`;
 
 export interface Portfolio {
-  id: number;
+  ID: number;
   title: string;
   description: string;
   owner_id: string;
-  created_at: string;
-  updated_at: string;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 export interface PortfolioState {
@@ -147,7 +147,7 @@ function createPortfolioStore() {
           update((state) => ({
             ...state,
             portfolios: state.portfolios.map((p) =>
-              p.id === id ? data.portfolio : p
+              p.ID === id ? data.portfolio : p
             ),
             loading: false,
           }));
@@ -181,7 +181,7 @@ function createPortfolioStore() {
         if (response.ok) {
           update((state) => ({
             ...state,
-            portfolios: state.portfolios.filter((p) => p.id !== id),
+            portfolios: state.portfolios.filter((p) => p.ID !== id),
             loading: false,
           }));
         } else {

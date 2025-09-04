@@ -18,7 +18,6 @@
   $: portfolios = storePortfolios;
   $: loading = storeLoading;
   $: error = storeError;
-  $: user = $auth.user;
 
   // Load portfolios on mount
   onMount(async () => {
@@ -179,7 +178,7 @@
       <!-- Portfolios grid -->
       {#if !loading && !error && portfolios.length > 0}
         <div class="card-grid cols-3 animate-stagger">
-          {#each portfolios as portfolio (portfolio.id)}
+          {#each portfolios as portfolio (portfolio.ID)}
             <div class="card card-feature" class:protected={true}>
               <div class="card-header">
                 <div class="portfolio-meta">
@@ -197,7 +196,7 @@
                   </div>
                   <div class="portfolio-dates">
                     <span class="text-muted text-sm">
-                      Created {formatDate(portfolio.created_at)}
+                      Created {formatDate(portfolio.CreatedAt)}
                     </span>
                   </div>
                 </div>
@@ -217,7 +216,7 @@
                   <div class="stat">
                     <span class="stat-label">Last Updated</span>
                     <span class="stat-value"
-                      >{formatDate(portfolio.updated_at)}</span
+                      >{formatDate(portfolio.UpdatedAt)}</span
                     >
                   </div>
                 </div>
@@ -227,7 +226,7 @@
                 <div class="card-actions">
                   <button
                     class="btn btn-primary"
-                    on:click={() => goToPortfolio(portfolio.id)}
+                    on:click={() => goToPortfolio(portfolio.ID)}
                   >
                     <svg
                       width="16"
