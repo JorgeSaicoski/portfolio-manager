@@ -3,14 +3,11 @@
   import { onMount } from "svelte";
   import { portfolioStore, type Portfolio } from "$lib/stores/portfolio";
 
-
-
   // Get data from load function
-  export let data: { id: string };
+  export let data: { id: number };
 
   // Page parameters
-  $: portfolioId = parseInt(data.id);
-
+  $: portfolioId = data.id;
 
   // Component state
   let portfolio: Portfolio | null = null;
@@ -37,7 +34,7 @@
   async function loadPortfolio() {
     loading = true;
     error = null;
-    console.log(portfolioId)
+    console.log(portfolioId);
 
     try {
       // Use the new getById function for public access
