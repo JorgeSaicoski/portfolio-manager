@@ -1,0 +1,121 @@
+### Environment Variables
+@authUrl = http://localhost:8080
+@backendUrl = http://localhost:8000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjA5MDc1MzcsImlhdCI6MTc2MDgyMTEzN30._5p5aAlm1hG6OgEjYL0USqsgpYuM_Sczc_R2Noa2tS0
+@portfolioId = 1
+
+
+### Get Own Portfolios - Success (with pagination)
+GET {{backendUrl}}/api/portfolios/own?page=1&limit=10
+Authorization: Bearer {{authToken}}
+
+### Get Own Portfolios - Default Pagination
+GET {{backendUrl}}/api/portfolios/own
+Authorization: Bearer {{authToken}}
+
+### Get Own Portfolios - Invalid Page (uses default)
+GET {{backendUrl}}/api/portfolios/own?page=0&limit=-5
+Authorization: Bearer {{authToken}}
+
+### Get Own Portfolios - Unauthorized (401)
+GET {{backendUrl}}/api/portfolios/own
+
+###
+
+### Create Portfolio - Success
+POST {{backendUrl}}/api/portfolios/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "My Investment Portfolio",
+  "description": "Tech stocks portfolio",
+  "type": "stocks"
+}
+
+### Create Portfolio - Invalid Data (400)
+POST {{backendUrl}}/api/portfolios/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### Create Portfolio - Unauthorized (401)
+POST {{backendUrl}}/api/portfolios/own
+Content-Type: application/json
+
+{
+  "title": "My Portfolio"
+}
+
+###
+
+### Update Portfolio - Success
+PUT {{backendUrl}}/api/portfolios/own/id/{{portfolioId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Portfolio Title",
+  "description": "Updated description"
+}
+
+### Update Portfolio - Invalid ID (400)
+PUT {{backendUrl}}/api/portfolios/own/id/invalid
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Portfolio - Not Found (404)
+PUT {{backendUrl}}/api/portfolios/own/id/99999
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Portfolio - Unauthorized (401)
+PUT {{backendUrl}}/api/portfolios/own/id/{{portfolioId}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+###
+
+### Delete Portfolio - Success
+DELETE {{backendUrl}}/api/portfolios/own/id/{{portfolioId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Portfolio - Invalid ID (400)
+DELETE {{backendUrl}}/api/portfolios/own/id/invalid
+Authorization: Bearer {{authToken}}
+
+### Delete Portfolio - Not Found (404)
+DELETE {{backendUrl}}/api/portfolios/own/id/99999
+Authorization: Bearer {{authToken}}
+
+### Delete Portfolio - Forbidden (not owner) (403)
+DELETE {{backendUrl}}/api/portfolios/own/id/{{portfolioId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Portfolio - Unauthorized (401)
+DELETE {{backendUrl}}/api/portfolios/own/id/{{portfolioId}}
+
+###
+
+### Get Portfolio by ID (Public) - Success
+GET {{backendUrl}}/api/portfolios/id/{{portfolioId}}
+
+### Get Portfolio by ID (Public) - Invalid ID (400)
+GET {{backendUrl}}/api/portfolios/id/invalid
+
+### Get Portfolio by ID (Public) - Not Found (404)
+GET {{backendUrl}}/api/portfolios/id/99999

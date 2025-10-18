@@ -1,0 +1,172 @@
+@authUrl = http://localhost:8080
+@authToken = your-jwt-token-here
+
+### Health Check - Success
+GET {{authUrl}}/health
+
+### Health Check - HEAD Method
+HEAD {{authUrl}}/health
+
+### Readiness Check
+GET {{authUrl}}/ready
+
+### Metrics Endpoint
+GET {{authUrl}}/metrics
+
+### Health Check - Wrong Path (404)
+GET {{authUrl}}/healthz
+
+###
+
+### Register - Success
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "SecurePassword123!"
+}
+
+### Register - Missing Username (400)
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "SecurePassword123!"
+}
+
+### Register - Invalid Email (400)
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser2",
+  "email": "invalid-email",
+  "password": "SecurePassword123!"
+}
+
+### Register - Weak Password (400)
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser3",
+  "email": "test3@example.com",
+  "password": "123"
+}
+
+### Register - Duplicate Username/Email (409)
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "SecurePassword123!"
+}
+
+###
+
+### Login - Success
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "SecurePassword123!"
+}
+
+### Login - Wrong Password (401)
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Login - Non-existent User (401)
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "SecurePassword123!"
+}
+
+### Login - Missing Fields (400)
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+###
+
+### Get Profile - Success
+GET {{authUrl}}/api/profile
+Authorization: Bearer {{authToken}}
+
+### Get Profile - No Token (401)
+GET {{authUrl}}/api/profile
+
+### Get Profile - Invalid Token (401)
+GET {{authUrl}}/api/profile
+Authorization: Bearer invalid-token-here
+
+### Get Profile - Malformed Header (401)
+GET {{authUrl}}/api/profile
+Authorization: {{authToken}}
+
+###
+
+### Update Profile - Success
+PUT {{authUrl}}/api/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "username": "updateduser",
+  "email": "updated@example.com"
+}
+
+### Update Profile - Duplicate Username/Email (409)
+PUT {{authUrl}}/api/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "username": "existinguser",
+  "email": "existing@example.com"
+}
+
+### Update Profile - Unauthorized (401)
+PUT {{authUrl}}/api/profile
+Content-Type: application/json
+
+{
+  "username": "updateduser"
+}
+
+###
+
+### Delete Profile - Success
+DELETE {{authUrl}}/api/profile
+Authorization: Bearer {{authToken}}
+
+### Delete Profile - Unauthorized (401)
+DELETE {{authUrl}}/api/profile
+
+###
+
+### Get All Users - Success
+GET {{authUrl}}/api/users
+Authorization: Bearer {{authToken}}
+
+### Get All Users - Unauthorized (401)
+GET {{authUrl}}/api/users
+
+###
