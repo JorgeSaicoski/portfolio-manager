@@ -28,7 +28,7 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "title": "My Investment Portfolio",
+  "title": "My Investment Portfolio2",
   "description": "Tech stocks portfolio",
   "type": "stocks"
 }
