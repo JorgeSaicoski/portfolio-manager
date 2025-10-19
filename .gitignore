@@ -2,13 +2,23 @@
 .DS_Store
 *.swp
 *.swo
+*.swn
 *.swm
 *.log
-.idea/
 .vscode/
 *.tmp
 *.bak
 *.old
+
+# JetBrains IDEs (IntelliJ, GoLand, WebStorm, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+*.code-workspace
 
 # ===== Environment Files =====
 # Root level
@@ -94,6 +104,25 @@ frontend/coverage/
 frontend/vite.config.js.timestamp-*
 frontend/vite.config.ts.timestamp-*
 
+# Svelte/Vite generated files
+frontend/.svelte-kit/**/*
+!frontend/.svelte-kit/tsconfig.json
+
+# Environment files
+frontend/.env.local
+frontend/.env.*.local
+
+# Storybook
+frontend/storybook-static/
+
+# Playwright tests
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
+
+# Turbo
+frontend/.turbo/
+
 # ===== Backend (Go) =====
 backend/bin/
 backend/tmp/
@@ -111,10 +140,17 @@ backend/*.test
 backend/*.out
 backend/main
 backend/backend-service
+backend/debug
+backend/__debug_bin
 
 # Go workspace
 backend/go.work
 backend/go.work.sum
+
+# Go test coverage
+backend/coverage.out
+backend/coverage.html
+backend/c.out
 
 # ===== Infrastructure =====
 infra/volumes/
@@ -135,6 +171,12 @@ infra/*.secret
 # Auth service build artifacts
 infra/auth/auth-service
 infra/auth/main
+infra/auth/*.exe
+infra/auth/*.out
+infra/auth/debug
+infra/auth/__debug_bin
+infra/auth/tmp/
+infra/auth/vendor/
 
 # Docker volumes (if mapped to host)
 infra/pg_data/
@@ -146,6 +188,72 @@ infra/caddy_config/
 # ===== Docker =====
 .docker/
 docker-compose.override.yml
+docker-compose.*.override.yml
+
+# Docker build context
+.dockerignore
+
+# Docker volume mounts
+volumes/
+data/
+
+# ===== Python (if used for scripts/tools) =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env.py/
+virtualenv/
+
+# Python distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+.pytest_cache/
+.tox/
+.nox/
+
+# IPython / Jupyter
+.ipynb_checkpoints
+*.ipynb
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
 
 # ===== Node.js (any Node modules) =====
 node_modules/
@@ -155,7 +263,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # ===== Logs =====
-*.log
 logs/
 **/*.log
 **/logs/
@@ -167,20 +274,25 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # ===== Editor =====
-*.code-workspace
 .history/
 .vs/
-
-# ===== IDE Files =====
-.vscode/
-.idea/
-*.swp
-*.swo
 *~
 
-# ===== Build Artifacts =====
-dist/
-build/
+# Emacs
+\#*\#
+.\#*
+
+# Vim swap files
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
 *.tar.gz
 *.zip
 *.rar
@@ -192,10 +304,7 @@ build/
 
 # ===== Backup Files =====
 *.backup
-*.bak
-*.old
 *.orig
-*~
 
 # ===== Cache =====
 .cache/
@@ -204,3 +313,158 @@ build/
 .next/
 .nuxt/
 .vuepress/dist
+
+# ===== Testing =====
+# HTTP request test files (IntelliJ/GoLand)
+http_request_test/http-client.private*
+**/*.http.private
+.httpRequestLog/
+
+# Test coverage reports
+coverage/
+*.coverprofile
+htmlcov/
+.coverage
+.coverage.*
+
+# Test databases
+test.db
+test.sqlite
+test.sqlite3
+
+# ===== Monitoring & Observability =====
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# Logs from monitoring tools
+monitoring/logs/
+monitoring/data/
+
+# ===== Security & Credentials =====
+# SSH keys
+*.ppk
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# GPG keys
+secring.*
+
+# AWS credentials
+.aws/
+credentials
+
+# Google Cloud
+gcloud/
+*.json.secret
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+override.tf
+
+# ===== Miscellaneous =====
+# Temporary files
+*.temp
+.tmp/
+.temp/
+
+# Compressed files (if they are build artifacts)
+# Comment out if you version releases
+# *.tar
+# *.gz
+# *.bz2
+# *.xz
+# *.zip
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/
+site/
+
+# macOS metadata
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows thumbnails
+Thumbs.db:encryptable
+ehthumbs_vista.db
+
+# Lock files (uncomment if you don't want to version them)
+# Note: Usually lock files SHOULD be versioned for reproducible builds
+# Uncomment only if you have a specific reason
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# go.sum
+
+# ===== CI/CD =====
+# GitHub Actions artifacts
+.github/workflows/*.log
+
+# GitLab CI
+.gitlab-ci-local/
+
+# Jenkins
+.jenkins/
+
+# CircleCI
+.circleci/local/
+
+# Travis CI
+.travis/
+
+# Build artifacts from CI
+artifacts/
+.artifacts/
+
+# ===== Performance & Profiling =====
+# Go profiling
+*.prof
+*.pprof
+cpu.out
+mem.out
+block.out
+mutex.out
+trace.out
+
+# Node.js profiling
+*.cpuprofile
+*.heapprofile
+*.heapsnapshot
+
+# Chrome/Firefox profiling
+profile-*.json
+
+# ===== Development Tools =====
+# Air (Go live reload)
+.air.toml
+tmp/
+
+# Nodemon
+nodemon.json
+
+# Task runners
+Taskfile.yml.local
+
+# Make
+*.d
+
+# ===== Project-Specific =====
+# Add any project-specific patterns below
+# Example:
+# my-custom-config.local.json
+# scripts/temp/
