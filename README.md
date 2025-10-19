@@ -5,10 +5,19 @@ A full-stack portfolio management application with microservices architecture.
 ## Architecture
 
 - **Frontend**: Svelte/SvelteKit application
-- **Backend**: Go API service 
+- **Backend**: Go API service
 - **Auth Service**: Go authentication microservice
 - **Database**: PostgreSQL
-- **Containerization**: Docker & Docker Compose
+- **Containerization**: Podman (recommended) / Docker
+
+### Why Podman?
+
+We use **Podman** as our primary container runtime:
+- **🛡️ Security**: Rootless containers by default, no root daemon required
+- **🆓 Freedom**: 100% free and open source, no licensing restrictions
+- **⚡ Simplicity**: No background daemon needed, cleaner architecture
+- **🔄 Compatible**: Drop-in replacement for Docker with identical CLI
+- All commands work with both Podman and Docker
 
 ## Required Configuration Files
 
@@ -68,6 +77,10 @@ DB_PORT=5432
 
 3. **Start the application**
    ```bash
+   # Using Podman (recommended)
+   podman compose up --build
+
+   # Or using Docker
    docker-compose up --build
    ```
 
@@ -77,6 +90,126 @@ DB_PORT=5432
    - Auth Service: http://localhost:8080
    - PostgreSQL: localhost:5432
 
+## Monitoring & Observability
+
+The application includes a comprehensive monitoring stack using Prometheus and Grafana.
+
+### Starting the Monitoring Stack
+
+To enable monitoring, start the services with the `monitoring` profile:
+
+```bash
+# Using Podman (recommended)
+podman compose --profile monitoring up
+
+# Or using Docker
+docker-compose --profile monitoring up
+```
+
+Or to start all services including monitoring:
+
+```bash
+# Using Podman
+podman compose --profile monitoring up --build
+
+# Or using Docker
+docker-compose --profile monitoring up --build
+```
+
+### Accessing Monitoring Tools
+
+| Service | URL | Credentials | Purpose |
+|---------|-----|-------------|---------|
+| Grafana | http://localhost:3001 | admin / admin | Visualization dashboards |
+| Prometheus | http://localhost:9090 | - | Metrics storage & queries |
+
+### Pre-configured Dashboards
+
+Grafana comes with three pre-configured dashboards that auto-load on startup:
+
+1. **System Overview** - High-level view of all services
+   - Service health status (Backend, Auth)
+   - Total request rates across all services
+   - Overall error rates
+   - Response time percentiles by service
+   - HTTP status code distribution
+   - Database connection pool usage
+   - Business metrics (total users, portfolios)
+
+2. **Backend API Dashboard** - Detailed metrics for the portfolio backend
+   - HTTP request rates and patterns
+   - Response time percentiles (p50, p95)
+   - Status code distribution
+   - Database connection pool metrics
+   - Total portfolios count
+   - Error rates and trends
+
+3. **Auth Service Dashboard** - Authentication service monitoring
+   - Authentication attempt rates (login/register)
+   - Success vs failure rates
+   - JWT token generation metrics
+   - Active user counts
+   - Response time analysis
+   - Database connection health
+
+### Available Metrics
+
+Both services expose Prometheus metrics at the `/metrics` endpoint:
+
+- **Backend API**: http://localhost:8000/metrics
+- **Auth Service**: http://localhost:8080/metrics
+
+**Key Metrics:**
+- `http_requests_total` - Total HTTP requests by method, path, and status
+- `http_request_duration_seconds` - Request duration histogram
+- `database_connections` - DB connection pool stats (active, idle, in_use)
+- `portfolios_total` - Total number of portfolios (Backend)
+- `active_users_total` - Total registered users (Auth)
+- `authentication_attempts_total` - Auth attempts by type and status
+- `jwt_tokens_generated_total` - JWT tokens issued
+
+### Customizing Dashboards
+
+All dashboards are provisioned from JSON files and can be customized:
+
+```
+monitoring/
+├── grafana/
+│   ├── provisioning/
+│   │   ├── datasources/       # Prometheus datasource config
+│   │   └── dashboards/        # Dashboard provider config
+│   └── dashboards/
+│       ├── backend-dashboard.json      # Backend API metrics
+│       ├── auth-dashboard.json         # Auth service metrics
+│       └── system-overview.json        # Overall system health
+└── prometheus/
+    └── prometheus.yml          # Prometheus scrape config
+```
+
+Dashboards refresh every 5 seconds by default and show the last 15 minutes of data.
+
+### Stopping Monitoring
+
+To stop only monitoring services:
+
+```bash
+# Using Podman
+podman compose stop prometheus grafana
+
+# Or using Docker
+docker-compose stop prometheus grafana
+```
+
+To stop all services:
+
+```bash
+# Using Podman
+podman compose down
+
+# Or using Docker
+docker-compose down
+```
+
 ## Service URLs
 
 | Service | URL | Purpose |
@@ -85,6 +218,8 @@ DB_PORT=5432
 | Backend API | http://localhost:8000/api | Main API endpoints |
 | Auth Service | http://localhost:8080/api/auth | Authentication |
 | Database | localhost:5432 | PostgreSQL database |
+| Grafana | http://localhost:3001 | Monitoring dashboards (monitoring profile) |
+| Prometheus | http://localhost:9090 | Metrics & queries (monitoring profile) |
 
 ## API Documentation
 
@@ -104,7 +239,9 @@ The documentation includes:
 
 ### Prerequisites
 
-- Docker & Docker Compose
+- **Podman** (recommended) or Docker & Docker Compose
+  - Podman: [Installation Guide](https://podman.io/getting-started/installation)
+  - Docker: [Installation Guide](https://docs.docker.com/get-docker/)
 - Git
 
 ### Environment Variables
@@ -146,13 +283,17 @@ portfolio-manager/
 
 View logs for specific services:
 ```bash
-# All services
-docker-compose logs
+# All services (Podman)
+podman compose logs
 
-# Specific service
+# Specific service (Podman)
+podman compose logs portfolio-backend
+podman compose logs portfolio-auth
+podman compose logs portfolio-frontend
+
+# Or using Docker
+docker-compose logs
 docker-compose logs portfolio-backend
-docker-compose logs portfolio-auth
-docker-compose logs portfolio-frontend
 ```
 
 ## Security Notes
@@ -166,7 +307,7 @@ docker-compose logs portfolio-frontend
 
 1. Create your `.env` file (never commit it)
 2. Make your changes
-3. Test with `docker-compose up --build`
+3. Test with `podman compose up --build` (or `docker-compose up --build`)
 4. Submit a pull request
 
 ---
