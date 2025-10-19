@@ -56,7 +56,7 @@ DB_PORT=5432
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:JorgeSaicoski/portfolio-manager.git
    cd portfolio-manager
    ```
 
@@ -85,6 +85,20 @@ DB_PORT=5432
 | Backend API | http://localhost:8000/api | Main API endpoints |
 | Auth Service | http://localhost:8080/api/auth | Authentication |
 | Database | localhost:5432 | PostgreSQL database |
+
+## API Documentation
+
+Comprehensive API documentation is available for the backend service:
+
+**[Backend API Documentation](./backend/docs/API.md)**
+
+The documentation includes:
+- Complete endpoint reference for all resources (Portfolios, Categories, Projects, Sections)
+- Request/Response schemas with examples
+- Authentication requirements
+- Data Transfer Objects (DTOs) validation rules
+- HTTP status codes and error responses
+- Query parameters for pagination and filtering
 
 ## Development
 
