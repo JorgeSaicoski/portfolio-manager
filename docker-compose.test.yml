@@ -1,0 +1,45 @@
+# Test Environment Compose File
+# Compatible with both Podman and Docker
+# We recommend Podman for security (rootless containers by default)
+#
+# Usage:
+#   podman compose -f docker-compose.test.yml up -d
+#   docker-compose -f docker-compose.test.yml up -d
+
+services:
+  portfolio-postgres-test:
+    image: postgres:16-alpine
+    container_name: portfolio-postgres-test
+    environment:
+      POSTGRES_DB: portfolio_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with dev DB
+    tmpfs:
+      - /var/lib/postgresql/data  # In-memory for speed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d portfolio_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  portfolio-backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend-test
+    depends_on:
+      portfolio-postgres-test:
+        condition: service_healthy
+    environment:
+      - TEST_DB_HOST=portfolio-postgres-test
+      - TEST_DB_PORT=5432
+      - TEST_DB_NAME=portfolio_test
+      - TEST_DB_USER=test_user
+      - TEST_DB_PASSWORD=test_pass
+      - GIN_MODE=test
+      - LOG_LEVEL=error
+    command: go test ./cmd/test/... -v -race -coverprofile=coverage.out
+    volumes:
+      - ./backend:/app
