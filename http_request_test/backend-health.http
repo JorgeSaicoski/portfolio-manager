@@ -1,0 +1,33 @@
+### Environment Variables
+@backendUrl = http://localhost:8000
+
+
+### Health Check - Success (GET)
+GET {{backendUrl}}/health
+
+### Health Check - HEAD Method
+HEAD {{backendUrl}}/health
+
+### Health Check - Wrong Path (404)
+GET {{backendUrl}}/healthz
+
+###
+
+### Readiness Check - Success
+GET {{backendUrl}}/ready
+
+### Readiness Check - Database Connected
+# This checks if the database connection is working
+GET {{backendUrl}}/ready
+
+###
+
+### Metrics Endpoint - Prometheus Format
+# This returns metrics in Prometheus format
+GET {{backendUrl}}/metrics
+
+### Metrics Endpoint - Check Content Type
+# Metrics should return text/plain with Prometheus format
+GET {{backendUrl}}/metrics
+
+###

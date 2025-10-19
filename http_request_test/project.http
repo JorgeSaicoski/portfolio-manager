@@ -1,0 +1,358 @@
+### Environment Variables
+@authUrl = http://localhost:8080
+@backendUrl = http://localhost:8000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjA5MDc1MzcsImlhdCI6MTc2MDgyMTEzN30._5p5aAlm1hG6OgEjYL0USqsgpYuM_Sczc_R2Noa2tS0
+@categoryId = 1
+@projectId = 1
+
+
+### Create Project - Success (Full)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "E-commerce Platform",
+  "images": [
+    "https://example.com/images/ecommerce-1.jpg",
+    "https://example.com/images/ecommerce-2.jpg",
+    "https://example.com/images/ecommerce-3.jpg"
+  ],
+  "main_image": "https://example.com/images/ecommerce-main.jpg",
+  "description": "A full-stack e-commerce platform built with modern technologies including React, Node.js, and PostgreSQL. Features include user authentication, product catalog, shopping cart, payment integration, and admin dashboard.",
+  "skills": ["React", "Node.js", "PostgreSQL", "Docker", "AWS", "Stripe API"],
+  "client": "ABC Company",
+  "link": "https://example.com",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Minimal (Required Fields Only)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Simple Blog",
+  "description": "A minimalist blog application",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - With Empty Arrays
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Portfolio Website",
+  "images": [],
+  "skills": [],
+  "description": "Personal portfolio website",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Missing Title (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Missing title",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Empty Title (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": "Empty title",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Missing Description (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "No Description Project",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Empty Description (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Empty Description",
+  "description": "",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Missing Category ID (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "No Category",
+  "description": "This project has no category"
+}
+
+### Create Project - Invalid Category ID (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Invalid Category",
+  "description": "Category ID is 0",
+  "category_id": 0
+}
+
+### Create Project - Title Too Long (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+  "description": "Valid description",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Client Too Long (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Valid Title",
+  "description": "Valid description",
+  "client": "This client name is way too long and exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Invalid Main Image URL (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Invalid URL",
+  "main_image": "not-a-valid-url",
+  "description": "This has an invalid image URL",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Invalid Link URL (400)
+POST {{backendUrl}}/api/projects/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Invalid Link",
+  "description": "This has an invalid link",
+  "link": "not-a-valid-url",
+  "category_id": {{categoryId}}
+}
+
+### Create Project - Unauthorized (401)
+POST {{backendUrl}}/api/projects/
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Project",
+  "description": "No auth token",
+  "category_id": {{categoryId}}
+}
+
+###
+
+### Update Project - Success (Full Update)
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated E-commerce Platform",
+  "images": [
+    "https://example.com/images/updated-1.jpg",
+    "https://example.com/images/updated-2.jpg"
+  ],
+  "main_image": "https://example.com/images/updated-main.jpg",
+  "description": "Updated description with new features and improvements",
+  "skills": ["React", "Node.js", "PostgreSQL", "Docker", "Kubernetes", "GraphQL"],
+  "client": "Updated Client Name",
+  "link": "https://updated-example.com",
+  "category_id": {{categoryId}}
+}
+
+### Update Project - Partial Update (Title Only)
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Just Title Update"
+}
+
+### Update Project - Update Description Only
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Just updating the description of the project"
+}
+
+### Update Project - Update Skills Only
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "skills": ["Python", "Django", "Vue.js", "MongoDB"]
+}
+
+### Update Project - Move to Different Category
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "category_id": 2
+}
+
+### Update Project - Clear Optional Fields
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Minimal Project",
+  "description": "Cleared all optional fields",
+  "images": [],
+  "skills": [],
+  "main_image": "",
+  "client": "",
+  "link": ""
+}
+
+### Update Project - Invalid ID (400)
+PUT {{backendUrl}}/api/projects/id/invalid
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Project - Not Found (should fail gracefully)
+PUT {{backendUrl}}/api/projects/id/99999
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Project - Invalid URL in Update (400)
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "link": "not-a-valid-url"
+}
+
+### Update Project - Unauthorized (401)
+PUT {{backendUrl}}/api/projects/id/{{projectId}}
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Update"
+}
+
+###
+
+### Delete Project - Success
+DELETE {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Project - Invalid ID (400)
+DELETE {{backendUrl}}/api/projects/id/invalid
+Authorization: Bearer {{authToken}}
+
+### Delete Project - Not Found (404)
+DELETE {{backendUrl}}/api/projects/id/99999
+Authorization: Bearer {{authToken}}
+
+### Delete Project - Forbidden (not owner) (403)
+# Note: This requires a project owned by a different user
+DELETE {{backendUrl}}/api/projects/id/{{projectId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Project - Unauthorized (401)
+DELETE {{backendUrl}}/api/projects/id/{{projectId}}
+
+###
+
+### Get Project by ID (Public) - Success
+GET {{backendUrl}}/api/projects/id/{{projectId}}
+
+### Get Project by ID (Public) - Invalid ID (400)
+GET {{backendUrl}}/api/projects/id/invalid
+
+### Get Project by ID (Public) - Not Found (404)
+GET {{backendUrl}}/api/projects/id/99999
+
+###
+
+### Get Projects by Category (Public) - Success
+GET {{backendUrl}}/api/projects/category/{{categoryId}}
+
+### Get Projects by Category (Public) - Empty Category
+GET {{backendUrl}}/api/projects/category/999
+
+### Get Projects by Category (Public) - Invalid Category ID
+GET {{backendUrl}}/api/projects/category/invalid
+
+###
+
+### Search Projects by Skills (Public) - Single Skill
+GET {{backendUrl}}/api/projects/search/skills?skills=React
+
+### Search Projects by Skills (Public) - Multiple Skills
+GET {{backendUrl}}/api/projects/search/skills?skills=React&skills=Node.js&skills=PostgreSQL
+
+### Search Projects by Skills (Public) - No Results
+GET {{backendUrl}}/api/projects/search/skills?skills=COBOL&skills=Fortran
+
+### Search Projects by Skills (Public) - Missing Skills Parameter (400)
+GET {{backendUrl}}/api/projects/search/skills
+
+### Search Projects by Skills (Public) - Empty Skills
+GET {{backendUrl}}/api/projects/search/skills?skills=
+
+###
+
+### Search Projects by Client (Public) - Success
+GET {{backendUrl}}/api/projects/search/client?client=ABC Company
+
+### Search Projects by Client (Public) - Partial Match
+GET {{backendUrl}}/api/projects/search/client?client=ABC
+
+### Search Projects by Client (Public) - No Results
+GET {{backendUrl}}/api/projects/search/client?client=Nonexistent Client
+
+### Search Projects by Client (Public) - Missing Client Parameter (400)
+GET {{backendUrl}}/api/projects/search/client
+
+### Search Projects by Client (Public) - Empty Client
+GET {{backendUrl}}/api/projects/search/client?client=
+
+###

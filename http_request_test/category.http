@@ -1,0 +1,228 @@
+### Environment Variables
+@authUrl = http://localhost:8080
+@backendUrl = http://localhost:8000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjA5MDc1MzcsImlhdCI6MTc2MDgyMTEzN30._5p5aAlm1hG6OgEjYL0USqsgpYuM_Sczc_R2Noa2tS0
+@portfolioId = 1
+@categoryId = 1
+
+
+### Get Own Categories - Success (with pagination)
+GET {{backendUrl}}/api/categories/own?page=1&limit=10
+Authorization: Bearer {{authToken}}
+
+### Get Own Categories - Default Pagination
+GET {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+
+### Get Own Categories - Invalid Page (uses default)
+GET {{backendUrl}}/api/categories/own?page=0&limit=-5
+Authorization: Bearer {{authToken}}
+
+### Get Own Categories - Unauthorized (401)
+GET {{backendUrl}}/api/categories/own
+
+###
+
+### Create Category - Success
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Web Development",
+  "description": "Web development projects and work",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Without Description
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Mobile Development",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Missing Title (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Some description",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Empty Title (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Missing Portfolio ID (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Backend Development"
+}
+
+### Create Category - Invalid Portfolio ID (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "DevOps",
+  "portfolio_id": 0
+}
+
+### Create Category - Title Too Long (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Description Too Long (400)
+POST {{backendUrl}}/api/categories/own
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Cloud Computing",
+  "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Category - Unauthorized (401)
+POST {{backendUrl}}/api/categories/own
+Content-Type: application/json
+
+{
+  "title": "Data Science",
+  "portfolio_id": {{portfolioId}}
+}
+
+###
+
+### Update Category - Success
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Web Development",
+  "description": "Updated description for web development category"
+}
+
+### Update Category - Only Title
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Just Title Update"
+}
+
+### Update Category - Only Description
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Just description update"
+}
+
+### Update Category - Change Portfolio
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Moved Category",
+  "portfolio_id": 2
+}
+
+### Update Category - Invalid ID (400)
+PUT {{backendUrl}}/api/categories/own/id/invalid
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Category - Not Found (should fail gracefully)
+PUT {{backendUrl}}/api/categories/own/id/99999
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Category - Title Too Long (400)
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+}
+
+### Update Category - Unauthorized (401)
+PUT {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Update"
+}
+
+###
+
+### Delete Category - Success
+DELETE {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Category - Invalid ID (400)
+DELETE {{backendUrl}}/api/categories/own/id/invalid
+Authorization: Bearer {{authToken}}
+
+### Delete Category - Not Found (404)
+DELETE {{backendUrl}}/api/categories/own/id/99999
+Authorization: Bearer {{authToken}}
+
+### Delete Category - Forbidden (not owner) (403)
+# Note: This requires a category owned by a different user
+DELETE {{backendUrl}}/api/categories/own/id/{{categoryId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Category - Unauthorized (401)
+DELETE {{backendUrl}}/api/categories/own/id/{{categoryId}}
+
+###
+
+### Get Category by ID (Public) - Success
+GET {{backendUrl}}/api/categories/id/{{categoryId}}
+
+### Get Category by ID (Public) - With Projects
+# This should return the category with all its projects preloaded
+GET {{backendUrl}}/api/categories/id/{{categoryId}}
+
+### Get Category by ID (Public) - Invalid ID (400)
+GET {{backendUrl}}/api/categories/id/invalid
+
+### Get Category by ID (Public) - Not Found (404)
+GET {{backendUrl}}/api/categories/id/99999
+
+###

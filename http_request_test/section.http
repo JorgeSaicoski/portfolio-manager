@@ -1,0 +1,349 @@
+### Environment Variables
+@authUrl = http://localhost:8080
+@backendUrl = http://localhost:8000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjA5MDc1MzcsImlhdCI6MTc2MDgyMTEzN30._5p5aAlm1hG6OgEjYL0USqsgpYuM_Sczc_R2Noa2tS0
+@portfolioId = 1
+@sectionId = 1
+
+
+### Create Section - Success (with description)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "About Me",
+  "description": "This section contains information about my background, experience, and skills.",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Minimal (no description)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Contact",
+  "type": "contact",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Different Types
+# Hero section
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Hero Banner",
+  "description": "Main hero section with introduction",
+  "type": "hero",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Gallery Type
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Photo Gallery",
+  "description": "Collection of project screenshots",
+  "type": "gallery",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Skills Type
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Technical Skills",
+  "type": "skills",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Missing Title (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Missing title",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Empty Title (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Missing Type (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "No Type Section",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Empty Type (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Empty Type",
+  "type": "",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Missing Portfolio ID (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "No Portfolio",
+  "type": "text"
+}
+
+### Create Section - Invalid Portfolio ID (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Invalid Portfolio",
+  "type": "text",
+  "portfolio_id": 0
+}
+
+### Create Section - Title Too Long (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Description Too Long (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Long Description",
+  "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Type Too Long (400)
+POST {{backendUrl}}/api/sections/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Valid Title",
+  "type": "this-is-a-very-long-type-name-that-exceeds-the-maximum-allowed-length-of-100-characters-for-the-type-field-which-should-cause-a-validation-error",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Create Section - Unauthorized (401)
+POST {{backendUrl}}/api/sections/
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Section",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+###
+
+### Update Section - Success (Full Update)
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated About Me",
+  "description": "This is an updated description with more detailed information.",
+  "type": "about",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Update Section - Title Only
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Just Title Update"
+}
+
+### Update Section - Description Only
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Just updating the description"
+}
+
+### Update Section - Type Only
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "type": "testimonials"
+}
+
+### Update Section - Move to Different Portfolio
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "portfolio_id": 2
+}
+
+### Update Section - Remove Description (set to null)
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "No Description",
+  "type": "text",
+  "portfolio_id": {{portfolioId}}
+}
+
+### Update Section - Invalid ID (400)
+PUT {{backendUrl}}/api/sections/id/invalid
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Section - Not Found (should fail gracefully)
+PUT {{backendUrl}}/api/sections/id/99999
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+
+### Update Section - Title Too Long (400)
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum allowed length of 255 characters. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation."
+}
+
+### Update Section - Unauthorized (401)
+PUT {{backendUrl}}/api/sections/id/{{sectionId}}
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Update"
+}
+
+###
+
+### Delete Section - Success
+DELETE {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Section - Invalid ID (400)
+DELETE {{backendUrl}}/api/sections/id/invalid
+Authorization: Bearer {{authToken}}
+
+### Delete Section - Not Found (404)
+DELETE {{backendUrl}}/api/sections/id/99999
+Authorization: Bearer {{authToken}}
+
+### Delete Section - Forbidden (not owner) (403)
+# Note: This requires a section owned by a different user
+DELETE {{backendUrl}}/api/sections/id/{{sectionId}}
+Authorization: Bearer {{authToken}}
+
+### Delete Section - Unauthorized (401)
+DELETE {{backendUrl}}/api/sections/id/{{sectionId}}
+
+###
+
+### Get Section by ID (Public) - Success
+GET {{backendUrl}}/api/sections/id/{{sectionId}}
+
+### Get Section by ID (Public) - With Relations
+# This should return the section with portfolio preloaded
+GET {{backendUrl}}/api/sections/id/{{sectionId}}
+
+### Get Section by ID (Public) - Invalid ID (400)
+GET {{backendUrl}}/api/sections/id/invalid
+
+### Get Section by ID (Public) - Not Found (404)
+GET {{backendUrl}}/api/sections/id/99999
+
+###
+
+### Get Sections by Portfolio (Public) - Success
+GET {{backendUrl}}/api/sections/portfolio/{{portfolioId}}
+
+### Get Sections by Portfolio (Public) - Empty Portfolio
+GET {{backendUrl}}/api/sections/portfolio/999
+
+### Get Sections by Portfolio (Public) - Invalid Portfolio ID
+GET {{backendUrl}}/api/sections/portfolio/invalid
+
+###
+
+### Get Sections by Type (Public) - Text Type
+GET {{backendUrl}}/api/sections/type?type=text
+
+### Get Sections by Type (Public) - Hero Type
+GET {{backendUrl}}/api/sections/type?type=hero
+
+### Get Sections by Type (Public) - Contact Type
+GET {{backendUrl}}/api/sections/type?type=contact
+
+### Get Sections by Type (Public) - Gallery Type
+GET {{backendUrl}}/api/sections/type?type=gallery
+
+### Get Sections by Type (Public) - Skills Type
+GET {{backendUrl}}/api/sections/type?type=skills
+
+### Get Sections by Type (Public) - About Type
+GET {{backendUrl}}/api/sections/type?type=about
+
+### Get Sections by Type (Public) - No Results
+GET {{backendUrl}}/api/sections/type?type=nonexistent-type
+
+### Get Sections by Type (Public) - Missing Type Parameter (400)
+GET {{backendUrl}}/api/sections/type
+
+### Get Sections by Type (Public) - Empty Type (400)
+GET {{backendUrl}}/api/sections/type?type=
+
+###
