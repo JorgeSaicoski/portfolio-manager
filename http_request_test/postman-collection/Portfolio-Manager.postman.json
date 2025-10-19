@@ -1,0 +1,545 @@
+{
+	"info": {
+		"_postman_id": "portfolio-manager-api",
+		"name": "Portfolio Manager API",
+		"description": "Complete API collection for Portfolio Manager backend service. Includes all CRUD operations for Portfolios, Categories, Projects, Sections, and Health endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "portfolio-manager"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{authToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "backendUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "authUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "portfolioId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "categoryId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "projectId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "sectionId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/health",
+							"host": ["{{backendUrl}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Readiness Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/ready",
+							"host": ["{{backendUrl}}"],
+							"path": ["ready"]
+						}
+					}
+				},
+				{
+					"name": "Metrics (Prometheus)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/metrics",
+							"host": ["{{backendUrl}}"],
+							"path": ["metrics"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Portfolio",
+			"item": [
+				{
+					"name": "Get Own Portfolios",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/portfolios/own?page=1&limit=10",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "portfolios", "own"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Portfolio",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My Investment Portfolio\",\n  \"description\": \"Tech stocks portfolio\"\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/portfolios/own",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "portfolios", "own"]
+						}
+					}
+				},
+				{
+					"name": "Update Portfolio",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Portfolio Title\",\n  \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/portfolios/own/id/{{portfolioId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "portfolios", "own", "id", "{{portfolioId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Portfolio",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/portfolios/own/id/{{portfolioId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "portfolios", "own", "id", "{{portfolioId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Portfolio by ID (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/portfolios/id/{{portfolioId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "portfolios", "id", "{{portfolioId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Category",
+			"item": [
+				{
+					"name": "Get Own Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/categories/own?page=1&limit=10",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "categories", "own"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Web Development\",\n  \"description\": \"Web development projects and work\",\n  \"portfolio_id\": {{portfolioId}}\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/categories/own",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "categories", "own"]
+						}
+					}
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Web Development\",\n  \"description\": \"Updated description for web development category\"\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/categories/own/id/{{categoryId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "categories", "own", "id", "{{categoryId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/categories/own/id/{{categoryId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "categories", "own", "id", "{{categoryId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Category by ID (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/categories/id/{{categoryId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "categories", "id", "{{categoryId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Project",
+			"item": [
+				{
+					"name": "Create Project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"images\": [\n    \"https://example.com/images/ecommerce-1.jpg\",\n    \"https://example.com/images/ecommerce-2.jpg\"\n  ],\n  \"main_image\": \"https://example.com/images/ecommerce-main.jpg\",\n  \"description\": \"A full-stack e-commerce platform built with modern technologies\",\n  \"skills\": [\"React\", \"Node.js\", \"PostgreSQL\", \"Docker\"],\n  \"client\": \"ABC Company\",\n  \"link\": \"https://example.com\",\n  \"category_id\": {{categoryId}}\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description with new features\",\n  \"skills\": [\"React\", \"Node.js\", \"PostgreSQL\", \"Kubernetes\"]\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/id/{{projectId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "id", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/id/{{projectId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "id", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Project by ID (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/id/{{projectId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "id", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Projects by Category (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/category/{{categoryId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "category", "{{categoryId}}"]
+						}
+					}
+				},
+				{
+					"name": "Search Projects by Skills (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/search/skills?skills=React&skills=Node.js",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "search", "skills"],
+							"query": [
+								{
+									"key": "skills",
+									"value": "React"
+								},
+								{
+									"key": "skills",
+									"value": "Node.js"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Projects by Client (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/projects/search/client?client=ABC Company",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "projects", "search", "client"],
+							"query": [
+								{
+									"key": "client",
+									"value": "ABC Company"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Section",
+			"item": [
+				{
+					"name": "Create Section",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"About Me\",\n  \"description\": \"This section contains information about my background\",\n  \"type\": \"text\",\n  \"portfolio_id\": {{portfolioId}}\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Section",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated About Me\",\n  \"description\": \"Updated description with more details\",\n  \"type\": \"about\"\n}"
+						},
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/id/{{sectionId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", "id", "{{sectionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Section",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/id/{{sectionId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", "id", "{{sectionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Section by ID (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/id/{{sectionId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", "id", "{{sectionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Sections by Portfolio (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/portfolio/{{portfolioId}}",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", "portfolio", "{{portfolioId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Sections by Type (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backendUrl}}/api/sections/type?type=text",
+							"host": ["{{backendUrl}}"],
+							"path": ["api", "sections", "type"],
+							"query": [
+								{
+									"key": "type",
+									"value": "text"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
