@@ -36,6 +36,12 @@ jobs:
           cache: true
           cache-dependency-path: backend/go.sum
 
+      - name: Verify dependencies
+        working-directory: backend
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum needs updates. Run 'go mod tidy' locally." && exit 1)
+
       - name: Install dependencies
         working-directory: backend
         run: go mod download
@@ -43,11 +49,20 @@ jobs:
       - name: Run tests
         working-directory: backend
         env:
-          TEST_DB_HOST: localhost
-          TEST_DB_PORT: 5432
-          TEST_DB_NAME: portfolio_test
-          TEST_DB_USER: test_user
-          TEST_DB_PASSWORD: test_pass
+          # Database Configuration (matches what the app expects)
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: portfolio_test
+          DB_USER: test_user
+          DB_PASSWORD: test_pass
+          DB_SSLMODE: disable
+          DB_TIMEZONE: UTC
+          # Test Configuration
+          TESTING_MODE: true
+          GIN_MODE: test
+          LOG_LEVEL: error
+          PORT: 8888
+          JWT_SECRET: test-jwt-secret-for-ci
         run: go test ./cmd/test/... -v -race -coverprofile=coverage.out
 
       - name: Generate coverage report

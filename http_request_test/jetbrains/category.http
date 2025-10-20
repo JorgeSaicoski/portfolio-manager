@@ -1,9 +1,7 @@
 ### Environment Variables
 @authUrl = http://localhost:8080
 @backendUrl = http://localhost:8000
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjA5MDc1MzcsImlhdCI6MTc2MDgyMTEzN30._5p5aAlm1hG6OgEjYL0USqsgpYuM_Sczc_R2Noa2tS0
-@portfolioId = 1
-@categoryId = 1
+@categoryId = 129
 
 
 ### Get Own Categories - Success (with pagination)
