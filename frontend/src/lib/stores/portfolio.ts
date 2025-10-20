@@ -135,7 +135,7 @@ function createPortfolioStore() {
 
       try {
         const response = await authenticatedFetch(
-          `${PORTFOLIO_API_URL}/own/id/${id}`,
+          `${PORTFOLIO_API_URL}/own/${id}`,
           {
             method: "PUT",
             body: JSON.stringify(portfolioData),
@@ -172,7 +172,7 @@ function createPortfolioStore() {
 
       try {
         const response = await authenticatedFetch(
-          `${PORTFOLIO_API_URL}/own/id/${id}`,
+          `${PORTFOLIO_API_URL}/own/${id}`,
           {
             method: "DELETE",
           }
