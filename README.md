@@ -235,6 +235,64 @@ The documentation includes:
 - HTTP status codes and error responses
 - Query parameters for pagination and filtering
 
+## Performance Optimization & Testing
+
+The backend includes several performance optimizations and a comprehensive performance testing suite.
+
+### Performance Features
+
+**Database Optimizations:**
+- Indexed foreign keys (portfolio_id, category_id, section_id, etc.)
+- Composite indexes for common query patterns
+- Optimized connection pooling with configurable parameters
+
+**HTTP Optimizations:**
+- Gzip compression for responses > 1KB (40-60% bandwidth reduction)
+- ETag support for HTTP caching with 304 Not Modified responses
+- Cache-Control headers for optimal browser caching
+
+**Connection Pool Configuration:**
+
+Environment variables for database connection tuning:
+```bash
+DB_MAX_IDLE_CONNS=10          # Maximum idle connections
+DB_MAX_OPEN_CONNS=100         # Maximum open connections
+DB_CONN_MAX_LIFETIME=1h       # Maximum connection lifetime
+DB_CONN_MAX_IDLE_TIME=10m     # Maximum idle time before closing
+```
+
+### Performance Testing
+
+The project includes comprehensive k6 performance tests to validate system behavior under various conditions.
+
+**Test Scenarios:**
+- **Load Test** - Validates performance under normal expected load (4 min)
+- **Stress Test** - Finds breaking points under extreme load (17 min)
+- **Spike Test** - Tests resilience to sudden traffic spikes (6 min)
+- **Soak Test** - Identifies memory leaks and degradation over time (32 min)
+
+**Quick Start:**
+```bash
+# Install k6
+brew install k6  # macOS
+# or see test_scenarios/README.md for other platforms
+
+# Run load test
+k6 run test_scenarios/load_test.js
+
+# Run with custom configuration
+K6_BASE_URL=http://localhost:8080 k6 run test_scenarios/load_test.js
+```
+
+**📚 Full Documentation:** [Performance Testing Guide](./test_scenarios/README.md)
+
+The testing guide includes:
+- Detailed test scenario explanations
+- Performance baseline metrics
+- Troubleshooting common issues
+- CI/CD integration examples
+- Best practices for performance testing
+
 ## Development
 
 ### Prerequisites

@@ -11,14 +11,14 @@ scrape_configs:
   # Auth Service Metrics
   - job_name: 'auth-service'
     static_configs:
-      - targets: ['host.docker.internal:8080']
+      - targets: ['portfolio-auth:8080']
     metrics_path: '/metrics'
     scrape_interval: 10s
 
-  # Backend Service (if it has metrics)
+  # Backend Service Metrics
   - job_name: 'backend-service'
     static_configs:
-      - targets: ['host.docker.internal:8000']
+      - targets: ['portfolio-backend:8000']
     metrics_path: '/metrics'
     scrape_interval: 10s
 
