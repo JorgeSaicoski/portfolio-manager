@@ -137,10 +137,11 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z
       - prometheus_data:/prometheus
     networks:
       - portfolio-network
+    user: "65534:65534"  # nobody user
 
   # Grafana - Monitoring Profile
   grafana:
