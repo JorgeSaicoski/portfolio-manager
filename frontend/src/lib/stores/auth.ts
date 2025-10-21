@@ -2,25 +2,27 @@ import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8080/api/auth';
+const AUTHENTIK_URL = import.meta.env.VITE_AUTHENTIK_URL || 'http://localhost:9000';
+const AUTHENTIK_CLIENT_ID = import.meta.env.VITE_AUTHENTIK_CLIENT_ID || 'portfolio-manager';
+const AUTHENTIK_REDIRECT_URI = import.meta.env.VITE_AUTHENTIK_REDIRECT_URI || 'http://localhost:3000/auth/callback';
+const AUTHENTIK_ISSUER = import.meta.env.VITE_AUTHENTIK_ISSUER || 'http://localhost:9000/application/o/portfolio-manager/';
 
 // Cookie helper functions
 function setCookie(name: string, value: string, days: number = 7) {
   if (!browser) return;
-  
+
   const expires = new Date();
   expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-  
+
   document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
 }
 
 function getCookie(name: string): string | null {
   if (!browser) return null;
-  
+
   const nameEQ = name + "=";
   const ca = document.cookie.split(';');
-  
+
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
     while (c.charAt(0) === ' ') c = c.substring(1, c.length);
@@ -34,37 +36,33 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 }
 
-// Type definitions
+// Type definitions for Authentik OIDC user
 export interface User {
-  id: number;
-  username: string;
+  sub: string;                // Authentik user ID
   email: string;
-  created_at: string;
-  updated_at: string;
+  email_verified: boolean;
+  name: string;
+  preferred_username: string;
+  given_name?: string;
+  family_name?: string;
+  nickname?: string;
 }
 
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  idToken: string | null;
   loading: boolean;
   error: string | null;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface TokenResponse {
+  access_token: string;
+  id_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
 }
 
 export interface ApiResponse<T = any> {
@@ -77,10 +75,44 @@ export interface ApiResponse<T = any> {
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
-  token: null,
+  accessToken: null,
+  idToken: null,
   loading: false,
   error: null
 };
+
+// Helper function to generate random string for PKCE
+function generateRandomString(length: number): string {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  let result = '';
+  const randomValues = new Uint8Array(length);
+  crypto.getRandomValues(randomValues);
+
+  for (let i = 0; i < length; i++) {
+    result += charset[randomValues[i] % charset.length];
+  }
+  return result;
+}
+
+// Helper function to create SHA256 hash for PKCE
+async function sha256(plain: string): Promise<ArrayBuffer> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return await crypto.subtle.digest('SHA-256', data);
+}
+
+// Helper function to base64url encode
+function base64urlEncode(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
 
 // Create the auth store
 function createAuthStore(): AuthStore {
@@ -88,17 +120,18 @@ function createAuthStore(): AuthStore {
 
   return {
     subscribe,
-    
+
     // Initialize auth state from cookies and localStorage
     init(): void {
       if (browser) {
-        const token = getCookie('auth-token') || localStorage.getItem('authToken');
+        const accessToken = getCookie('auth-token') || localStorage.getItem('accessToken');
+        const idToken = getCookie('id-token') || localStorage.getItem('idToken');
         const userStr = getCookie('auth-user') || localStorage.getItem('user');
-        
-        if (token && userStr) {
+
+        if (accessToken && idToken && userStr) {
           try {
             const user: User = JSON.parse(userStr);
-            this.setAuth(token, user);
+            this.setAuth(accessToken, idToken, user);
           } catch (error) {
             console.error('Error parsing stored user data:', error);
             this.clearAuth();
@@ -108,20 +141,23 @@ function createAuthStore(): AuthStore {
     },
 
     // Set authentication state
-    setAuth(token: string, user: User): void {
+    setAuth(accessToken: string, idToken: string, user: User): void {
       update(state => ({
         ...state,
         isAuthenticated: true,
         user,
-        token,
+        accessToken,
+        idToken,
         error: null
       }));
 
       if (browser) {
         // Store in both cookies and localStorage for compatibility
-        setCookie('auth-token', token, 7); // 7 days
+        setCookie('auth-token', accessToken, 7); // 7 days
+        setCookie('id-token', idToken, 7);
         setCookie('auth-user', JSON.stringify(user), 7);
-        localStorage.setItem('authToken', token);
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('idToken', idToken);
         localStorage.setItem('user', JSON.stringify(user));
       }
     },
@@ -129,13 +165,17 @@ function createAuthStore(): AuthStore {
     // Clear authentication state
     clearAuth(): void {
       set(initialState);
-      
+
       if (browser) {
         // Clear both cookies and localStorage
         deleteCookie('auth-token');
+        deleteCookie('id-token');
         deleteCookie('auth-user');
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('idToken');
         localStorage.removeItem('user');
+        localStorage.removeItem('code_verifier');
+        localStorage.removeItem('oauth_state');
       }
     },
 
@@ -156,63 +196,105 @@ function createAuthStore(): AuthStore {
       }));
     },
 
-    // Login function
-    async login(email: string, password: string): Promise<ApiResponse<AuthResponse>> {
-      this.setLoading(true);
-      this.setError('');
+    // Initiate OAuth2 login flow
+    async login(): Promise<void> {
+      if (!browser) return;
 
       try {
-        console.log('Starting login attempt...');
-        const response = await fetch(`${AUTH_API_URL}/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password } as LoginRequest)
-        });
+        // Generate PKCE code verifier and challenge
+        const codeVerifier = generateRandomString(128);
+        const codeChallenge = base64urlEncode(await sha256(codeVerifier));
 
-        const data: AuthResponse = await response.json();
+        // Generate state for CSRF protection
+        const state = generateRandomString(32);
 
-        if (!response.ok) {
-          throw new Error((data as any).error || 'Login failed');
-        }
+        // Store code verifier and state in localStorage
+        localStorage.setItem('code_verifier', codeVerifier);
+        localStorage.setItem('oauth_state', state);
 
-        console.log('Auth response received:', data);
-        this.setAuth(data.token, data.user);
-        console.log('Auth state updated');
-        return { success: true, data };
+        // Build authorization URL
+        const authUrl = new URL(`${AUTHENTIK_URL}/application/o/authorize/`);
+        authUrl.searchParams.set('client_id', AUTHENTIK_CLIENT_ID);
+        authUrl.searchParams.set('redirect_uri', AUTHENTIK_REDIRECT_URI);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('scope', 'openid email profile');
+        authUrl.searchParams.set('state', state);
+        authUrl.searchParams.set('code_challenge', codeChallenge);
+        authUrl.searchParams.set('code_challenge_method', 'S256');
 
+        // Redirect to Authentik login
+        window.location.href = authUrl.toString();
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        this.setError(errorMessage);
-        return { success: false, error: errorMessage };
-      } finally {
-        this.setLoading(false);
+        console.error('Error initiating OAuth login:', error);
+        this.setError('Failed to initiate login');
       }
     },
 
-    // Register function
-    async register(username: string, email: string, password: string): Promise<ApiResponse<AuthResponse>> {
+    // Handle OAuth2 callback
+    async handleCallback(code: string, state: string): Promise<ApiResponse<User>> {
+      if (!browser) return { success: false, error: 'Not in browser environment' };
+
       this.setLoading(true);
       this.setError('');
 
       try {
-        const response = await fetch(`${AUTH_API_URL}/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, email, password } as RegisterRequest)
-        });
-
-        const data: AuthResponse = await response.json();
-
-        if (!response.ok) {
-          throw new Error((data as any).error || 'Registration failed');
+        // Verify state to prevent CSRF
+        const storedState = localStorage.getItem('oauth_state');
+        if (!storedState || storedState !== state) {
+          throw new Error('Invalid state parameter');
         }
 
-        this.setAuth(data.token, data.user);
-        return { success: true, data };
+        // Get code verifier
+        const codeVerifier = localStorage.getItem('code_verifier');
+        if (!codeVerifier) {
+          throw new Error('Missing code verifier');
+        }
+
+        // Exchange authorization code for tokens
+        const tokenUrl = `${AUTHENTIK_URL}/application/o/token/`;
+        const tokenResponse = await fetch(tokenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: AUTHENTIK_CLIENT_ID,
+            redirect_uri: AUTHENTIK_REDIRECT_URI,
+            code: code,
+            code_verifier: codeVerifier,
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.text();
+          console.error('Token exchange failed:', errorData);
+          throw new Error('Failed to exchange authorization code for tokens');
+        }
+
+        const tokens: TokenResponse = await tokenResponse.json();
+
+        // Decode ID token to get user info
+        const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]));
+        const user: User = {
+          sub: idTokenPayload.sub,
+          email: idTokenPayload.email,
+          email_verified: idTokenPayload.email_verified || false,
+          name: idTokenPayload.name || idTokenPayload.email,
+          preferred_username: idTokenPayload.preferred_username || idTokenPayload.email,
+          given_name: idTokenPayload.given_name,
+          family_name: idTokenPayload.family_name,
+          nickname: idTokenPayload.nickname,
+        };
+
+        // Set auth state
+        this.setAuth(tokens.access_token, tokens.id_token, user);
+
+        // Clean up PKCE data
+        localStorage.removeItem('code_verifier');
+        localStorage.removeItem('oauth_state');
+
+        return { success: true, data: user };
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -225,10 +307,19 @@ function createAuthStore(): AuthStore {
 
     // Logout function
     async logout(): Promise<void> {
+      const state = this.getCurrentState();
+
+      // Clear local auth state
       this.clearAuth();
-      
-      // Navigate to login page
-      if (browser) {
+
+      // Redirect to Authentik logout endpoint
+      if (browser && state.idToken) {
+        const logoutUrl = new URL(`${AUTHENTIK_URL}/application/o/portfolio-manager/end-session/`);
+        logoutUrl.searchParams.set('id_token_hint', state.idToken);
+        logoutUrl.searchParams.set('post_logout_redirect_uri', window.location.origin);
+
+        window.location.href = logoutUrl.toString();
+      } else if (browser) {
         goto('/auth/login');
       }
     },
@@ -246,10 +337,10 @@ function createAuthStore(): AuthStore {
     // Check if token is expired (basic check)
     isTokenExpired(): boolean {
       const state = this.getCurrentState();
-      if (!state.token) return true;
+      if (!state.idToken) return true;
 
       try {
-        const payload: any = JSON.parse(atob(state.token.split('.')[1]));
+        const payload: any = JSON.parse(atob(state.idToken.split('.')[1]));
         const now = Date.now() / 1000;
         return payload.exp < now;
       } catch (error) {
@@ -260,7 +351,7 @@ function createAuthStore(): AuthStore {
     // Refresh token if needed
     async ensureAuth(): Promise<boolean> {
       const state = this.getCurrentState();
-      if (!state.token || this.isTokenExpired()) {
+      if (!state.accessToken || this.isTokenExpired()) {
         this.clearAuth();
         return false;
       }
@@ -273,12 +364,12 @@ function createAuthStore(): AuthStore {
 export interface AuthStore {
   subscribe: Writable<AuthState>['subscribe'];
   init(): void;
-  setAuth(token: string, user: User): void;
+  setAuth(accessToken: string, idToken: string, user: User): void;
   clearAuth(): void;
   setLoading(loading: boolean): void;
   setError(error: string): void;
-  login(email: string, password: string): Promise<ApiResponse<AuthResponse>>;
-  register(username: string, email: string, password: string): Promise<ApiResponse<AuthResponse>>;
+  login(): Promise<void>;
+  handleCallback(code: string, state: string): Promise<ApiResponse<User>>;
   logout(): Promise<void>;
   getCurrentState(): AuthState;
   isTokenExpired(): boolean;
@@ -296,8 +387,8 @@ if (browser) {
 // Helper function to get auth headers for API calls
 export function getAuthHeaders(): Record<string, string> {
   const state = auth.getCurrentState();
-  return state.token ? {
-    'Authorization': `Bearer ${state.token}`,
+  return state.accessToken ? {
+    'Authorization': `Bearer ${state.accessToken}`,
     'Content-Type': 'application/json'
   } : {
     'Content-Type': 'application/json'
@@ -306,7 +397,7 @@ export function getAuthHeaders(): Record<string, string> {
 
 // Helper function for authenticated API calls
 export async function authenticatedFetch(
-  url: string, 
+  url: string,
   options: RequestInit = {}
 ): Promise<Response> {
   if (!auth.ensureAuth()) {

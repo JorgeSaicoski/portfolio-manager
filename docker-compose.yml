@@ -20,37 +20,83 @@ services:
       timeout: 5s
       retries: 5
 
-  # Auth Service
-  portfolio-auth:  
-    build:
-      context: ./infra/auth
-      dockerfile: Dockerfile
-    container_name: portfolio-auth
+  # Redis for Authentik
+  portfolio-redis:
+    image: redis:7-alpine
+    container_name: portfolio-redis
     restart: unless-stopped
+    command: --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Authentik Server
+  portfolio-authentik-server:
+    image: ghcr.io/goauthentik/server:2024.2.3
+    container_name: portfolio-authentik-server
+    restart: unless-stopped
+    command: server
     ports:
-      - "8080:8080"
+      - "9000:9000"
+      - "9443:9443"
     environment:
-      - PORT=8080
-      - GIN_MODE=release
-      - LOG_LEVEL=info
-      - DB_HOST=portfolio-postgres  
-      - DB_PORT=5432
-      - DB_NAME=${POSTGRES_DB:-portfolio_db}
-      - DB_USER=${POSTGRES_USER:-portfolio_user}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
-      - DB_SSLMODE=disable
-      - DB_TIMEZONE=UTC
-      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-change-me-to-a-random-string}
+      AUTHENTIK_REDIS__HOST: portfolio-redis
+      AUTHENTIK_POSTGRESQL__HOST: portfolio-postgres
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER:-portfolio_user}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      AUTHENTIK_LOG_LEVEL: ${AUTHENTIK_LOG_LEVEL:-info}
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
     depends_on:
-      portfolio-postgres:  
+      portfolio-postgres:
+        condition: service_healthy
+      portfolio-redis:
         condition: service_healthy
     networks:
       - portfolio-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/-/health/live/"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 50s
+
+  # Authentik Worker
+  portfolio-authentik-worker:
+    image: ghcr.io/goauthentik/server:2024.2.3
+    container_name: portfolio-authentik-worker
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-change-me-to-a-random-string}
+      AUTHENTIK_REDIS__HOST: portfolio-redis
+      AUTHENTIK_POSTGRESQL__HOST: portfolio-postgres
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER:-portfolio_user}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      AUTHENTIK_LOG_LEVEL: ${AUTHENTIK_LOG_LEVEL:-info}
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      portfolio-postgres:
+        condition: service_healthy
+      portfolio-redis:
+        condition: service_healthy
+    networks:
+      - portfolio-network
 
 
   # Backend API Service
@@ -73,12 +119,12 @@ services:
       - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
       - DB_SSLMODE=disable
       - DB_TIMEZONE=UTC
-      - AUTH_SERVICE_URL=http://portfolio-auth:8080 
-      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
+      - AUTHENTIK_URL=http://portfolio-authentik-server:9000
+      - AUTHENTIK_ISSUER=${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/portfolio-manager/}
     depends_on:
-      portfolio-postgres: 
+      portfolio-postgres:
         condition: service_healthy
-      portfolio-auth: 
+      portfolio-authentik-server:
         condition: service_healthy
     networks:
       - portfolio-network
@@ -108,9 +154,12 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=http://localhost:8000/api
-      - VITE_AUTH_API_URL=http://localhost:8080/api/auth
+      - VITE_AUTHENTIK_URL=http://localhost:9000
+      - VITE_AUTHENTIK_CLIENT_ID=portfolio-manager
+      - VITE_AUTHENTIK_REDIRECT_URI=http://localhost:3000/auth/callback
+      - VITE_AUTHENTIK_ISSUER=http://localhost:9000/application/o/portfolio-manager/
     depends_on:
-      - portfolio-auth  
+      - portfolio-authentik-server
       - portfolio-backend
     networks:
       - portfolio-network
@@ -167,6 +216,12 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  authentik_media:
+    driver: local
+  authentik_templates:
     driver: local
   prometheus_data:
     driver: local
