@@ -10,6 +10,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read        # Read repository contents
+      pull-requests: write  # Write comments on PRs
+      issues: write         # Write comments on issues
+
     services:
       postgres:
         image: postgres:16-alpine
