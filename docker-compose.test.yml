@@ -1,10 +1,8 @@
 # Test Environment Compose File
-# Compatible with both Podman and Docker
-# We recommend Podman for security (rootless containers by default)
+# Requires Podman v4.0+ with native compose support
 #
 # Usage:
 #   podman compose -f docker-compose.test.yml up -d
-#   docker-compose -f docker-compose.test.yml up -d
 
 services:
   portfolio-postgres-test:

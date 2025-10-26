@@ -8,16 +8,16 @@ A full-stack portfolio management application with microservices architecture.
 - **Backend**: Go API service
 - **Auth Service**: Go authentication microservice
 - **Database**: PostgreSQL
-- **Containerization**: Podman (recommended) / Docker
+- **Containerization**: Podman
 
 ### Why Podman?
 
-We use **Podman** as our primary container runtime:
+We use **Podman** as our container runtime:
 - **🛡️ Security**: Rootless containers by default, no root daemon required
 - **🆓 Freedom**: 100% free and open source, no licensing restrictions
 - **⚡ Simplicity**: No background daemon needed, cleaner architecture
-- **🔄 Compatible**: Drop-in replacement for Docker with identical CLI
-- All commands work with both Podman and Docker
+- **🔧 Native Compose**: Built-in `podman compose` support (no external dependencies)
+- **🚀 Modern**: Actively developed with latest container standards
 
 ## Required Configuration Files
 
@@ -77,11 +77,7 @@ DB_PORT=5432
 
 3. **Start the application**
    ```bash
-   # Using Podman (recommended)
    podman compose up --build
-
-   # Or using Docker
-   docker-compose up --build
    ```
 
 4. **Access the application**
@@ -99,21 +95,13 @@ The application includes a comprehensive monitoring stack using Prometheus and G
 To enable monitoring, start the services with the `monitoring` profile:
 
 ```bash
-# Using Podman (recommended)
 podman compose --profile monitoring up
-
-# Or using Docker
-docker-compose --profile monitoring up
 ```
 
 Or to start all services including monitoring:
 
 ```bash
-# Using Podman
 podman compose --profile monitoring up --build
-
-# Or using Docker
-docker-compose --profile monitoring up --build
 ```
 
 ### Accessing Monitoring Tools
@@ -193,21 +181,13 @@ Dashboards refresh every 5 seconds by default and show the last 15 minutes of da
 To stop only monitoring services:
 
 ```bash
-# Using Podman
 podman compose stop prometheus grafana
-
-# Or using Docker
-docker-compose stop prometheus grafana
 ```
 
 To stop all services:
 
 ```bash
-# Using Podman
 podman compose down
-
-# Or using Docker
-docker-compose down
 ```
 
 ## Service URLs
@@ -297,9 +277,8 @@ The testing guide includes:
 
 ### Prerequisites
 
-- **Podman** (recommended) or Docker & Docker Compose
-  - Podman: [Installation Guide](https://podman.io/getting-started/installation)
-  - Docker: [Installation Guide](https://docs.docker.com/get-docker/)
+- **Podman** v4.0+ (with native compose support)
+  - [Installation Guide](https://podman.io/getting-started/installation)
 - Git
 
 ### Environment Variables
@@ -341,17 +320,13 @@ portfolio-manager/
 
 View logs for specific services:
 ```bash
-# All services (Podman)
+# All services
 podman compose logs
 
-# Specific service (Podman)
+# Specific service
 podman compose logs portfolio-backend
 podman compose logs portfolio-auth
 podman compose logs portfolio-frontend
-
-# Or using Docker
-docker-compose logs
-docker-compose logs portfolio-backend
 ```
 
 ## Security Notes
@@ -365,7 +340,7 @@ docker-compose logs portfolio-backend
 
 1. Create your `.env` file (never commit it)
 2. Make your changes
-3. Test with `podman compose up --build` (or `docker-compose up --build`)
+3. Test with `podman compose up --build`
 4. Submit a pull request
 
 ---

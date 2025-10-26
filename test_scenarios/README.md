@@ -349,7 +349,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6
       - name: Start services
-        run: docker-compose up -d
+        run: podman compose up -d
       - name: Wait for services
         run: sleep 10
       - name: Run load test

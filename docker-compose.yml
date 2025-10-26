@@ -1,6 +1,6 @@
 services:
   # Database
-  portfolio-postgres:  
+  portfolio-postgres:
     image: postgres:16-alpine
     container_name: portfolio-postgres
     restart: unless-stopped
@@ -12,10 +12,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro,z
     networks:
       - portfolio-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio_db} && pg_isready -U ${POSTGRES_USER:-portfolio_user} -d authentik"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,11 +66,11 @@ services:
     networks:
       - portfolio-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/-/health/live/"]
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:9000/-/health/live/\")' || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 50s
+      retries: 5
+      start_period: 90s
 
   # Authentik Worker
   portfolio-authentik-worker:
@@ -89,7 +90,6 @@ services:
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
-      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       portfolio-postgres:
         condition: service_healthy
