@@ -84,15 +84,20 @@
     error = "";
 
     try {
+      // This will redirect to Authentik's enrollment flow
+      // The user will be redirected away from this page
       const result = await auth.register(username.trim(), email.trim(), password);
-      if (result.success){
-        // Dispatch success event
-        onRegisterSuccess?.();
+
+      // Note: The code below won't execute if redirect succeeds
+      // Only runs if there's an error before redirect
+      if (!result.success) {
+        error = result.error || "Failed to initiate registration";
+        loading = false;
       }
-      
+      // If successful, user will be redirected to Authentik
+
     } catch (err) {
-      error = (err as Error).message || "fallback message";
-    } finally {
+      error = (err as Error).message || "Failed to initiate registration";
       loading = false;
     }
   }
@@ -318,14 +323,19 @@
         </div>
       {/if}
 
+      <div class="info-box">
+        <p><strong>Secure Registration</strong></p>
+        <p>You'll be redirected to our secure authentication provider to complete registration.</p>
+      </div>
+
       <div class="form-actions">
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary btn-block" disabled={loading}>
           {#if loading}
             <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
-            Creating Account...
+            Redirecting to Registration...
           {:else}
-            Create Account
+            Continue to Registration
           {/if}
         </button>
       </div>
@@ -349,8 +359,232 @@
 </div>
 
 <style>
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    max-width: 440px;
+    width: 100%;
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .form-header p {
+    color: #718096;
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .required {
+    color: #e53e3e;
+  }
+
+  .form-input-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-input-icon.icon-right {
+    flex-direction: row;
+  }
+
+  .form-input-icon .icon {
+    position: absolute;
+    left: 12px;
+    color: #a0aec0;
+    pointer-events: none;
+  }
+
+  .form-input-icon.icon-right .icon {
+    left: auto;
+    right: 12px;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    font-size: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .form-input-icon.icon-right .form-input {
+    padding-right: 42px;
+    padding-left: 12px;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .form-input.error {
+    border-color: #fc8181;
+  }
+
+  .form-input:disabled {
+    background-color: #f7fafc;
+    cursor: not-allowed;
+  }
+
+  .form-error {
+    background: #fed7d7;
+    border: 1px solid #fc8181;
+    color: #c53030;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .icon {
+    flex-shrink: 0;
+  }
+
+  .info-box {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: 14px;
+    color: #4a5568;
+  }
+
+  .info-box p:first-child {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .form-actions {
+    margin-top: 8px;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .btn-primary:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: #667eea;
+    text-decoration: underline;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    color: #764ba2;
+  }
+
+  .form-footer {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .form-footer p {
+    color: #718096;
+    font-size: 14px;
+    margin: 0;
+  }
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 480px) {
+    .form-card {
+      padding: 24px;
+    }
+
+    .logo {
+      font-size: 48px;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
   }
 </style>

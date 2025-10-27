@@ -3,93 +3,23 @@
 
   // Props
   export let onLoginSuccess: (() => void) | undefined = undefined;
-  export let onShowRegister: (() => void) | undefined = undefined;
 
-  // Form data
-  let email = '';
-  let password = '';
-  let showPassword = false;
   let loading = false;
   let error = '';
-  let emailError = '';
-  let passwordError = '';
 
-  // Validate email
-  function validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  // Validate form
-  function validateForm(): boolean {
-    let isValid = true;
-    emailError = '';
-    passwordError = '';
-
-    if (!email.trim()) {
-      emailError = 'Email is required';
-      isValid = false;
-    } else if (!validateEmail(email)) {
-      emailError = 'Please enter a valid email';
-      isValid = false;
-    }
-
-    if (!password) {
-      passwordError = 'Password is required';
-      isValid = false;
-    } else if (password.length < 6) {
-      passwordError = 'Password must be at least 6 characters';
-      isValid = false;
-    }
-
-    return isValid;
-  }
-
-  // Handle login
-  async function handleLogin(event: Event) {
-    event.preventDefault();
-    
-    if (!validateForm()) return;
-
+  // Handle login - redirect to Authentik
+  async function handleLogin() {
     loading = true;
     error = '';
 
     try {
-      console.log('Starting login attempt...');
-      const result = await auth.login(email.trim(), password);
-      console.log('Login result:', result);
-
-      if (result.success) {
-        console.log('Login successful, calling onLoginSuccess');
-        // Login successful
-        onLoginSuccess?.();
-      } else {
-        console.log('Login failed:', result.error);
-        error = result.error || 'Login failed';
-      }
+      await auth.login();
+      // User will be redirected to Authentik, no need to call onLoginSuccess here
     } catch (err) {
       console.error('Login error:', err);
-      error = 'Network error. Please try again.';
-    } finally {
+      error = 'Failed to initiate login. Please try again.';
       loading = false;
     }
-  }
-
-  // Handle key press
-  function handleKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      handleLogin(event);
-    }
-  }
-
-  // Toggle password visibility
-  function togglePassword() {
-    showPassword = !showPassword;
-  }
-
-  // Handle register click
-  function handleRegisterClick() {
-    onShowRegister?.();
   }
 </script>
 
@@ -97,124 +27,187 @@
   <div class="form-card">
     <div class="form-header">
       <div class="logo">
-        🐦
+        🔐
       </div>
-      <h2>Welcome Back</h2>
-      <p>Sign in to your protected space</p>
+      <h2>Welcome</h2>
+      <p>Sign in to access your portfolio</p>
     </div>
 
-    <form class="login-form" on:submit={handleLogin}>
-      <!-- Email Field -->
-      <div class="form-group">
-        <label class="form-label" for="email">
-          Email <span class="required">*</span>
-        </label>
-        <div class="form-input-icon">
-          <svg class="icon" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-          <input
-            id="email"
-            type="email"
-            bind:value={email}
-            on:keypress={handleKeyPress}
-            placeholder="Enter your email"
-            class="form-input"
-            class:error={emailError}
-            disabled={loading}
-            autocomplete="email"
-          />
-        </div>
-        {#if emailError}
-          <div class="form-error">
-            <svg class="icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            {emailError}
-          </div>
-        {/if}
-      </div>
-
-      <!-- Password Field -->
-      <div class="form-group">
-        <label class="form-label" for="password">
-          Password <span class="required">*</span>
-        </label>
-        <div class="form-input-icon icon-right">
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            bind:value={password}
-            on:keypress={handleKeyPress}
-            placeholder="Enter your password"
-            class="form-input"
-            class:error={passwordError}
-            disabled={loading}
-            autocomplete="current-password"
-          />
-          <button
-            type="button"
-            class="icon"
-            on:click={togglePassword}
-            disabled={loading}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            style="background: none; border: none; cursor: pointer;"
-          >
-            {#if showPassword}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-              </svg>
-            {:else}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-              </svg>
-            {/if}
-          </button>
-        </div>
-        {#if passwordError}
-          <div class="form-error">
-            <svg class="icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            {passwordError}
-          </div>
-        {/if}
-      </div>
-
+    <div class="login-form">
       <!-- Error Message -->
       {#if error}
         <div class="form-error">
           <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           {error}
         </div>
       {/if}
 
       <div class="form-actions">
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary btn-block" disabled={loading}>
+        <!-- Login Button -->
+        <button
+          type="button"
+          class="btn btn-primary btn-block"
+          on:click={handleLogin}
+          disabled={loading}
+        >
           {#if loading}
             <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
-            Signing In...
+            Redirecting to Login...
           {:else}
-            Sign In Securely
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" style="margin-right: 8px;">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            Sign In with Authentik
           {/if}
         </button>
-        
-        <div class="forgot-password">
-          <p>Forgot your password?</p>
-        </div>
       </div>
-    </form>
 
-    <div class="form-footer">
-      <p>
-        Don't have an account?
-        <button type="button" class="btn-link" on:click={handleRegisterClick}>
-          Sign up here
-        </button>
-      </p>
+      <div class="info-box">
+        <p><strong>Secure Authentication</strong></p>
+        <p>You'll be redirected to our secure authentication provider to sign in.</p>
+      </div>
     </div>
   </div>
 </div>
+
+<style>
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .form-header p {
+    color: #718096;
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-error {
+    background: #fed7d7;
+    border: 1px solid #fc8181;
+    color: #c53030;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .icon {
+    flex-shrink: 0;
+  }
+
+  .form-actions {
+    margin-top: 8px;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .btn-primary:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .info-box {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: 14px;
+    color: #4a5568;
+  }
+
+  .info-box p:first-child {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 480px) {
+    .form-card {
+      padding: 24px;
+    }
+
+    .logo {
+      font-size: 48px;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
+  }
+</style>

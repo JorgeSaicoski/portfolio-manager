@@ -113,7 +113,7 @@ All test files use the following variables:
 
 ```bash
 # From project root
-docker-compose up
+podman compose up
 ```
 
 Wait for all services to be healthy.
@@ -227,8 +227,8 @@ For CI/CD automated testing, see:
 ## Troubleshooting
 
 ### "Connection refused"
-- Ensure services are running: `docker-compose ps`
-- Check service logs: `docker-compose logs backend`
+- Ensure services are running: `podman compose ps`
+- Check service logs: `podman compose logs backend`
 
 ### "401 Unauthorized"
 - Token may be expired (24h expiry)
