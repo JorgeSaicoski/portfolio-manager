@@ -39,7 +39,7 @@
     <div class="navbar-container">
       <div class="navbar-brand">
         <h1 class="navbar-title">Portfolio Manager</h1>
-        <p class="text-muted">Welcome back, {user.username}!</p>
+        <p class="text-muted">Welcome back, {user.preferred_username}!</p>
       </div>
 
       <div class="navbar-actions">
@@ -49,9 +49,9 @@
           disabled={loading}
         >
           <div class="avatar">
-            {user.username.charAt(0).toUpperCase()}
+            {user.preferred_username.charAt(0).toUpperCase()}
           </div>
-          <span>{user.username}</span>
+          <span>{user.preferred_username}</span>
         </button>
 
         <button
@@ -98,12 +98,12 @@
         <div class="card-body">
           <div class="form-group">
             <span class="form-label">User ID</span>
-            <p class="font-mono text-muted">#{user.id}</p>
+            <p class="font-mono text-muted">#{user.sub}</p>
           </div>
 
           <div class="form-group">
-            <span class="form-label">Account Created</span>
-            <p class="text-muted">{formatDate(user.created_at)}</p>
+            <span class="form-label">Email</span>
+            <p class="text-muted">{user.email}</p>
           </div>
         </div>
       </div>

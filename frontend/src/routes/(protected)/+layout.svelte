@@ -14,7 +14,7 @@
   }
 
   interface Props {
-    children: any;
+    children: import('svelte').Snippet;
     data: LayoutData;
   }
 
@@ -22,10 +22,9 @@
 
   // Initialize auth store with server data
   onMount(() => {
-    if (data.user && data.token) {
-      // Update client store with server data
-      auth.setAuth(data.token, data.user);
-    }
+    // The auth store is already initialized from cookies via auth.init()
+    // Server-side validation ensures the user is authenticated
+    // No need to call setAuth again as it would require access_token, id_token, and user
   });
 
   function handleLogout() {

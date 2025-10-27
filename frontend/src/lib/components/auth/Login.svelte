@@ -3,6 +3,7 @@
 
   // Props
   export let onLoginSuccess: (() => void) | undefined = undefined;
+  export let onShowRegister: (() => void) | undefined = undefined;
 
   let loading = false;
   let error = '';

@@ -1,14 +1,36 @@
 # Authentik Enrollment Flow Setup
 
-This guide explains how to configure Authentik to allow users to self-register (enroll) in your Portfolio Manager application.
+This comprehensive guide explains how to configure Authentik to allow users to self-register (enroll) in your Portfolio Manager application with complete step-by-step instructions.
 
-## ⚠️ CRITICAL: Username Field Requirement
+## Table of Contents
 
-**Common Issue:** Registration fails with "Aborting write to empty username" or "No user found and can't create new user"
+- [Common Issues - Quick Fixes](#common-issues---quick-fixes)
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Step 1: Review Default Enrollment Flow](#step-1-review-default-enrollment-flow)
+- [Step 2: Enable Enrollment on Your Brand](#step-2-enable-enrollment-on-your-brand)
+- [Step 3: Add Username Field (CRITICAL!)](#step-3-add-username-field-critical)
+- [Step 4: Configure User Write Stage](#step-4-configure-user-write-stage)
+- [Step 5: Auto-Assign Users to Groups](#step-5-auto-assign-users-to-groups)
+- [Step 6: Test Enrollment Flow](#step-6-test-enrollment-flow)
+- [Optional Enhancements](#optional-enhancements)
+- [Troubleshooting](#troubleshooting)
+
+## Common Issues - Quick Fixes
+
+### ⚠️ CRITICAL: Username Field Missing
+
+**Issue:** Registration fails with "Aborting write to empty username" or "No user found and can't create new user"
 
 **Root Cause:** The enrollment prompt stage is missing the **username** field.
 
 **Quick Fix:** Jump to [Step 3: Add Username Field](#step-3-add-username-field-critical) below.
+
+### Issue: New Users Can't Access Application
+
+**Root Cause:** Users not assigned to required groups.
+
+**Quick Fix:** Jump to [Step 5: Auto-Assign Users to Groups](#step-5-auto-assign-users-to-groups) below.
 
 ---
 
@@ -16,17 +38,24 @@ This guide explains how to configure Authentik to allow users to self-register (
 
 By default, Authentik requires administrators to manually create user accounts. To allow users to register themselves, you need to:
 
-1. Create or review the enrollment flow
-2. **Add username field to the prompt stage** (CRITICAL!)
-3. Configure the User Write stage to create users
-4. Enable the enrollment flow on your brand
-5. Optionally configure email verification and password policies
+1. ✅ Review or create the enrollment flow
+2. ✅ Enable enrollment flow on your brand
+3. ✅ **Add username field to the prompt stage** (CRITICAL!)
+4. ✅ Configure the User Write stage to create users
+5. ✅ **Auto-assign new users to default groups** (NEW!)
+6. ✅ Test the complete registration flow
+7. ⚙️ Optionally add email verification, password policies, etc.
+
+**Estimated Time:** 15-20 minutes
 
 ## Prerequisites
 
 - Authentik is running and accessible at `http://localhost:9000`
 - You have admin access to Authentik
-- The OAuth2 provider and application are already configured (see [AUTHENTIK_QUICKSTART.md](./AUTHENTIK_QUICKSTART.md))
+- The OAuth2 provider and application are configured
+  - If not, see [provider-application-setup.md](./provider-application-setup.md)
+- You have created user groups (optional but recommended)
+  - If not, see [user-groups-permissions.md](./user-groups-permissions.md)
 
 ## Step 1: Review Default Enrollment Flow
 
@@ -126,7 +155,9 @@ If you prefer users to login with email instead of a separate username:
 
 ## Step 4: Configure User Write Stage
 
-**Ensure the User Write Stage can create new users:**
+The User Write stage is responsible for actually creating user accounts in the database.
+
+### 4.1 Find the User Write Stage
 
 1. **Navigate to Stages:**
    - Go to **Flows & Stages** → **Stages**
@@ -134,45 +165,186 @@ If you prefer users to login with email instead of a separate username:
 2. **Find the User Write stage:**
    - Look for the stage used in your enrollment flow
    - Common names: `default-user-settings-write`, `enrollment-user-write`, `user-write`
+   - You can also check from: Flows → default-enrollment-flow → Stage Bindings tab
 
-3. **Edit the stage:**
-   - Click on the stage name
-   - **Verify settings:**
-     - **Create users as inactive**: Should be **Unchecked** (users should be active immediately)
-     - **User path template**: Should be `users` (default)
-     - **Can create users**: Should be **enabled/checked** (if this option exists)
+### 4.2 Verify User Write Configuration
 
-4. **If using wrong stage type:**
-   - The `default-user-settings-write` stage might be configured for updating existing users only
-   - **Solution**: Create a new User Write Stage specifically for enrollment:
-     - Click **Create** → **User Write Stage**
-     - Name: `enrollment-user-write`
-     - **User creation mode**: Enabled
-     - **Create users as inactive**: Unchecked
-     - Click **Create**
-   - Then update your enrollment flow to use this new stage instead
+1. **Click on the User Write stage** to edit it
 
-## Step 5: Test Enrollment
+2. **Verify these critical settings:**
+
+   | Setting | Recommended Value | Why? |
+   |---------|-------------------|------|
+   | **Create users as inactive** | ❌ Unchecked | Users active immediately (unless using email verification) |
+   | **User path template** | `users` | Where users are stored in Authentik's directory |
+   | **Can create users** | ✅ Enabled | Stage can create new users (if option exists) |
+
+### 4.3 If Using Email Verification
+
+If you plan to add email verification ([email-verification.md](./email-verification.md)):
+
+- **Create users as inactive**: ✅ **Checked**
+- Email stage will activate users after verification
+
+### 4.4 Create New User Write Stage (If Needed)
+
+If the existing stage doesn't work or is misconfigured:
+
+1. **Create a new User Write Stage:**
+   - Click **Create** → **User Write Stage**
+
+2. **Configure the stage:**
+   - **Name**: `enrollment-user-write`
+   - **Create users as inactive**: ❌ Unchecked (or ✅ if using email verification)
+   - **User path template**: `users`
+
+3. **Click Create**
+
+4. **Update enrollment flow to use new stage:**
+   - Go to **Flows & Stages** → **Flows** → `default-enrollment-flow`
+   - Click **Stage Bindings** tab
+   - Find the old User Write stage binding
+   - Click **Edit** and change to `enrollment-user-write`
+   - Or delete old binding and create new one
+
+**✅ User Write stage configured!**
+
+## Step 5: Auto-Assign Users to Groups
+
+**NEW!** This critical step ensures new users are automatically added to default groups so they can access your application.
+
+### 5.1 Why This Matters
+
+Without group assignment:
+- ❌ New users may not be able to access Portfolio Manager
+- ❌ You'll need to manually add each user to groups
+- ❌ Users get confused why they can't login
+
+With auto-assignment:
+- ✅ New users immediately get appropriate access
+- ✅ Automatic onboarding - no manual work
+- ✅ Better user experience
+
+### 5.2 Prerequisites: Create User Groups
+
+First, ensure you have groups created (if not done already):
+
+1. **Navigate to** **Directory** → **Groups**
+
+2. **Create a "users" group** (if not exists):
+   - Click **Create**
+   - **Name**: `users`
+   - **Label**: `Standard Users`
+   - Click **Create**
+
+For more details on groups, see [user-groups-permissions.md](./user-groups-permissions.md).
+
+### 5.3 Configure User Write Stage to Assign Groups
+
+Now configure the User Write stage to automatically add new users to groups:
+
+1. **Navigate to** **Flows & Stages** → **Stages**
+
+2. **Click on your User Write stage** (e.g., `user-write` or `enrollment-user-write`)
+
+3. **Scroll down to the "Groups" section**
+
+4. **Click "Add Group" or select from dropdown**:
+   - Select `users` (or your default group)
+   - You can add multiple groups if needed
+
+5. **Click "Update"** to save
+
+### 5.4 Verify Configuration
+
+1. Go to **Flows & Stages** → **Flows** → `default-enrollment-flow`
+2. Click **Stage Bindings** tab
+3. Click on the User Write stage
+4. Verify **Groups** section shows `users` (or your group)
+
+**✅ Auto-assignment configured!** New users will automatically be added to the `users` group.
+
+## Step 6: Test Enrollment Flow
+
+Now let's test the complete enrollment process to verify everything works.
+
+### 6.1 Access Enrollment Page
 
 1. **Logout** from Authentik admin (or open an incognito window)
 
-2. **Access the enrollment URL**: `http://localhost:9000/if/flow/default-enrollment-flow/`
+2. **Access the enrollment URL**:
+   - Direct: `http://localhost:9000/if/flow/default-enrollment-flow/`
+   - Or via Portfolio Manager: `http://localhost:3000` → Click "Register"
 
-3. You should see a registration form with fields like:
-   - Username
-   - Name
-   - Email
-   - Password
-   - Password confirmation
+### 6.2 Fill Registration Form
 
-4. Fill in the form and submit
+You should see a registration form with these fields:
 
-5. If successful, you should:
-   - Be automatically logged in
-   - See the Authentik user dashboard
-   - Be able to use those credentials to login to the Portfolio Manager app
+- ✅ **Username** (if you completed Step 3)
+- ✅ **Email**
+- ✅ **Name** (full name)
+- ✅ **Password**
+- ✅ **Password confirmation**
 
-## Step 4: Link Enrollment to Login Flow (Optional)
+**Fill in test data:**
+```
+Username: testuser123
+Email: your-email@example.com (use a real email you can check)
+Name: Test User
+Password: TestPassword123!
+Password confirmation: TestPassword123!
+```
+
+### 6.3 Submit Registration
+
+1. **Click** "Sign up" or "Submit" button
+
+2. **Expected result:**
+   - ✅ No errors
+   - ✅ Redirected to success page or auto-logged in
+   - ✅ See Authentik user dashboard or Portfolio Manager app
+
+### 6.4 Verify User Was Created
+
+1. **Login** to Authentik admin panel
+
+2. **Navigate to** **Directory** → **Users**
+
+3. **Find** the test user (`testuser123`)
+
+4. **Click** on the user to view details
+
+5. **Verify:**
+   - ✅ **Status**: Active (green checkmark)
+   - ✅ **Username**: `testuser123`
+   - ✅ **Email**: matches what you entered
+   - ✅ **Groups** tab: Shows `users` group (if you configured Step 5)
+
+**✅ If you see the user with active status and in the correct group, enrollment is working!**
+
+### 6.5 Test Login to Portfolio Manager
+
+1. **Go to** `http://localhost:3000`
+
+2. **Click** "Login"
+
+3. **Enter credentials:**
+   - Username: `testuser123`
+   - Password: `TestPassword123!`
+
+4. **Expected result:**
+   - ✅ Redirected to Authentik login
+   - ✅ Successfully authenticated
+   - ✅ Redirected back to Portfolio Manager
+   - ✅ Logged in and can access the application
+
+**✅ Complete enrollment and authentication flow working!**
+
+## Optional Enhancements
+
+After basic enrollment is working, consider these enhancements:
+
+### Link Enrollment to Login Flow
 
 To show a "Create account" link on the login page:
 
@@ -194,70 +366,21 @@ To show a "Create account" link on the login page:
 
 7. Now when users visit the login page, they should see a "Create account" or "Sign up" link
 
-## Step 5: Configure Email Verification (Recommended for Production)
+### Configure Email Verification (Recommended for Production)
 
-### Create Email Stage
+Email verification ensures users provide valid email addresses and helps prevent spam.
 
-1. Navigate to **Flows & Stages** → **Stages**
+**See the complete guide:** [email-verification.md](./email-verification.md)
 
-2. Click **Create** → **Email Stage**
+**Quick setup:**
 
-3. Configure:
-   - **Name**: `enrollment-email-verification`
-   - **From address**: `noreply@yourdomain.com`
-   - **Subject**: `Verify your email address`
-   - **Template**: `email/account_confirmation.html` (default)
-   - **Token expiry**: `30` minutes
-   - **Activate pending users**: ✅ Checked
+1. Configure email backend ([email-configuration.md](./email-configuration.md))
+2. Create Email Stage with "Activate pending user" checked
+3. Add Email Stage to enrollment flow (between prompt and user-write)
+4. Set User Write stage to "Create users as inactive"
+5. Test registration - users receive verification email
 
-4. Click **Create**
-
-### Add Email Stage to Enrollment Flow
-
-1. Navigate to **Flows & Stages** → **Flows**
-
-2. Click on `default-enrollment-flow`
-
-3. Click **Stage Bindings** tab
-
-4. Click **Bind Stage**
-
-5. Configure:
-   - **Stage**: Select `enrollment-email-verification`
-   - **Order**: Set to run after `prompt-stage-enrollment` but before `user-write`
-   - **Re-evaluate policies**: ✅ Checked (optional)
-
-6. Click **Create**
-
-7. **Reorder stages** if needed:
-   - Prompt Stage (collect user data)
-   - Email Stage (verify email)
-   - User Write Stage (create user)
-   - User Login Stage (log user in)
-
-### Configure Email Backend
-
-For email verification to work, you need to configure an email backend:
-
-1. Navigate to **System** → **Settings**
-
-2. Scroll to **Email** section
-
-3. Configure SMTP settings:
-   - **Host**: Your SMTP server (e.g., `smtp.gmail.com`)
-   - **Port**: `587` (TLS) or `465` (SSL)
-   - **Username**: Your email username
-   - **Password**: Your email password or app password
-   - **Use TLS**: ✅ Checked
-   - **From address**: `noreply@yourdomain.com`
-
-4. Click **Test** to send a test email
-
-5. Click **Update**
-
-**Note**: For local development, you can use a service like [Mailhog](https://github.com/mailhog/MailHog) or skip email verification.
-
-## Step 6: Configure Password Policy (Optional)
+### Configure Password Policy (Optional)
 
 1. Navigate to **Policies** → **Create** → **Password Policy**
 
@@ -381,6 +504,38 @@ After successful registration, they can:
 
 ## Troubleshooting
 
+### Error: "Aborting write to empty username"
+
+**Cause:** Username field not included in prompt stage.
+
+**Solution:** Follow [Step 3: Add Username Field](#step-3-add-username-field-critical) carefully.
+
+### Error: "No user found and can't create new user"
+
+**Cause:** User Write stage not configured to create users.
+
+**Solution:**
+1. Check User Write stage settings (Step 4)
+2. Ensure "Can create users" is enabled
+3. Or create new User Write stage specifically for enrollment
+
+### New Users Can't Access Portfolio Manager
+
+**Cause:** Users not assigned to required groups.
+
+**Solution:**
+1. Follow [Step 5: Auto-Assign Users to Groups](#step-5-auto-assign-users-to-groups)
+2. Or manually add users to groups: Directory → Users → [user] → Groups tab
+
+### Registration Form Missing Username Field
+
+**Cause:** Username prompt not added to enrollment prompt stage.
+
+**Solution:**
+1. Flows & Stages → Prompts → Create username prompt (field key: `username`)
+2. Flows & Stages → Stages → enrollment-prompt → Add username field
+3. Save and test again
+
 ### Enrollment URL shows 404
 
 - **Check flow exists**: Navigate to Flows & Stages → Flows and verify `default-enrollment-flow` exists
@@ -411,17 +566,46 @@ After successful registration, they can:
 - **Check client ID**: Must match `portfolio-manager`
 - **Check backend logs**: `podman compose logs -f portfolio-backend`
 
-## Testing Checklist
+## Complete Testing Checklist
 
+Use this checklist to verify your enrollment setup:
+
+### Basic Enrollment
 - [ ] Can access enrollment URL: `http://localhost:9000/if/flow/default-enrollment-flow/`
-- [ ] Can see registration form with username, email, password fields
+- [ ] Registration form shows all required fields:
+  - [ ] Username field (CRITICAL!)
+  - [ ] Email field
+  - [ ] Name field
+  - [ ] Password field
+  - [ ] Password confirmation field
 - [ ] Can submit form with valid data
-- [ ] User is created in Authentik (verify in admin → Directory → Users)
+- [ ] No errors during submission
+
+### User Creation
+- [ ] User is created in Authentik (Directory → Users)
+- [ ] User status is "Active" (green checkmark)
+- [ ] User email matches what was entered
 - [ ] User is automatically logged in after registration
 - [ ] Can logout and login again with the created credentials
+
+### Group Assignment
+- [ ] New user is automatically added to `users` group
+- [ ] Check: Directory → Users → [username] → Groups tab
+- [ ] Group membership appears immediately (not requiring manual assignment)
+
+### Application Access
 - [ ] Can login to Portfolio Manager using the new account
-- [ ] Registration validates password strength (if policy is configured)
+- [ ] No "access denied" or "insufficient permissions" errors
+- [ ] Can access protected features/pages
+
+### Optional Features (if configured)
+- [ ] Registration validates password strength (if policy configured)
 - [ ] Email verification works (if configured)
+- [ ] Receives verification email
+- [ ] Can click verification link
+- [ ] User activated after verification
+
+**✅ If all checked, enrollment is fully configured and working!**
 
 ## Additional Resources
 
@@ -433,8 +617,27 @@ After successful registration, they can:
 ## Next Steps
 
 After setting up enrollment:
-1. Configure password recovery flow
-2. Set up social login (Google, GitHub, etc.)
-3. Enable 2FA for enhanced security
-4. Customize branding and themes
-5. Set up user groups and permissions
+
+1. **[Configure Email Verification](./email-verification.md)**
+   - Send verification emails to new users
+   - Ensure valid email addresses
+   - Prevent spam registrations
+
+2. **[Setup Email Configuration](./email-configuration.md)**
+   - Configure SMTP, Amazon SES, or SendGrid
+   - Required for email verification and password reset
+
+3. **[Configure User Groups & Permissions](./user-groups-permissions.md)**
+   - Organize users by role
+   - Control access to features
+   - Already done if you followed Step 5!
+
+4. **Configure password recovery flow**
+   - Allow users to reset forgotten passwords
+   - Uses similar email stage setup
+
+5. **Optional enhancements:**
+   - Set up social login (Google, GitHub, etc.)
+   - Enable 2FA for enhanced security
+   - Customize branding and themes
+   - Add custom fields to registration form
