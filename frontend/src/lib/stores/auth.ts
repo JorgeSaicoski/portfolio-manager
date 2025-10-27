@@ -305,6 +305,32 @@ function createAuthStore(): AuthStore {
       }
     },
 
+    // Register new user (redirect to Authentik enrollment flow)
+    async register(username: string, email: string, password: string): Promise<ApiResponse<void>> {
+      if (!browser) return { success: false, error: 'Not in browser environment' };
+
+      try {
+        // Authentik enrollment flow URL
+        // The default enrollment flow allows users to self-register
+        const enrollmentUrl = new URL(`${AUTHENTIK_URL}/if/flow/default-enrollment-flow/`);
+
+        // Optional: Pre-fill email if supported by your enrollment flow configuration
+        // This requires custom configuration in Authentik's enrollment flow
+        if (email) {
+          enrollmentUrl.searchParams.set('email', email);
+        }
+
+        // Redirect to Authentik enrollment/registration page
+        window.location.href = enrollmentUrl.toString();
+
+        return { success: true };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to initiate registration';
+        this.setError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+    },
+
     // Logout function
     async logout(): Promise<void> {
       const state = this.getCurrentState();
@@ -369,6 +395,7 @@ export interface AuthStore {
   setLoading(loading: boolean): void;
   setError(error: string): void;
   login(): Promise<void>;
+  register(username: string, email: string, password: string): Promise<ApiResponse<void>>;
   handleCallback(code: string, state: string): Promise<ApiResponse<User>>;
   logout(): Promise<void>;
   getCurrentState(): AuthState;

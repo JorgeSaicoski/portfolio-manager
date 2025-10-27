@@ -1,6 +1,15 @@
 # Authentik Setup Guide
 
-This guide walks you through setting up Authentik for OAuth2/OIDC authentication with the Portfolio Manager application.
+This is the **comprehensive** guide for setting up Authentik for OAuth2/OIDC authentication with the Portfolio Manager application.
+
+## Quick Links
+
+**Experiencing login issues?** Start here:
+- 🚀 **[AUTHENTIK_QUICKSTART.md](./AUTHENTIK_QUICKSTART.md)** - Fix "Invalid client identifier" error (5 min)
+- 📝 **[ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)** - Enable user self-registration (5 min)
+- 📚 **[AUTHENTICATION_README.md](./AUTHENTICATION_README.md)** - Complete overview and troubleshooting
+
+This guide provides detailed step-by-step instructions for setting up Authentik from scratch.
 
 ## Prerequisites
 
