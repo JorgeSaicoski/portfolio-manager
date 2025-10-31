@@ -11,6 +11,10 @@
 @use 'components/navigation';
 @use 'components/modal';
 @use 'components/hero';
+@use 'components/admin-layout';
+@use 'components/sidebar';
+@use 'components/tables';
+@use 'components/stats';
 
 // === FONT IMPORTS ===
 @font-face {
@@ -44,6 +48,11 @@
   --color-primary-light: #5EEAD4; // Lighter teal
   --color-secondary: #1E3A3A;   // Dark navy
   --color-secondary-light: #2F4F4F; // Lighter navy
+
+  // Admin Theme Colors (purple gradients)
+  --color-admin-purple: #667eea;
+  --color-admin-purple-dark: #764ba2;
+  --color-admin-purple-light: #8b9dff;
   
   // Neutral Palette
   --color-white: #FFFFFF;
