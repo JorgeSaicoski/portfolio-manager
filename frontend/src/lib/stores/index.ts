@@ -13,3 +13,6 @@ export type { ProjectState } from "./project";
 
 export { sectionStore } from "./section";
 export type { SectionState } from "./section";
+
+export { sectionContentStore } from "./sectionContent";
+export type { SectionContentState } from "./sectionContent";

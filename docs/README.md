@@ -4,6 +4,13 @@ Welcome to the Portfolio Manager documentation! This guide will help you find th
 
 ## 📚 Documentation Structure
 
+### ⚡ [Makefile Guide](MAKEFILE_GUIDE.md)
+**NEW!** Complete automation reference with 50+ commands to streamline setup and development.
+
+- **[Makefile Guide](MAKEFILE_GUIDE.md)** - All available make commands, usage examples, and workflows
+- Automates 61% of manual setup steps
+- Reduces setup time from 15-20 minutes to 5-10 minutes
+
 ### 🔐 [Authentication](authentication/)
 Everything related to user authentication, OAuth2, and Authentik setup.
 
@@ -31,9 +38,11 @@ Guides for contributing and developing Portfolio Manager.
 
 - **[Getting Started](development/getting-started.md)** - Set up development environment
 - **[Frontend Development](development/frontend.md)** - SvelteKit/TypeScript development guide
+- **[Frontend Guide](development/frontend-guide.md)** - Complete frontend integration guide
 - **[Backend Development](development/backend.md)** - Go/Gin development guide
 - **[Testing Guide](development/testing.md)** - Writing and running tests
 - **[Architecture](development/architecture.md)** - System architecture deep-dive
+- **[Makefile Implementation](MAKEFILE_IMPLEMENTATION_SUMMARY.md)** - Makefile automation details
 
 ### 🛡️ [Security](security/)
 Security best practices, audits, and vulnerability reports.
@@ -45,9 +54,10 @@ Security best practices, audits, and vulnerability reports.
 ## 🚀 Quick Links
 
 ### New Users
-1. Start with the [Setup Guide](../SETUP.md)
-2. Configure [Authentication](authentication/authentik-quickstart.md)
-3. Create your first portfolio
+1. **Quick Start**: Use [Makefile automation](MAKEFILE_GUIDE.md) for fastest setup
+2. **Manual Setup**: Follow the [Setup Guide](../SETUP.md)
+3. Configure [Authentication](authentication/authentik-quickstart.md)
+4. Create your first portfolio
 
 ### Developers
 1. Read [Contributing Guide](../CONTRIBUTING.md)

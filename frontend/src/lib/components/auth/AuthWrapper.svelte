@@ -6,7 +6,7 @@
   import Register from './Register.svelte';
 
   // Props for event callbacks
-  export let onAuthSuccess: ((data: { token: string; user: any }) => void) | undefined = undefined;
+  export let onAuthSuccess: (() => void) | undefined = undefined;
 
   // Component state
   let currentView = 'login'; // 'login' | 'register'
@@ -16,14 +16,9 @@
   $: ({ isAuthenticated, user, loading, error } = $auth);
 
   // Handle successful authentication
-  function handleAuthSuccess(data: { token: string; user: any }) {
-    const { token, user } = data;
-    
-    // Update auth store
-    auth.setAuth(token, user);
-    
-    // Call parent callback
-    onAuthSuccess?.(data);
+  function handleAuthSuccess() {
+    // Call parent callback (authentication is already handled via OAuth redirect)
+    onAuthSuccess?.();
   }
 
   // Handle view transitions

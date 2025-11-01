@@ -502,3 +502,5 @@ Taskfile.yml.local
 # Example:
 # my-custom-config.local.json
 # scripts/temp/
+.claude/settings.local.json
+/.aiassistant/

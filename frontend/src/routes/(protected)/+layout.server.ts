@@ -27,7 +27,7 @@ export const load: LayoutServerLoad = async ({ cookies }: RequestEvent) => {
       user,
       token // Optional: if you want to pass token to client
     };
-  } catch (error) {
+  } catch (error: unknown) {
     // Invalid token/user data - clear cookies and redirect
     cookies.delete('auth-token', { path: '/' });
     cookies.delete('auth-user', { path: '/' });

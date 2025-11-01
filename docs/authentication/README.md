@@ -21,16 +21,50 @@ Complete guide to setting up and configuring authentication for Portfolio Manage
 
 ## Guides
 
+### Getting Started (Choose Your Path)
+
+**New to Authentik?** Start with:
+1. **[Provider & Application Setup](provider-application-setup.md)** ⚡ (15 min)
+   - Complete OAuth2/OIDC provider configuration
+   - Create application and link to provider
+   - Understanding OAuth2 concepts
+   - Step-by-step with detailed explanations
+
+2. **[Enrollment Setup](enrollment-setup.md)** 📝 (15 min)
+   - Enable user self-registration
+   - **CRITICAL**: Username field configuration
+   - **NEW**: Auto-assign users to groups
+   - Complete testing checklist
+
+**Having login issues?** Quick fix:
+- **[Authentik Quickstart](authentik-quickstart.md)** 🚀 (5 min)
+  - Fixes "Invalid client identifier" error
+  - Creates OAuth2 provider quickly
+  - Gets you unstuck fast
+
+### Complete Guides
+
+### [Provider & Application Setup](provider-application-setup.md) 🆕
+**Complete, step-by-step OAuth2 provider and application configuration**
+
+Covers:
+- Creating OAuth2/OIDC Provider with all settings explained
+- Creating and linking Application
+- Configuring backend and frontend environments
+- Understanding OAuth2 concepts (flows, tokens, scopes)
+- Comprehensive troubleshooting
+
+**When to use:** First-time setup or when you need detailed explanations
+
 ### [Authentik Setup](authentik-setup.md)
-**Complete, detailed Authentik configuration guide**
+**High-level Authentik configuration guide**
 
 Covers:
 - Initial setup and admin account creation
-- OAuth2/OIDC provider configuration
-- Application creation
-- Advanced settings (2FA, social login, branding)
+- Quick OAuth2/OIDC setup
+- Container management with Podman
 
-**When to use:** First-time setup or comprehensive reference
+**When to use:** Overview reference or infrastructure setup
 
 ### [Authentik Quickstart](authentik-quickstart.md)
 **Fix login issues in 5 minutes**
@@ -42,17 +76,54 @@ Solves:
 
 **When to use:** You're stuck and need a quick fix NOW
 
-### [Enrollment Setup](enrollment-setup.md)
-**Enable user self-registration**
+### [Enrollment Setup](enrollment-setup.md) ✨ Updated
+**Enable user self-registration with group assignment**
 
 Includes:
 - ⚠️ **Username field fix** (critical!)
-- Creating enrollment flow
+- Creating and configuring enrollment flow
+- **NEW**: Auto-assign users to groups
 - Configuring User Write stage
-- Email verification (optional)
-- Password policies
+- Complete testing checklist
+- Links to email verification and password policies
 
 **When to use:** Allow users to register without admin intervention
+
+### [User Groups & Permissions](user-groups-permissions.md) 🆕
+**Organize users and control access with groups**
+
+Covers:
+- Creating user groups
+- Assigning users to groups manually and automatically
+- Group-based access policies
+- Backend integration for RBAC
+- Group hierarchies
+
+**When to use:** Organize users by role and implement access control
+
+### [Email Configuration](email-configuration.md) 🆕
+**Configure email sending for notifications and verification**
+
+Covers:
+- SMTP setup (Gmail, Outlook, Office 365)
+- Amazon SES integration (complete setup)
+- SendGrid integration (complete setup)
+- Testing email configuration
+- Production best practices
+
+**When to use:** Before setting up email verification or password reset
+
+### [Email Verification](email-verification.md) 🆕
+**Send verification emails to new users during registration**
+
+Covers:
+- Creating email verification stage
+- Adding to enrollment flow
+- Customizing email templates
+- Testing verification flow
+- Troubleshooting email issues
+
+**When to use:** Ensure users provide valid email addresses
 
 ### [Troubleshooting](troubleshooting.md)
 **Common authentication issues and solutions**
@@ -154,26 +225,98 @@ AUTHENTIK_URL=http://portfolio-authentik-server:9000
 | Backend returns 401 | Check client secret in `.env` | [Troubleshooting](troubleshooting.md) |
 | CORS errors | Verify `ALLOWED_ORIGINS` | [Troubleshooting](troubleshooting.md) |
 
-## Next Steps
+## Recommended Setup Order
 
-After setting up authentication:
+For a complete Authentik setup from scratch, follow this order:
 
-1. **Test the flow**
-   - Register a new user
-   - Login with credentials
-   - Access protected API endpoints
+### 1. Initial Setup (30-45 minutes)
 
-2. **Optional enhancements**
-   - Email verification
-   - Password reset flow
-   - Social login (Google, GitHub, etc.)
-   - 2FA/MFA
+1. **[Provider & Application Setup](provider-application-setup.md)** (15 min)
+   - Create OAuth2/OIDC provider
+   - Create application
+   - Configure backend and frontend
 
-3. **Production readiness**
-   - Switch to HTTPS
-   - External Authentik instance (optional)
-   - Backup Authentik database
+2. **[User Groups & Permissions](user-groups-permissions.md)** (10 min)
+   - Create `admins` and `users` groups
+   - Add yourself to `admins` group
+   - Document group structure
+
+3. **[Enrollment Setup](enrollment-setup.md)** (15 min)
+   - Configure user registration
+   - Add username field (critical!)
+   - Auto-assign users to `users` group
+   - Test registration flow
+
+### 2. Email Setup (20-30 minutes)
+
+4. **[Email Configuration](email-configuration.md)** (15 min)
+   - Choose provider (SMTP/SES/SendGrid)
+   - Configure email backend
+   - Test email sending
+
+5. **[Email Verification](email-verification.md)** (10 min)
+   - Create email verification stage
+   - Add to enrollment flow
+   - Test verification flow
+
+### 3. Testing & Validation (15 minutes)
+
+6. **Test complete flow:**
+   - Register new test user
+   - Verify email (if configured)
+   - Check group assignment
+   - Login to Portfolio Manager
+   - Access protected features
+
+7. **Review [Troubleshooting](troubleshooting.md)** for common issues
+
+### 4. Optional Enhancements
+
+After core setup is working:
+
+- **Password reset flow** - Allow users to recover accounts
+- **Social login** - Google, GitHub, etc.
+- **2FA/MFA** - Enhanced security
+- **Custom branding** - Logo, colors, themes
+- **Group-based policies** - Advanced access control
+- **Audit logs** - Monitor authentication events
+
+## Next Steps After Setup
+
+### Production Readiness
+
+1. **Security**
+   - Switch to HTTPS everywhere
+   - Use strong client secrets
+   - Enable 2FA for admin accounts
+   - Configure rate limiting
+   - Review security headers
+
+2. **Monitoring**
+   - Set up logging and alerts
    - Monitor authentication metrics
+   - Track failed login attempts
+   - Review audit logs regularly
+
+3. **Backup & Recovery**
+   - Backup Authentik PostgreSQL database
+   - Document configuration
+   - Test recovery procedures
+   - Store secrets securely (Vault, AWS Secrets Manager)
+
+4. **Performance**
+   - External Authentik instance (optional)
+   - Load balancing (if high traffic)
+   - CDN for static assets
+   - Database optimization
+
+### Ongoing Maintenance
+
+- **Regularly update Authentik** to latest version
+- **Review and cleanup** inactive users
+- **Audit group memberships** quarterly
+- **Monitor email deliverability** (bounce/complaint rates)
+- **Update documentation** as you make changes
 
 ---
 

@@ -2,7 +2,43 @@
 
 Complete setup guide to get Portfolio Manager running on your local machine.
 
-**⏱️ Estimated time:** 15-20 minutes
+**⏱️ Estimated time:** 15-20 minutes (5-10 with Makefile automation)
+
+## 🚀 Quick Start (Recommended)
+
+**Using Makefile automation** - fastest way to get started:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/JorgeSaicoski/portfolio-manager.git
+cd portfolio-manager
+
+# 2. Run automated setup
+make setup
+
+# 3. Generate secure secrets
+make generate-secrets
+# Copy the output to your .env file
+
+# 4. Start all services
+make start
+
+# 5. Follow Authentik configuration guide
+make authentik-guide
+
+# 6. Verify everything works
+make verify-setup
+```
+
+**Time saved:** ~10 minutes with automated commands!
+
+📖 **Full Makefile reference:** [docs/MAKEFILE_GUIDE.md](docs/MAKEFILE_GUIDE.md)
+
+---
+
+## Manual Setup (Step by Step)
+
+Prefer to understand each step? Follow the detailed instructions below.
 
 ## Table of Contents
 
@@ -58,6 +94,16 @@ cd portfolio-manager
 
 ### Step 2: Create Environment File
 
+**Option A: Using Makefile (Automated)**
+
+```bash
+make create-env
+```
+
+This automatically creates `.env` from `.env.example` and backs up any existing file.
+
+**Option B: Manual Creation**
+
 Create a `.env` file in the project root:
 
 ```bash
@@ -95,6 +141,16 @@ ALLOWED_ORIGINS=http://localhost:3000
 
 **Generate secure secrets:**
 
+**Option A: Using Makefile (Automated)**
+
+```bash
+make generate-secrets
+```
+
+This generates all required secrets in one command. Copy the output to your `.env` file.
+
+**Option B: Manual Generation**
+
 ```bash
 # Generate AUTHENTIK_SECRET_KEY
 openssl rand -base64 60
@@ -108,6 +164,14 @@ openssl rand -base64 32
 ## Configuration
 
 ### Network Setup (Optional)
+
+**Option A: Using Makefile (Automated)**
+
+```bash
+make network-create
+```
+
+**Option B: Manual Creation**
 
 If using custom networks or running on a server:
 
@@ -127,6 +191,21 @@ The database will be automatically initialized on first start. Two databases are
 ## Starting Services
 
 ### Start All Services
+
+**Option A: Using Makefile (Recommended)**
+
+```bash
+# Start all services
+make start
+
+# Check status
+make status
+
+# View logs
+make logs
+```
+
+**Option B: Manual Command**
 
 ```bash
 # Start in detached mode (recommended)
@@ -150,6 +229,14 @@ podman compose up
 
 ### Verify Services are Running
 
+**Using Makefile:**
+
+```bash
+make status
+```
+
+**Manual command:**
+
 ```bash
 podman compose ps
 ```
@@ -157,6 +244,21 @@ podman compose ps
 All services should show status `Up` or `healthy`.
 
 ### Check Service Logs
+
+**Using Makefile:**
+
+```bash
+# All services
+make logs
+
+# Specific services
+make logs-backend
+make logs-frontend
+make logs-authentik
+make logs-db
+```
+
+**Manual commands:**
 
 ```bash
 # All services
@@ -177,6 +279,18 @@ podman compose logs -f
 **⚠️ CRITICAL STEP** - Without this, you cannot login!
 
 Authentik provides OAuth2/OIDC authentication but requires manual configuration.
+
+### Quick Reference
+
+**Using Makefile:**
+
+```bash
+# Print step-by-step configuration guide
+make authentik-guide
+
+# Open Authentik in browser
+make open-authentik
+```
 
 ### Step 5.1: Access Authentik Setup
 
@@ -233,6 +347,20 @@ Authentik provides OAuth2/OIDC authentication but requires manual configuration.
 
 ### Step 5.5: Update Environment & Restart
 
+**Using Makefile:**
+
+```bash
+# Edit .env and add the client secret from step 5.2
+nano .env
+
+# Update AUTHENTIK_CLIENT_SECRET=<paste-secret-here>
+
+# Restart services to pick up new configuration
+make restart-backend restart-frontend
+```
+
+**Manual commands:**
+
 ```bash
 # Edit .env and add the client secret from step 5.2
 nano .env
@@ -247,7 +375,25 @@ podman compose restart portfolio-backend portfolio-frontend
 
 ## Verify Installation
 
-### Test Each Service
+### Automated Health Check
+
+**Using Makefile (Recommended):**
+
+```bash
+make verify-setup
+```
+
+This automatically tests all service endpoints and displays their status.
+
+**View all service URLs:**
+
+```bash
+make urls
+```
+
+### Manual Verification
+
+Test each service:
 
 | Service | URL | Expected Result |
 |---------|-----|-----------------|
@@ -284,6 +430,23 @@ podman compose restart portfolio-backend portfolio-frontend
 ## Troubleshooting
 
 ### Services Won't Start
+
+**Using Makefile:**
+
+```bash
+# Check service status
+make status
+
+# View logs for errors
+make logs-backend
+make logs-authentik
+
+# Common fixes:
+make stop
+make start
+```
+
+**Manual commands:**
 
 ```bash
 # Check service status
@@ -324,7 +487,8 @@ podman compose up -d
 **Fixes:**
 1. Verify `.env` has correct `AUTHENTIK_CLIENT_SECRET`
 2. Check `AUTHENTIK_ISSUER=http://localhost:9000/application/o/portfolio-manager/`
-3. Restart backend: `podman compose restart portfolio-backend`
+3. Check configuration: `make env-check`
+4. Restart backend: `make restart-backend` or `podman compose restart portfolio-backend`
 
 ### Database Connection Errors
 
@@ -349,6 +513,16 @@ sudo lsof -i :3000  # or :8000, :9000, :5432
 ```
 
 ### Clear All Data and Restart
+
+**Using Makefile:**
+
+```bash
+# WARNING: This deletes all data!
+make clean
+make start
+```
+
+**Manual commands:**
 
 ```bash
 # WARNING: This deletes all data!
@@ -380,6 +554,8 @@ podman compose up -d
    - Backend guide: [docs/development/backend.md](docs/development/backend.md)
 
 2. **Run tests**
+   - `make test` - Run all tests
+   - `make test-backend-coverage` - Generate coverage report
    - Testing guide: [docs/development/testing.md](docs/development/testing.md)
 
 3. **Contribute**
@@ -402,6 +578,7 @@ podman compose up -d
 
 ## Additional Resources
 
+- **[Makefile Guide](docs/MAKEFILE_GUIDE.md)** - Complete automation reference
 - **[API Reference](docs/api/)** - Complete API documentation
 - **[Authentication Guide](docs/authentication/)** - Detailed auth setup
 - **[Deployment Guide](docs/deployment/)** - Production deployment

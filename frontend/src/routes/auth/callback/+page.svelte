@@ -42,7 +42,7 @@
       } else {
         error = result.error || 'Authentication failed';
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Callback error:', err);
       error = 'An error occurred during authentication';
     } finally {

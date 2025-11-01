@@ -8,7 +8,7 @@
 
 
   // Form state
-  let username = user.username;
+  let username = user.preferred_username;
   let email = user.email;
   let loading = false;
   let error = "";
@@ -60,7 +60,7 @@
     }
 
     // Check if anything changed
-    if (username === user.username && email === user.email) {
+    if (username === user.preferred_username && email === user.email) {
       error = "No changes to save";
       return;
     }
@@ -70,18 +70,11 @@
     success = "";
 
     try {
-      const result = await auth.updateProfile(username.trim(), email.trim());
-      
-      if (result.success && result.data) {
-        success = "Profile updated successfully!";
-        onUpdate(result.data);
-        setTimeout(() => {
-          onClose();
-        }, 1500);
-      } else {
-        throw new Error(result.error || "Failed to update profile");
-      }
-    } catch (err) {
+      // TODO: Implement profile update with Authentik API
+      // Profile updates should be handled through Authentik's user management
+      error = "Profile updates must be done through the authentication provider (Authentik)";
+      loading = false;
+    } catch (err: unknown) {
       error = err instanceof Error ? err.message : "Unknown error occurred";
     } finally {
       loading = false;
@@ -90,7 +83,7 @@
 
   // Handle account deletion
   async function handleDelete() {
-    if (deleteConfirmInput !== user.username) {
+    if (deleteConfirmInput !== user.preferred_username) {
       error = "Username confirmation doesn't match";
       return;
     }
@@ -99,15 +92,11 @@
     error = "";
 
     try {
-      const result = await auth.deleteProfile();
-      
-      if (result.success) {
-        // Account deleted, will be redirected to login
-        onClose();
-      } else {
-        throw new Error(result.error || "Failed to delete account");
-      }
-    } catch (err) {
+      // TODO: Implement account deletion with Authentik API
+      // Account deletion should be handled through Authentik's user management
+      error = "Account deletion must be done through the authentication provider (Authentik)";
+      loading = false;
+    } catch (err: unknown) {
       error = err instanceof Error ? err.message : "Unknown error occurred";
     } finally {
       loading = false;
@@ -281,7 +270,7 @@
           <!-- Confirmation Input -->
           <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
             <label class="form-label" for="delete-confirm">
-              Type <strong style="font-family: monospace; background: var(--color-gray-100); padding: 2px 4px; border-radius: 3px;">{user.username}</strong> to confirm:
+              Type <strong style="font-family: monospace; background: var(--color-gray-100); padding: 2px 4px; border-radius: 3px;">{user.preferred_username}</strong> to confirm:
             </label>
             <input
               id="delete-confirm"
@@ -308,7 +297,7 @@
               class="btn"
               style="background: #dc2626; color: white;"
               on:click={handleDelete}
-              disabled={loading || deleteConfirmInput !== user.username}
+              disabled={loading || deleteConfirmInput !== user.preferred_username}
             >
               {#if loading}
                 <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>

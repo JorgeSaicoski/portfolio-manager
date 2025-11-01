@@ -42,7 +42,35 @@ Modern, secure portfolio management platform built with microservices architectu
 
 ## 🚀 Quick Start
 
-Get up and running in 5 minutes:
+### Using Makefile (Recommended - 5-10 minutes)
+
+Automated setup with `make` commands:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/JorgeSaicoski/portfolio-manager.git
+cd portfolio-manager
+
+# 2. Run automated setup
+make setup
+
+# 3. Generate secure secrets
+make generate-secrets
+# Copy output to .env file
+
+# 4. Start all services
+make start
+
+# 5. Configure Authentik (follow the guide)
+make authentik-guide
+
+# 6. Verify everything works
+make verify-setup
+```
+
+📖 **Makefile Reference**: See [docs/MAKEFILE_GUIDE.md](docs/MAKEFILE_GUIDE.md) for all available commands.
+
+### Manual Setup
 
 ```bash
 # 1. Clone the repository
@@ -67,6 +95,7 @@ podman compose up -d
 | Guide | Description |
 |-------|-------------|
 | **[Setup Guide](SETUP.md)** | Complete installation and configuration |
+| **[Makefile Guide](docs/MAKEFILE_GUIDE.md)** | Automated commands reference |
 | **[Contributing](CONTRIBUTING.md)** | How to contribute to the project |
 | **[Authentication](docs/authentication/)** | Authentik setup, OAuth2, user registration |
 | **[API Reference](docs/api/)** | Complete REST API documentation |

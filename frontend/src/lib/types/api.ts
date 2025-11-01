@@ -138,3 +138,35 @@ export interface SectionFilterParams {
   type?: string;
   portfolio_id?: number;
 }
+
+// Section Content Types
+export interface SectionContent {
+  ID: number;
+  section_id: number;
+  type: 'text' | 'image';
+  content: string;
+  order: number;
+  metadata: string | null;
+  owner_id: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+}
+
+export interface CreateSectionContentRequest {
+  section_id: number;
+  type: 'text' | 'image';
+  content: string;
+  order: number;
+  metadata?: string | null;
+}
+
+export interface UpdateSectionContentRequest {
+  type?: 'text' | 'image';
+  content?: string;
+  order?: number;
+  metadata?: string | null;
+}
+
+export interface UpdateSectionContentOrderRequest {
+  order: number;
+}
