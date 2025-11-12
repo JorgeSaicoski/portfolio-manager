@@ -276,41 +276,156 @@ authentik-guide: ## Print Authentik configuration guide
 	@echo ""
 	@echo "$(YELLOW)⚠ These steps MUST be done manually via the Authentik web UI$(RESET)"
 	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo ""
 	@echo "$(BOLD)Step 1: Initial Setup$(RESET)"
 	@echo "  URL: http://localhost:9000/if/flow/initial-setup/"
-	@echo "  Create admin account with strong password"
+	@echo "  • Create the admin account with a strong password"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
 	@echo ""
 	@echo "$(BOLD)Step 2: Create OAuth2 Provider$(RESET)"
-	@echo "  1. Login to Authentik: http://localhost:9000/"
+	@echo "  1. Log in to Authentik: http://localhost:9000/"
 	@echo "  2. Go to: Applications → Providers → Create"
 	@echo "  3. Select: OAuth2/OpenID Provider"
-	@echo "  4. Client ID: portfolio-manager"
-	@echo "  5. Redirect URIs:"
-	@echo "     - http://localhost:3000/auth/callback"
-	@echo "     - http://localhost:3000/"
-	@echo "  6. Copy the Client Secret and update .env"
+	@echo "  4. Configuration:"
+	@echo "     • Client ID: portfolio-manager"
+	@echo "     • Redirect URIs:"
+	@echo "       - http://localhost:3000/auth/callback"
+	@echo "       - http://localhost:3000/"
+	@echo "  5. Copy the Client Secret and save it for Step 8"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
 	@echo ""
 	@echo "$(BOLD)Step 3: Create Application$(RESET)"
 	@echo "  1. Go to: Applications → Applications → Create"
-	@echo "  2. Name: Portfolio Manager"
-	@echo "  3. Slug: portfolio-manager"
-	@echo "  4. Provider: Select the provider from Step 2"
+	@echo "  2. Configuration:"
+	@echo "     • Name: Portfolio Manager"
+	@echo "     • Slug: portfolio-manager"
+	@echo "     • Provider: Select the provider created in Step 2"
 	@echo ""
-	@echo "$(BOLD)Step 4: Enable User Registration$(RESET)"
+	@echo "────────────────────────────────────────────────────────────────"
+	@echo ""
+	@echo "$(BOLD)Step 4: Create Registration Prompts$(RESET)"
+	@echo "  1. Go to: Flows & Stages → Prompts"
+	@echo "  2. Click 'Create' and add these fields (mark all as Required):"
+	@echo "     • Field Key: username   | Type: Text       | Label: Username"
+	@echo "     • Field Key: email      | Type: Email      | Label: Email"
+	@echo "     • Field Key: name       | Type: Text       | Label: Full Name"
+	@echo "     • Field Key: password   | Type: Password   | Label: Password"
+	@echo "  3. Save each prompt individually"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
+	@echo ""
+	@echo "$(BOLD)Step 5: Create Prompt Stage$(RESET)"
+	@echo "  1. Go to: Flows & Stages → Stages → Create"
+	@echo "  2. Select: Prompt Stage"
+	@echo "  3. Configuration:"
+	@echo "     • Name: enrollment-prompt"
+	@echo "     • Fields: Select all 4 prompts created in Step 4"
+	@echo "  4. Save the stage"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
+	@echo ""
+	@echo "$(BOLD)Step 6: Create or Edit Enrollment Flow$(RESET)"
 	@echo "  1. Go to: Flows & Stages → Flows"
-	@echo "  2. Find: default-enrollment-flow"
-	@echo "  3. Ensure it has username field (CRITICAL!)"
-	@echo "  4. Go to: System → Brands"
-	@echo "  5. Set Enrollment flow to: default-enrollment-flow"
+	@echo "  2. Find 'default-enrollment-flow' or create new flow:"
+	@echo "     • Name: default-enrollment-flow"
+	@echo "     • Title: Sign Up"
+	@echo "     • Slug: default-enrollment-flow"
+	@echo "     • Designation: Enrollment"
+	@echo "  3. Click on the flow to open it"
 	@echo ""
-	@echo "$(BOLD)Step 5: Update Environment$(RESET)"
-	@echo "  1. Edit .env and add AUTHENTIK_CLIENT_SECRET"
-	@echo "  2. Run: make restart-backend restart-frontend"
+	@echo "────────────────────────────────────────────────────────────────"
 	@echo ""
-	@echo "$(GREEN)✓ Detailed guides:$(RESET)"
-	@echo "  - docs/authentication/authentik-quickstart.md"
-	@echo "  - docs/authentication/enrollment-setup.md"
+	@echo "$(BOLD)Step 7: Bind Stages to Enrollment Flow$(RESET)"
+	@echo "  1. Open the 'Stage Bindings' tab in your enrollment flow"
+	@echo "  2. Click 'Bind stage' and add these stages IN ORDER:"
 	@echo ""
+	@echo "     $(BOLD)Stage 1: Prompt Stage$(RESET)"
+	@echo "     • Select: enrollment-prompt (created in Step 5)"
+	@echo "     • Order: 10"
+	@echo ""
+	@echo "     $(BOLD)Stage 2: User Write Stage$(RESET)"
+	@echo "     • Select: default-source-enrollment-write (or create new User Write Stage)"
+	@echo "     • Enable: 'Can create users'"
+	@echo "     • Optional: Add default group in 'Groups' field (e.g., 'users')"
+	@echo "     • Order: 20"
+	@echo ""
+	@echo "     $(BOLD)Stage 3: User Login Stage$(RESET)"
+	@echo "     • Select: default-source-enrollment-login (or create new User Login Stage)"
+	@echo "     • Session duration: Configure as needed"
+	@echo "     • Order: 30"
+	@echo ""
+	@echo "  3. Save all bindings"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
+	@echo ""
+	@echo "$(BOLD)Step 8: Connect Flow to Brand$(RESET)"
+	@echo "  1. Go to: System → Brands"
+	@echo "  2. Select your brand (usually 'authentik Default')"
+	@echo "  3. Set 'Enrollment flow' to: default-enrollment-flow"
+	@echo "  4. Save changes"
+	@echo ""
+	@echo "────────────────────────────────────────────────────────────────"
+	@echo ""
+	@echo "$(BOLD)Step 9: Update Environment and Restart$(RESET)"
+	@echo "  1. Edit your .env file:"
+	@echo "     AUTHENTIK_CLIENT_SECRET=<secret-from-step-2>"
+	@echo "  2. Restart services:"
+	@echo "     make restart-backend restart-frontend"
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ Setup Complete!$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Test Your Setup:$(RESET)"
+	@echo "  1. Open: http://localhost:3000"
+	@echo "  2. Click 'Sign Up' or 'Register'"
+	@echo "  3. Fill in the registration form"
+	@echo "  4. You should be automatically logged in after registration"
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "$(BOLD)$(YELLOW)Common Issues & Solutions:$(RESET)"
+	@echo ""
+	@echo "  $(BOLD)Issue: 'Aborting write to empty username'$(RESET)"
+	@echo "  → Solution: Ensure 'username' prompt exists with Field Key exactly 'username'"
+	@echo "  → Location: Step 4, verify the prompt was created correctly"
+	@echo ""
+	@echo "  $(BOLD)Issue: 'No stages bound to flow'$(RESET)"
+	@echo "  → Solution: Complete Step 7, you must bind at least 3 stages"
+	@echo "  → Check: Flow → Stage Bindings tab shows all 3 stages"
+	@echo ""
+	@echo "  $(BOLD)Issue: Users can't access the application$(RESET)"
+	@echo "  → Solution: Add users to a group with proper permissions"
+	@echo "  → Location: Step 7, Stage 2 - add 'users' group to User Write Stage"
+	@echo ""
+	@echo "  $(BOLD)Issue: Registration form doesn't show all fields$(RESET)"
+	@echo "  → Solution: Check that all 4 prompts are added to the Prompt Stage"
+	@echo "  → Location: Step 5, edit the prompt stage and verify fields"
+	@echo ""
+	@echo "  $(BOLD)Issue: OAuth redirect fails$(RESET)"
+	@echo "  → Solution: Verify redirect URIs match exactly (including http:// and port)"
+	@echo "  → Location: Step 2, check Provider → Redirect URIs"
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "$(BOLD)$(BLUE)Additional Resources:$(RESET)"
+	@echo "  • Detailed guides:"
+	@echo "    - docs/authentication/authentik-quickstart.md"
+	@echo "    - docs/authentication/enrollment-setup.md"
+	@echo "  • Official Authentik documentation:"
+	@echo "    - https://docs.goauthentik.io/docs/flows/"
+	@echo "    - https://docs.goauthentik.io/docs/providers/oauth2/"
+	@echo ""
+	@echo "$(BOLD)$(BLUE)Optional Enhancements:$(RESET)"
+	@echo "  • Create custom groups for role-based access control"
+	@echo "  • Add email verification stage to enrollment flow"
+	@echo "  • Configure password policies and complexity requirements"
+	@echo "  • Set up multi-factor authentication (MFA)"
+	@echo ""
+
 
 open-authentik: ## Open Authentik URLs in browser
 	@echo "$(BLUE)Opening Authentik URLs...$(RESET)"
@@ -379,3 +494,86 @@ urls: ## Show all service URLs
 	@echo "  Authentik:   http://localhost:9000"
 	@echo "  Prometheus:  http://localhost:9090 (if monitoring enabled)"
 	@echo "  Grafana:     http://localhost:3001 (if monitoring enabled)"
+
+verify-config: ## Verify setup configuration and diagnose issues
+	@echo "$(BOLD)$(BLUE)Portfolio Manager Setup Verification$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Checking Environment Files...$(RESET)"
+	@if [ -f "$(ENV_FILE)" ]; then \
+		echo "$(GREEN)✓ Root .env file exists$(RESET)"; \
+	else \
+		echo "$(RED)✗ Root .env file missing$(RESET)"; \
+		echo "  Fix: make create-env"; \
+		exit 1; \
+	fi
+	@if [ -f "frontend/.env" ]; then \
+		echo "$(GREEN)✓ Frontend .env file exists$(RESET)"; \
+	else \
+		echo "$(RED)✗ Frontend .env file missing$(RESET)"; \
+		echo "  Fix: cp frontend/.env.example frontend/.env"; \
+		echo "  Then restart frontend: cd frontend && npm run dev"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Checking Configuration Values...$(RESET)"
+	@if grep -q "AUTHENTIK_CLIENT_SECRET=your-client-secret-from-authentik" $(ENV_FILE) 2>/dev/null; then \
+		echo "$(RED)✗ AUTHENTIK_CLIENT_SECRET is still placeholder$(RESET)"; \
+		echo "  Action Required:"; \
+		echo "  1. Create OAuth2 provider in Authentik (Applications → Providers)"; \
+		echo "  2. Copy the Client Secret"; \
+		echo "  3. Update .env with real secret"; \
+		echo "  4. Restart backend: make restart-backend"; \
+	else \
+		echo "$(GREEN)✓ AUTHENTIK_CLIENT_SECRET is configured$(RESET)"; \
+	fi
+	@if grep -q "AUTHENTIK_SECRET_KEY=change-me" $(ENV_FILE) 2>/dev/null; then \
+		echo "$(YELLOW)⚠ AUTHENTIK_SECRET_KEY is default value$(RESET)"; \
+		echo "  Recommendation: make generate-secrets"; \
+	else \
+		echo "$(GREEN)✓ AUTHENTIK_SECRET_KEY is set$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Checking Services...$(RESET)"
+	@if command -v curl >/dev/null 2>&1; then \
+		if curl -s -o /dev/null -w "%{http_code}" http://localhost:9000/-/health/live/ | grep -q "204\|301\|302"; then \
+			echo "$(GREEN)✓ Authentik is running and accessible$(RESET)"; \
+		else \
+			echo "$(RED)✗ Authentik is not accessible$(RESET)"; \
+			echo "  Fix: make start (or docker/podman compose up -d)"; \
+		fi; \
+		if curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health | grep -q "200"; then \
+			echo "$(GREEN)✓ Backend is running and healthy$(RESET)"; \
+		else \
+			echo "$(YELLOW)⚠ Backend is not accessible$(RESET)"; \
+			echo "  Fix: make start-backend"; \
+		fi; \
+		if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then \
+			echo "$(GREEN)✓ Frontend is running$(RESET)"; \
+		else \
+			echo "$(YELLOW)⚠ Frontend is not accessible$(RESET)"; \
+			echo "  Fix: cd frontend && npm run dev"; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠ curl not found, skipping service checks$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Common Issues Checklist:$(RESET)"
+	@echo "  $(YELLOW)Cannot login?$(RESET)"
+	@echo "    → Check: OAuth2 provider created in Authentik"
+	@echo "    → Check: Client ID = 'portfolio-manager'"
+	@echo "    → Check: Redirect URI = 'http://localhost:3000/auth/callback'"
+	@echo "    → Check: AUTHENTIK_CLIENT_SECRET in .env is real (not placeholder)"
+	@echo "    → Check: Frontend .env file exists with correct values"
+	@echo ""
+	@echo "  $(YELLOW)User registration not working?$(RESET)"
+	@echo "    → Check: Enrollment flow configured (make authentik-guide)"
+	@echo "    → Check: Username field added to prompt stage"
+	@echo "    → Check: Users auto-assigned to 'users' group"
+	@echo ""
+	@echo "$(BOLD)Next Steps:$(RESET)"
+	@echo "  1. If services not running: make start"
+	@echo "  2. If Authentik not configured: make authentik-guide"
+	@echo "  3. If frontend .env missing: cp frontend/.env.example frontend/.env"
+	@echo "  4. Test login: Open http://localhost:3000/auth/login"
+	@echo ""
+
+

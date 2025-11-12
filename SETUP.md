@@ -576,6 +576,145 @@ podman compose up -d
 
 ---
 
+## 🔧 Troubleshooting
+
+### Cannot Login / Authentication Fails
+
+**Problem:** Clicking "Sign In with Authentik" shows errors or doesn't work.
+
+**Solution:** Run the verification command first:
+```bash
+make verify-config
+```
+
+This will check your setup and identify the problem. Common issues:
+
+1. **"Invalid client secret"** error (MOST COMMON)
+   - **Symptom**: Login works, but callback fails after authorization
+   - **Cause**: OAuth2 provider set to "Confidential" instead of "Public"
+   - **Fix**:
+     1. Open Authentik: http://localhost:9000/
+     2. Go to: Applications → Providers → Edit your provider
+     3. Change: Client type from `Confidential` to `Public`
+     4. Save and test login again
+   - **Why**: Frontend uses PKCE (for public clients), not client_secret
+   - **See**: [docs/authentication/troubleshooting.md](docs/authentication/troubleshooting.md#error-invalid-client-secret)
+
+2. **"Invalid client identifier"** error
+   - OAuth2 provider not created in Authentik
+   - Fix: Follow `make authentik-guide` Step 2
+
+3. **"Connection refused"** to Authentik
+   - Authentik service not running
+   - Fix: `make start` or `podman compose up -d`
+
+4. **Frontend can't reach backend**
+   - Missing `frontend/.env` file
+   - Fix: `cp frontend/.env.example frontend/.env`
+   - Then restart: `cd frontend && npm run dev`
+
+5. **Backend rejects valid tokens**
+   - `AUTHENTIK_CLIENT_SECRET` still has placeholder value
+   - Fix: Update `.env` with real secret from Authentik provider
+   - Then: `make restart-backend`
+
+### User Registration Not Working
+
+**Problem:** Registration flow errors or users can't sign up.
+
+**Common causes:**
+- Enrollment flow not configured
+- Missing username field
+- Users not auto-assigned to groups
+
+**Solution:**
+```bash
+make authentik-guide
+```
+Follow Steps 4-8 carefully, especially:
+- Step 4: Create username prompt with Field Key exactly `username`
+- Step 7: Bind all 3 stages to enrollment flow
+- Step 7: Add `users` group to User Write Stage
+
+### Services Won't Start
+
+**Problem:** `make start` fails or services crash.
+
+**Check:**
+```bash
+# View logs
+make logs
+
+# Check specific service
+podman compose logs portfolio-backend
+podman compose logs portfolio-authentik-server
+```
+
+**Common issues:**
+- Port already in use (stop other services on ports 3000, 8000, 9000, 5432)
+- Missing .env file (`make create-env`)
+- Database not initialized (wait 30s for first-time startup)
+
+### Frontend Build Warnings
+
+**Warning:** `Cannot find base config file "./.svelte-kit/tsconfig.json"`
+- **Normal** on first run, auto-resolves after build
+- Not a blocker
+
+**Warning:** `Component has unused export property 'onLoginSuccess'`
+- **Minor code quality** issue, not blocking
+- Component still works fine
+
+### Database Connection Failed
+
+**Problem:** Backend logs show "failed to connect to database".
+
+**Solution:**
+```bash
+# Check PostgreSQL is running
+podman compose ps portfolio-postgres
+
+# Check database health
+podman compose exec portfolio-postgres pg_isready -U portfolio_user
+
+# View database logs
+podman compose logs portfolio-postgres
+```
+
+If database is unhealthy:
+```bash
+podman compose restart portfolio-postgres
+```
+
+### Quick Diagnostics
+
+Run these commands to diagnose issues:
+
+```bash
+# 1. Verify configuration
+make verify-config
+
+# 2. Check all services
+make status
+
+# 3. View recent logs
+make logs
+
+# 4. Test service endpoints
+curl http://localhost:9000/-/health/live/  # Authentik
+curl http://localhost:8000/health          # Backend
+curl http://localhost:3000                  # Frontend
+```
+
+### Still Having Issues?
+
+1. Check detailed troubleshooting: [docs/authentication/troubleshooting.md](docs/authentication/troubleshooting.md)
+2. View service logs: `make logs`
+3. Restart all services: `make restart`
+4. Try clean setup: `make clean && make setup && make start`
+
+---
+
 ## Additional Resources
 
 - **[Makefile Guide](docs/MAKEFILE_GUIDE.md)** - Complete automation reference

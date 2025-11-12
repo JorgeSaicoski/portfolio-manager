@@ -33,6 +33,60 @@ Follow the detailed guide: **[ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)**
 
 ---
 
+## 🚨 Common Login Errors
+
+### Error: "Invalid client secret"
+
+**Symptoms:**
+- Login redirect to Authentik works
+- User successfully authenticates in Authentik
+- After authorization, callback fails with "Invalid client secret"
+- Authentik logs show: `"event": "Invalid client secret"`
+
+**Root Cause:**
+The OAuth2 provider in Authentik is configured as **"Confidential"** client type, but the frontend uses **PKCE** (designed for **"Public"** clients). This causes a mismatch:
+- Authentik expects: `client_secret` in token exchange
+- Frontend sends: `code_verifier` (PKCE) without `client_secret`
+
+**Solution: Change to Public Client Type**
+
+1. **Open Authentik Admin**: http://localhost:9000/
+2. **Navigate**: Applications → Providers
+3. **Edit** your OAuth2 provider (e.g., "Provide Portfolio")
+4. **Find**: Client type (under Protocol settings)
+5. **Change**: From `Confidential` → To `Public`
+6. **Click**: Update button
+7. **Test**: Try login again - should work now!
+
+**Why This Works:**
+- Public clients don't require `client_secret`
+- They use PKCE instead (which your frontend already implements)
+- PKCE provides equivalent security for browser-based apps
+- This is the industry best practice for Single Page Applications (SPAs)
+
+**Technical Details:**
+- Location: `frontend/src/lib/stores/auth.ts` line 254-267
+- Frontend makes direct token exchange with PKCE
+- No `client_secret` is sent (correctly, for security)
+- `code_verifier` is used instead for PKCE flow
+
+---
+
+### Error: "Invalid client identifier"
+
+**Symptoms:**
+- Clicking "Sign In with Authentik" immediately shows error
+- Error page: "The client identifier (client_id) is missing or invalid"
+- Cannot reach Authentik login page
+
+**Root Cause:**
+OAuth2 provider hasn't been created in Authentik yet.
+
+**Solution:**
+Follow Step 1 above: "Create OAuth2 Provider in Authentik"
+
+---
+
 ## Architecture Overview
 
 Your Portfolio Manager uses **Authentik** as the authentication provider with OAuth2/OIDC:
