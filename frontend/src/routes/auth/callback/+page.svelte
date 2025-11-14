@@ -37,7 +37,7 @@
         success = true;
         // Redirect to dashboard after short delay
         setTimeout(() => {
-          goto('/portfolio');
+          goto('/dashboard');
         }, 1500);
       } else {
         error = result.error || 'Authentication failed';

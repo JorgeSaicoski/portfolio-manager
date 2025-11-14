@@ -622,19 +622,48 @@ This will check your setup and identify the problem. Common issues:
 
 **Problem:** Registration flow errors or users can't sign up.
 
-**Common causes:**
-- Enrollment flow not configured
-- Missing username field
-- Users not auto-assigned to groups
+**Most Common Issue: No Logs Appear in Authentik (404 Error)**
+
+**Symptoms:**
+- Click "Continue to Registration" → Authentik shows 404 error
+- OR: Nothing happens after clicking registration button
+- Authentik logs show NO registration activity (only health checks)
+
+**Cause:** Enrollment flow `default-enrollment-flow` doesn't exist yet.
+
+**Quick Check:**
+1. Test URL directly: `http://localhost:9000/if/flow/default-enrollment-flow/`
+   - 404 = Flow doesn't exist (need to create it)
+   - Registration form = Flow exists (different issue)
+
+2. Check logs for activity:
+   ```bash
+   podman compose logs portfolio-authentik-server | grep -i enrollment
+   # Empty = Flow doesn't exist
+   ```
 
 **Solution:**
 ```bash
 make authentik-guide
 ```
-Follow Steps 4-8 carefully, especially:
+Follow Steps 4-8 carefully to create the enrollment flow:
 - Step 4: Create username prompt with Field Key exactly `username`
-- Step 7: Bind all 3 stages to enrollment flow
-- Step 7: Add `users` group to User Write Stage
+- Step 5: Create User Write Stage
+- Step 6: Create User Login Stage
+- Step 7: Bind all 3 stages to enrollment flow (order 10, 20, 30)
+- Step 8: Link flow to Brand
+
+**Alternative (Quick Fix):**
+Create users manually in Authentik:
+1. Go to: http://localhost:9000/ → Directory → Users → Create
+2. Set: Username, Email, Password, Active=Yes
+3. User can login at: http://localhost:3000/auth/login
+
+**Full Details:** See [docs/authentication/troubleshooting.md](docs/authentication/troubleshooting.md#error-registration-shows-404-or-no-logs-appear-in-authentik)
+
+**Other Registration Issues:**
+- Missing username field → Field Key must be exactly `username`
+- Users not auto-assigned to groups → Add `users` group in User Write Stage
 
 ### Services Won't Start
 
