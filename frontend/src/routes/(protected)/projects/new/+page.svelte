@@ -1,15 +1,15 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { projectStore } from '$lib/stores/project';
   import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
   import AdminTopBar from '$lib/components/admin/AdminTopBar.svelte';
-  import ProjectTable from '$lib/components/admin/ProjectTable.svelte';
+  import ProjectForm from '$lib/components/admin/ProjectForm.svelte';
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
 
   // Auth state
   let user = $derived($auth.user);
+  let isAuthenticated = $derived($auth.isAuthenticated);
 
   // UI state
   let sidebarOpen = $state(false);
@@ -33,24 +33,18 @@
     }
   }
 
-  // Handlers
-  async function handleDelete(id: number) {
-    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      try {
-        await projectStore.delete(id);
-      } catch (error) {
-        console.error('Error deleting project:', error);
-      }
-    }
+  function handleSuccess() {
+    // Navigate to projects list after successful creation
+    goto('/projects');
+  }
+
+  function handleCancel() {
+    // Navigate back to projects list
+    goto('/projects');
   }
 </script>
 
-<svelte:head>
-  <title>Projects - Portfolio Manager</title>
-  <meta name="description" content="Manage your projects" />
-</svelte:head>
-
-{#if user}
+{#if isAuthenticated && user}
   <div class="admin-layout">
     <!-- Sidebar -->
     <AdminSidebar
@@ -66,32 +60,20 @@
       <!-- Top Bar -->
       <AdminTopBar
         {user}
-        pageTitle="Projects"
+        pageTitle="Create New Project"
         onMenuToggle={() => sidebarOpen = !sidebarOpen}
       />
 
       <!-- Content -->
       <main class="admin-content">
-        <div class="section-header">
-          <div class="header-title">
-            <h2>Manage Projects</h2>
-            <p>Create and manage your portfolio projects</p>
-          </div>
-          <div class="header-actions">
-            <button class="btn btn-primary" on:click={() => goto('/projects/new')}>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              New Project
-            </button>
-          </div>
-        </div>
-
-        <!-- Project Table -->
-        <ProjectTable
-          onDelete={handleDelete}
+        <ProjectForm
+          project={null}
+          onSuccess={handleSuccess}
+          onCancel={handleCancel}
         />
       </main>
     </div>
   </div>
+{:else}
+  <div>Loading...</div>
 {/if}

@@ -2,7 +2,6 @@
   import { auth } from "$lib/stores/auth";
 
   // Props for event callbacks
-  export let onRegisterSuccess: (() => void) | undefined = undefined;
   export let onShowLogin: (() => void) | undefined = undefined;
 
   // Form state

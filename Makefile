@@ -133,6 +133,30 @@ restart-authentik: ## Restart Authentik services
 	@podman compose -f $(COMPOSE_FILE) restart portfolio-authentik-server portfolio-authentik-worker
 	@echo "$(GREEN)✓ Authentik restarted$(RESET)"
 
+update: ## Rebuild and restart all services with latest code changes
+	@echo "$(BLUE)Updating all services with latest code...$(RESET)"
+	@echo "$(YELLOW)Step 1/3: Stopping containers...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) down
+	@echo "$(YELLOW)Step 2/3: Building images...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) build --no-cache
+	@echo "$(YELLOW)Step 3/3: Starting services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) up -d
+	@echo "$(GREEN)✓ All services updated and running with latest code$(RESET)"
+
+update-backend: ## Rebuild and restart backend with latest code
+	@echo "$(BLUE)Updating backend with latest code...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) down portfolio-backend
+	@podman compose -f $(COMPOSE_FILE) build --no-cache portfolio-backend
+	@podman compose -f $(COMPOSE_FILE) up -d portfolio-backend
+	@echo "$(GREEN)✓ Backend updated$(RESET)"
+
+update-frontend: ## Rebuild and restart frontend with latest code
+	@echo "$(BLUE)Updating frontend with latest code...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) down portfolio-frontend
+	@podman compose -f $(COMPOSE_FILE) build --no-cache portfolio-frontend
+	@podman compose -f $(COMPOSE_FILE) up -d portfolio-frontend
+	@echo "$(GREEN)✓ Frontend updated$(RESET)"
+
 status: ## Show status of all services
 	@echo "$(BOLD)Service Status:$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) ps

@@ -9,15 +9,36 @@
   import RecentItems from '$lib/components/admin/RecentItems.svelte';
   import PortfolioModal from '$lib/components/admin/PortfolioModal.svelte';
   import { goto } from '$app/navigation';
+  import { browser } from '$app/environment';
+  import { onMount } from 'svelte';
 
   // Auth state
   let user = $derived($auth.user);
   let isAuthenticated = $derived($auth.isAuthenticated);
 
   // UI state
-  let sidebarOpen = false;
-  let showPortfolioModal = false;
-  let selectedPortfolio: any = null;
+  let sidebarOpen = $state(false);
+  let sidebarCollapsed = $state(false);
+  let showPortfolioModal = $state(false);
+  let selectedPortfolio: any = $state(null);
+
+  // Load sidebar state from localStorage
+  onMount(() => {
+    if (browser) {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      if (saved !== null) {
+        sidebarCollapsed = saved === 'true';
+      }
+    }
+  });
+
+  // Toggle sidebar collapsed state and persist
+  function toggleSidebarCollapse() {
+    sidebarCollapsed = !sidebarCollapsed;
+    if (browser) {
+      localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed));
+    }
+  }
 
   // Modal handlers
   function handlePortfolioClick() {
@@ -26,7 +47,7 @@
   }
 
   function handleProjectClick() {
-    goto('/projects');
+    goto('/projects/new');
   }
 
   function handleCategoryClick() {
@@ -63,7 +84,7 @@
   }
 
   function handleEditProject(id: number) {
-    goto(`/projects/${id}`);
+    goto(`/projects/${id}/edit`);
   }
 
   async function handleDeleteProject(id: number) {
@@ -83,11 +104,13 @@
     <AdminSidebar
       {user}
       isOpen={sidebarOpen}
+      isCollapsed={sidebarCollapsed}
       onClose={() => sidebarOpen = false}
+      onToggleCollapse={toggleSidebarCollapse}
     />
 
     <!-- Main Content -->
-    <div class="admin-main">
+    <div class="admin-main" class:sidebar-collapsed={sidebarCollapsed}>
       <!-- Top Bar -->
       <AdminTopBar
         {user}
