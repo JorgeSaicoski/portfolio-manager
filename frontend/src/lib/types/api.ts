@@ -17,6 +17,7 @@ export interface Portfolio {
   ID: number;
   title: string;
   description?: string | null;
+  category_count: number;
   owner_id: string;
   CreatedAt: string;
   UpdatedAt: string;
@@ -56,7 +57,6 @@ export interface CreateCategoryRequest {
 export interface UpdateCategoryRequest {
   title?: string;
   description?: string;
-  portfolio_id?: number;
 }
 
 // Project Types

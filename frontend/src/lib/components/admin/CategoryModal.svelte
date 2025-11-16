@@ -82,12 +82,12 @@
 
     try {
       if (category) {
-        // Update existing category
+        // Update existing category (portfolio cannot be changed)
         console.log('CategoryModal: Updating category', {
           categoryID: category.ID,
-          data: { title, description, portfolio_id: portfolioIdNum }
+          data: { title, description }
         });
-        const result = await categoryStore.update(category.ID, { title, description, portfolio_id: portfolioIdNum });
+        const result = await categoryStore.update(category.ID, { title, description });
         console.log('CategoryModal: Category updated successfully', result);
         toast.success('Category updated successfully!');
       } else {
