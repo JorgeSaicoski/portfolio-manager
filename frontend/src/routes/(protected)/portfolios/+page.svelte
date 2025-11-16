@@ -10,9 +10,9 @@
   let user = $derived($auth.user);
 
   // UI state
-  let sidebarOpen = false;
-  let showModal = false;
-  let selectedPortfolio: Portfolio | null = null;
+  let sidebarOpen = $state(false);
+  let showModal = $state(false);
+  let selectedPortfolio: Portfolio | null = $state(null);
 
   // Handlers
   function handleCreate() {
@@ -21,7 +21,7 @@
   }
 
   function handleEdit(portfolio: Portfolio) {
-    selectedPortfolio = portfolio.ID;
+    selectedPortfolio = portfolio;
     showModal = true;
   }
 
@@ -56,7 +56,8 @@
     <AdminSidebar
       {user}
       isOpen={sidebarOpen}
-      onClose={() => sidebarOpen = false}
+      onClose={() => { sidebarOpen = false; }}
+      onToggleCollapse={() => {}}
     />
 
     <!-- Main Content -->
@@ -76,7 +77,7 @@
             <p>Create and manage your professional portfolios</p>
           </div>
           <div class="header-actions">
-            <button class="btn btn-primary" on:click={handleCreate}>
+            <button class="btn btn-primary" onclick={handleCreate}>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
