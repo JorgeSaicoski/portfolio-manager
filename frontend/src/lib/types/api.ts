@@ -56,6 +56,7 @@ export interface CreateCategoryRequest {
 export interface UpdateCategoryRequest {
   title?: string;
   description?: string;
+  portfolio_id?: number;
 }
 
 // Project Types

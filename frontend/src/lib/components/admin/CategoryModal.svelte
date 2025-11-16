@@ -15,7 +15,7 @@
   // Form state
   let title = $state(category?.title || '');
   let description = $state(category?.description || '');
-  let portfolio_id = $state<number>(category?.portfolio_id || 0);
+  let portfolio_id = $state<number | string>(category?.portfolio_id || 0);
   let loading = $state(false);
   let portfolios = $state<any[]>([]);
   let portfolioError = $state(false);
@@ -27,7 +27,11 @@
       portfolios = loadedPortfolios;
       console.log('CategoryModal: Portfolios loaded', {
         count: portfolios.length,
-        portfolios: portfolios.map(p => ({ ID: p.ID, title: p.title }))
+        portfolios: portfolios,
+        fullPortfolioObjects: portfolios.map(p => {
+          console.log('Portfolio object:', p);
+          return p;
+        })
       });
     } catch (error) {
       console.error('CategoryModal: Error loading portfolios', error);
@@ -66,7 +70,7 @@
       console.error('CategoryModal: No portfolio selected', {
         portfolio_id,
         portfolioIdNum,
-        availablePortfolios: portfolios.map(p => p.ID)
+        availablePortfolios: portfolios.map(p => p.id)
       });
       portfolioError = true;
       toast.error('Please select a portfolio');
@@ -149,13 +153,22 @@
             id="portfolio"
             class="form-input"
             class:error={portfolioError}
-            bind:value={portfolio_id}
+            value={portfolio_id}
+            onchange={(e) => {
+              const target = e.target as HTMLSelectElement;
+              portfolio_id = parseInt(target.value, 10);
+              console.log('CategoryModal: Select changed', {
+                rawValue: target.value,
+                parsedValue: portfolio_id,
+                type: typeof portfolio_id
+              });
+            }}
             required
             disabled={loading || !!category}
           >
-            <option value={0}>Select a portfolio</option>
-            {#each portfolios as portfolio}
-              <option value={portfolio.ID}>{portfolio.title}</option>
+            <option value="0">Select a portfolio</option>
+            {#each portfolios as p}
+              <option value={p.id}>{p.title}</option>
             {/each}
           </select>
           {#if portfolioError}
