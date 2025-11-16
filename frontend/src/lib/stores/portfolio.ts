@@ -44,18 +44,19 @@ function createPortfolioStore() {
         const data = await response.json();
 
         if (response.ok) {
+          const portfolios = data.data;
           update((state) => ({
             ...state,
-            portfolios: data.portfolios,
+            portfolios: portfolios || [],
             loading: false,
           }));
-          console.log("Portfolios")
-          console.log(data.portfolios)
-          return data.portfolios;
+          return portfolios;
         } else {
+          console.error("Failed to load portfolios:", data.error);
           throw new Error(data.error);
         }
       } catch (error) {
+        console.error("Error loading portfolios:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state) => ({
@@ -76,16 +77,19 @@ function createPortfolioStore() {
         const data = await response.json();
 
         if (response.ok) {
+          const portfolio = data.data;
           update((state) => ({
             ...state,
-            currentPortfolio: data.portfolio,
+            currentPortfolio: portfolio,
             loading: false,
           }));
           return data;
         } else {
+          console.error("Failed to load portfolio:", data.error);
           throw new Error(data.error);
         }
       } catch (error) {
+        console.error("Error loading portfolio:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state) => ({
@@ -109,16 +113,19 @@ function createPortfolioStore() {
         const data = await response.json();
 
         if (response.ok) {
+          const newPortfolio = data.data;
           update((state) => ({
             ...state,
-            portfolios: [...state.portfolios, data.portfolio],
+            portfolios: [...(state.portfolios || []), newPortfolio],
             loading: false,
           }));
           return data;
         } else {
+          console.error("Failed to create portfolio:", data.error);
           throw new Error(data.error);
         }
       } catch (error) {
+        console.error("Error creating portfolio:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state) => ({
@@ -144,18 +151,21 @@ function createPortfolioStore() {
         const data = await response.json();
 
         if (response.ok) {
+          const updatedPortfolio = data.data;
           update((state) => ({
             ...state,
             portfolios: state.portfolios.map((p) =>
-              p.ID === id ? data.portfolio : p
+              p.ID === id ? updatedPortfolio : p
             ),
             loading: false,
           }));
           return data;
         } else {
+          console.error("Failed to update portfolio:", data.error);
           throw new Error(data.error);
         }
       } catch (error) {
+        console.error("Error updating portfolio:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state) => ({
@@ -186,9 +196,11 @@ function createPortfolioStore() {
           }));
         } else {
           const data = await response.json();
+          console.error("Failed to delete portfolio:", data.error);
           throw new Error(data.error);
         }
       } catch (error) {
+        console.error("Error deleting portfolio:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state) => ({

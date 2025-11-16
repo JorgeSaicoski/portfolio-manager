@@ -2,7 +2,6 @@
   import { auth } from "$lib/stores/auth";
 
   // Props for event callbacks
-  export let onRegisterSuccess: (() => void) | undefined = undefined;
   export let onShowLogin: (() => void) | undefined = undefined;
 
   // Form state
@@ -326,6 +325,11 @@
       <div class="info-box">
         <p><strong>Secure Registration</strong></p>
         <p>You'll be redirected to our secure authentication provider to complete registration.</p>
+        <p class="small-text">
+          <strong>Note:</strong> If you see a 404 error after clicking Continue, the enrollment flow may not be configured yet.
+          Please contact your administrator or see the
+          <a href="https://github.com/JorgeSaicoski/portfolio-manager/blob/main/docs/authentication/enrollment-setup.md" target="_blank" rel="noopener">enrollment setup guide</a>.
+        </p>
       </div>
 
       <div class="form-actions">

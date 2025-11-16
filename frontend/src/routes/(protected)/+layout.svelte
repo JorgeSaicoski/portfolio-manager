@@ -34,7 +34,7 @@
 
 <div class="protected-layout">
   <header>
-    <h1>Protected Area</h1>
+    <h1>Admin</h1>
     {#if data.user}
       <span>Welcome, {data.user.username}!</span>
     {/if}

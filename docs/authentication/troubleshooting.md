@@ -33,6 +33,155 @@ Follow the detailed guide: **[ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)**
 
 ---
 
+## 🚨 Common Login Errors
+
+### Error: "Invalid client secret"
+
+**Symptoms:**
+- Login redirect to Authentik works
+- User successfully authenticates in Authentik
+- After authorization, callback fails with "Invalid client secret"
+- Authentik logs show: `"event": "Invalid client secret"`
+
+**Root Cause:**
+The OAuth2 provider in Authentik is configured as **"Confidential"** client type, but the frontend uses **PKCE** (designed for **"Public"** clients). This causes a mismatch:
+- Authentik expects: `client_secret` in token exchange
+- Frontend sends: `code_verifier` (PKCE) without `client_secret`
+
+**Solution: Change to Public Client Type**
+
+1. **Open Authentik Admin**: http://localhost:9000/
+2. **Navigate**: Applications → Providers
+3. **Edit** your OAuth2 provider (e.g., "Provide Portfolio")
+4. **Find**: Client type (under Protocol settings)
+5. **Change**: From `Confidential` → To `Public`
+6. **Click**: Update button
+7. **Test**: Try login again - should work now!
+
+**Why This Works:**
+- Public clients don't require `client_secret`
+- They use PKCE instead (which your frontend already implements)
+- PKCE provides equivalent security for browser-based apps
+- This is the industry best practice for Single Page Applications (SPAs)
+
+**Technical Details:**
+- Location: `frontend/src/lib/stores/auth.ts` line 254-267
+- Frontend makes direct token exchange with PKCE
+- No `client_secret` is sent (correctly, for security)
+- `code_verifier` is used instead for PKCE flow
+
+---
+
+### Error: "Invalid client identifier"
+
+**Symptoms:**
+- Clicking "Sign In with Authentik" immediately shows error
+- Error page: "The client identifier (client_id) is missing or invalid"
+- Cannot reach Authentik login page
+
+**Root Cause:**
+OAuth2 provider hasn't been created in Authentik yet.
+
+**Solution:**
+Follow Step 1 above: "Create OAuth2 Provider in Authentik"
+
+---
+
+## 🚨 Common Registration Errors
+
+### Error: Registration shows 404 or no logs appear in Authentik
+
+**Symptoms:**
+- User clicks "Continue to Registration" on `/auth/register`
+- Browser redirects to Authentik but shows 404 error page
+- OR: User is redirected but nothing happens
+- Authentik logs show NO activity (no registration attempt logged)
+- Only routine health checks appear in Authentik logs
+
+**Root Cause:**
+The enrollment flow (`default-enrollment-flow`) does not exist in your Authentik instance. The frontend redirects to `http://localhost:9000/if/flow/default-enrollment-flow/` but this URL returns 404 because the flow hasn't been created yet.
+
+**How to Verify the Issue:**
+
+1. **Check Authentik logs** - Should show NO registration activity:
+   ```bash
+   podman compose logs portfolio-authentik-server | grep -i enrollment
+   # Empty result = enrollment flow doesn't exist
+   ```
+
+2. **Test the enrollment URL directly** - Open in browser:
+   ```
+   http://localhost:9000/if/flow/default-enrollment-flow/
+   ```
+   - If you see **404**: Enrollment flow doesn't exist (confirmed)
+   - If you see registration form: Enrollment flow exists (not the issue)
+
+3. **Check flow exists in Authentik Admin**:
+   - Go to: http://localhost:9000/
+   - Navigate: Flows & Stages → Flows
+   - Search for: `default-enrollment-flow`
+   - If not found: Flow doesn't exist (confirmed)
+
+**Solution: Create the Enrollment Flow**
+
+Follow the comprehensive guide using the Makefile command:
+```bash
+make authentik-guide
+```
+
+This will show you step-by-step instructions to create the enrollment flow. The key steps are:
+
+1. **Create Enrollment Flow** (Flows & Stages → Create)
+   - Name: `default-enrollment-flow`
+   - Designation: `Enrollment`
+
+2. **Create Username Prompt** (Flows & Stages → Stages → Create)
+   - Stage type: `Prompt Stage`
+   - Fields: Username, Email, Password (with Field Key `username`)
+
+3. **Create User Write Stage** (Flows & Stages → Stages → Create)
+   - Stage type: `User Write Stage`
+   - Create users as inactive: NO (allow immediate login)
+   - User creation mode: `Always create new users`
+
+4. **Create User Login Stage** (Flows & Stages → Stages → Create)
+   - Stage type: `User Login Stage`
+   - Session duration: `seconds=0` (use default)
+
+5. **Bind All Stages to Flow**
+   - Go to: Flows & Stages → Flows → `default-enrollment-flow`
+   - Click: Stage Bindings tab
+   - Add: Prompt Stage (order 10)
+   - Add: User Write Stage (order 20)
+   - Add: User Login Stage (order 30)
+
+6. **Link to Brand**
+   - Go to: System → Brands → Your brand (e.g., "authentik-default")
+   - Set: Enrollment flow → `default-enrollment-flow`
+   - Click: Update
+
+**Quick Verification Checklist:**
+- [ ] Enrollment flow exists: Flows & Stages → Flows → `default-enrollment-flow`
+- [ ] Flow has 3 stages bound (Prompt, User Write, User Login)
+- [ ] Brand points to enrollment flow: System → Brands → Check enrollment flow field
+- [ ] Test URL works: `http://localhost:9000/if/flow/default-enrollment-flow/` (should NOT be 404)
+- [ ] Frontend registration works: Try `http://localhost:3000/auth/register`
+
+**Alternative Solution (Quick Fix):**
+If you just want to test login without implementing full registration, you can create users manually in Authentik:
+
+1. Go to: http://localhost:9000/
+2. Navigate: Directory → Users → Create
+3. Fill in: Username, Email, Name
+4. Set: Active = Yes
+5. Set password: Click "Set password" button
+6. Click: Create
+7. User can now login at: http://localhost:3000/auth/login
+
+**Note:** The frontend Register component now shows a warning message to users about this potential 404 error with a link to the enrollment setup documentation.
+
+---
+
 ## Architecture Overview
 
 Your Portfolio Manager uses **Authentik** as the authentication provider with OAuth2/OIDC:

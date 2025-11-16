@@ -10,7 +10,7 @@
   <div class="hero-container">
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title handwritten">🐦 Welcome to Portfolio Manager</h1>
+        <h1 class="hero-title handwritten">Welcome to Portfolio Manager</h1>
         <p class="hero-tagline">Manage your portfolio with ease and confidence.</p>
         
         <div class="hero-actions">

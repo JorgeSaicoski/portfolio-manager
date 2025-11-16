@@ -320,7 +320,19 @@ function createAuthStore(): AuthStore {
           enrollmentUrl.searchParams.set('email', email);
         }
 
+        // Store registration attempt for potential error recovery
+        // This helps users retry if enrollment flow is not configured
+        if (browser) {
+          sessionStorage.setItem('registration_attempt', JSON.stringify({
+            username,
+            email,
+            timestamp: new Date().toISOString()
+          }));
+        }
+
         // Redirect to Authentik enrollment/registration page
+        // Note: If enrollment flow doesn't exist, user will see 404
+        // See docs/authentication/enrollment-setup.md for setup instructions
         window.location.href = enrollmentUrl.toString();
 
         return { success: true };
