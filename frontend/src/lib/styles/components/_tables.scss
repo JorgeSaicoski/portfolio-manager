@@ -1,0 +1,310 @@
+// src/lib/styles/components/_tables.scss
+// ===================================
+// TABLE COMPONENTS
+// Data tables for admin management
+// ===================================
+
+.data-table-wrapper {
+  background-color: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+
+  thead {
+    background-color: var(--color-gray-50);
+    border-bottom: 2px solid var(--color-gray-200);
+
+    th {
+      padding: var(--space-4) var(--space-6);
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-gray-700);
+      text-transform: uppercase;
+      font-size: var(--text-xs);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+
+      &:first-child {
+        padding-left: var(--space-6);
+      }
+
+      &:last-child {
+        padding-right: var(--space-6);
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--color-gray-100);
+      transition: background-color var(--transition-fast);
+
+      &:hover {
+        background-color: var(--color-gray-50);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      td {
+        padding: var(--space-4) var(--space-6);
+        color: var(--color-gray-700);
+
+        &:first-child {
+          padding-left: var(--space-6);
+          font-weight: 500;
+          color: var(--color-gray-900);
+        }
+
+        &:last-child {
+          padding-right: var(--space-6);
+          text-align: right;
+        }
+      }
+    }
+  }
+}
+
+// === TABLE ACTIONS ===
+.table-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+
+  .btn-icon {
+    padding: var(--space-2);
+    background: none;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.edit {
+      color: #3b82f6;
+
+      &:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    &.delete {
+      color: #ef4444;
+
+      &:hover {
+        background-color: rgba(239, 68, 68, 0.1);
+      }
+    }
+
+    &.view {
+      color: var(--color-primary);
+
+      &:hover {
+        background-color: rgba(45, 212, 191, 0.1);
+      }
+    }
+  }
+}
+
+// === TABLE HEADER WITH ACTIONS ===
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--color-gray-200);
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: var(--space-3);
+  }
+}
+
+// === TABLE FOOTER (pagination) ===
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-gray-200);
+  background-color: var(--color-gray-50);
+
+  .table-info {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+  }
+
+  .pagination {
+    display: flex;
+    gap: var(--space-2);
+
+    .btn-page {
+      padding: var(--space-2) var(--space-3);
+      background-color: var(--color-white);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      color: var(--color-gray-700);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+
+      &:hover:not(:disabled) {
+        background-color: var(--color-gray-50);
+        border-color: var(--color-gray-400);
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: var(--color-white);
+        font-weight: 600;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// === EMPTY STATE ===
+.table-empty {
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-4);
+    background-color: var(--color-gray-100);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-400);
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--color-gray-700);
+    margin-bottom: var(--space-2);
+  }
+
+  p {
+    font-size: var(--text-sm);
+    color: var(--color-gray-500);
+    margin-bottom: var(--space-6);
+  }
+}
+
+// === RESPONSIVE TABLES ===
+@media (max-width: 768px) {
+  .data-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 600px;
+
+    thead th,
+    tbody td {
+      padding: var(--space-3) var(--space-4);
+
+      &:first-child {
+        padding-left: var(--space-4);
+      }
+
+      &:last-child {
+        padding-right: var(--space-4);
+      }
+    }
+  }
+
+  .table-header,
+  .table-footer {
+    padding: var(--space-4);
+  }
+}
+
+// === DARK MODE SUPPORT ===
+[data-theme="dark"] {
+  .data-table-wrapper {
+    background-color: var(--color-gray-800);
+  }
+
+  .data-table {
+    thead {
+      background-color: var(--color-gray-700);
+      border-bottom-color: var(--color-gray-600);
+
+      th {
+        color: var(--color-gray-300);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--color-gray-700);
+
+        &:hover {
+          background-color: var(--color-gray-700);
+        }
+
+        td {
+          color: var(--color-gray-400);
+
+          &:first-child {
+            color: var(--color-gray-200);
+          }
+        }
+      }
+    }
+  }
+
+  .table-header,
+  .table-footer {
+    background-color: var(--color-gray-700);
+    border-color: var(--color-gray-600);
+  }
+
+  .pagination .btn-page {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-600);
+    color: var(--color-gray-300);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-gray-700);
+      border-color: var(--color-gray-500);
+    }
+  }
+}
