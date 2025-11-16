@@ -21,7 +21,7 @@
   }
 
   function handleEdit(portfolio: Portfolio) {
-    selectedPortfolio = portfolio;
+    selectedPortfolio = portfolio.ID;
     showModal = true;
   }
 
