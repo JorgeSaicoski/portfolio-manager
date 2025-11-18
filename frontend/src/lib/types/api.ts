@@ -17,6 +17,7 @@ export interface Portfolio {
   ID: number;
   title: string;
   description?: string | null;
+  category_count: number;
   owner_id: string;
   CreatedAt: string;
   UpdatedAt: string;

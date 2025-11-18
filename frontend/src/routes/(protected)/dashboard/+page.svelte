@@ -63,14 +63,23 @@
     selectedPortfolio = null;
   }
 
-  function handlePortfolioSuccess() {
+  async function handlePortfolioSuccess() {
     // Reload portfolio data
-    portfolioStore.getOwn(1, 10);
+    await portfolioStore.getOwn(1, 10);
   }
 
-  function handleEditPortfolio(id: number) {
-    // For simplicity, redirect to portfolios page
-    goto(`/portfolios/${id}`);
+  async function handleEditPortfolio(id: number) {
+    // Load the portfolio and open modal for editing
+    try {
+      const portfolios = await portfolioStore.getOwn(1, 100);
+      const portfolio = portfolios.find((p: any) => p.ID === id);
+      if (portfolio) {
+        selectedPortfolio = portfolio;
+        showPortfolioModal = true;
+      }
+    } catch (error) {
+      console.error('Error loading portfolio:', error);
+    }
   }
 
   async function handleDeletePortfolio(id: number) {
