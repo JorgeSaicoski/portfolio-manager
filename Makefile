@@ -293,6 +293,18 @@ monitoring-stop: ## Stop Prometheus and Grafana
 	@podman compose -f $(COMPOSE_FILE) --profile monitoring down
 	@echo "$(GREEN)✓ Monitoring stopped$(RESET)"
 
+monitoring-update: ## Rebuild and restart monitoring services with latest changes
+	@echo "$(BLUE)Updating monitoring services...$(RESET)"
+	@echo "$(YELLOW)Step 1/3: Stopping containers...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring down
+	@echo "$(YELLOW)Step 2/3: Building images...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring build --no-cache
+	@echo "$(YELLOW)Step 3/3: Starting services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring up -d
+	@echo "$(GREEN)✓ Monitoring updated$(RESET)"
+	@echo "  Prometheus: http://localhost:9090"
+	@echo "  Grafana: http://localhost:3001 (admin/admin)"
+
 ##@ Authentik Setup
 
 authentik-guide: ## Print Authentik configuration guide

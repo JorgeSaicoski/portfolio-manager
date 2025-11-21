@@ -8,19 +8,15 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Auth Service Metrics
-  - job_name: 'auth-service'
-    static_configs:
-      - targets: ['portfolio-auth:8080']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
   # Backend Service Metrics
   - job_name: 'backend-service'
     static_configs:
       - targets: ['portfolio-backend:8000']
     metrics_path: '/metrics'
     scrape_interval: 10s
+    basic_auth:
+      username: 'admin'
+      password: 'changeme-secure-password'
 
   # PostgreSQL Exporter (optional - can add later)
   # - job_name: 'postgres'

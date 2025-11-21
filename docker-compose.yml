@@ -121,6 +121,8 @@ services:
       - DB_TIMEZONE=${DB_TIMEZONE:-UTC}
       - AUTHENTIK_URL=http://portfolio-authentik-server:9000
       - AUTHENTIK_ISSUER=${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/portfolio-manager/}
+      - PROMETHEUS_AUTH_USER=${PROMETHEUS_AUTH_USER:-admin}
+      - PROMETHEUS_AUTH_PASSWORD=${PROMETHEUS_AUTH_PASSWORD:-changeme-secure-password}
     depends_on:
       portfolio-postgres:
         condition: service_healthy
@@ -207,8 +209,8 @@ services:
       - "${GRAFANA_PORT:-3001}:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro,Z
     networks:
       - portfolio-network
     depends_on:
