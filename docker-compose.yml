@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro,z
@@ -44,8 +44,8 @@ services:
     restart: unless-stopped
     command: server
     ports:
-      - "9000:9000"
-      - "9443:9443"
+      - "${AUTHENTIK_PORT:-9000}:9000"
+      - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
     environment:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-change-me-to-a-random-string}
       AUTHENTIK_REDIS__HOST: portfolio-redis
@@ -107,18 +107,18 @@ services:
     container_name: portfolio-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:8000"
     environment:
-      - PORT=8000
-      - GIN_MODE=release
-      - LOG_LEVEL=info
-      - DB_HOST=portfolio-postgres 
-      - DB_PORT=5432
+      - PORT=${PORT:-8000}
+      - GIN_MODE=${GIN_MODE:-release}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - DB_HOST=portfolio-postgres
+      - DB_PORT=${DB_PORT:-5432}
       - DB_NAME=${POSTGRES_DB:-portfolio_db}
       - DB_USER=${POSTGRES_USER:-portfolio_user}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-portfolio_pass}
-      - DB_SSLMODE=disable
-      - DB_TIMEZONE=UTC
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - DB_TIMEZONE=${DB_TIMEZONE:-UTC}
       - AUTHENTIK_URL=http://portfolio-authentik-server:9000
       - AUTHENTIK_ISSUER=${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/portfolio-manager/}
     depends_on:
@@ -150,14 +150,14 @@ services:
     container_name: portfolio-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     environment:
-      - NODE_ENV=production
-      - VITE_API_URL=http://localhost:8000/api
-      - VITE_AUTHENTIK_URL=http://localhost:9000
+      - NODE_ENV=${NODE_ENV:-production}
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api}
+      - VITE_AUTHENTIK_URL=${VITE_AUTHENTIK_URL:-http://localhost:9000}
       - VITE_AUTHENTIK_CLIENT_ID=${AUTHENTIK_CLIENT_ID}
-      - VITE_AUTHENTIK_REDIRECT_URI=http://localhost:3000/auth/callback
-      - VITE_AUTHENTIK_ISSUER=http://localhost:9000/application/o/portfolio-manager/
+      - VITE_AUTHENTIK_REDIRECT_URI=${VITE_AUTHENTIK_REDIRECT_URI:-http://localhost:3000/auth/callback}
+      - VITE_AUTHENTIK_ISSUER=${AUTHENTIK_ISSUER:-http://localhost:9000/application/o/portfolio-manager/}
     depends_on:
       - portfolio-authentik-server
       - portfolio-backend
@@ -184,7 +184,7 @@ services:
       - "--storage.tsdb.retention.time=200h"
       - "--web.enable-lifecycle"
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z
       - prometheus_data:/prometheus
@@ -202,9 +202,9 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_SIGN_UP=${GF_USERS_ALLOW_SIGN_UP:-false}
     ports:
-      - "3001:3000"
+      - "${GRAFANA_PORT:-3001}:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
