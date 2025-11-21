@@ -155,7 +155,7 @@ services:
       - NODE_ENV=production
       - VITE_API_URL=http://localhost:8000/api
       - VITE_AUTHENTIK_URL=http://localhost:9000
-      - VITE_AUTHENTIK_CLIENT_ID=portfolio-manager
+      - VITE_AUTHENTIK_CLIENT_ID=${AUTHENTIK_CLIENT_ID}
       - VITE_AUTHENTIK_REDIRECT_URI=http://localhost:3000/auth/callback
       - VITE_AUTHENTIK_ISSUER=http://localhost:9000/application/o/portfolio-manager/
     depends_on:
