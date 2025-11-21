@@ -59,6 +59,7 @@
             Sign In with Authentik
           {/if}
         </button>
+
       </div>
 
       <div class="info-box">
@@ -135,6 +136,9 @@
 
   .form-actions {
     margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .btn {

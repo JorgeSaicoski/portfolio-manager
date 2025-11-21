@@ -89,6 +89,23 @@ Authentik comes with a default enrollment flow that's already configured. Let's 
 
 5. Click **Update** at the bottom
 
+### ✨ Automatic "Sign Up" Link Feature
+
+**When you configure the enrollment flow in your brand settings, Authentik automatically adds a "Sign up" link to the bottom of the login page!**
+
+This means users who arrive at the Authentik login page will see:
+- Login fields (username/email + password)
+- A "Sign up" link at the bottom
+
+**No additional configuration needed** - this link appears automatically once the enrollment flow is set in the brand settings.
+
+**User Experience:**
+- User clicks "Sign In" on your Portfolio Manager homepage
+- Redirects to Authentik login page
+- User sees "Sign up" link and clicks it
+- Goes directly to the enrollment flow
+- Registers and is automatically logged in
+
 ## Step 3: Add Username Field (CRITICAL!)
 
 **⚠️ This step is REQUIRED or registration will fail!**
@@ -542,10 +559,40 @@ After successful registration, they can:
 - **Check designation**: Make sure the flow's designation is set to "Enrollment"
 - **Check slug**: The URL uses the flow's slug, verify it's `default-enrollment-flow`
 
-### Users can't see enrollment link on login page
+### Users can't see "Sign up" link on Authentik login page
 
-- **Check brand settings**: System → Brands → Your brand → Enrollment flow must be set
-- **Use direct URL**: Share `http://localhost:9000/if/flow/default-enrollment-flow/` directly
+**Issue:** The automatic "Sign up" link doesn't appear at the bottom of the Authentik login page.
+
+**Root Cause:** The enrollment flow is not properly configured in the Brand settings, or the flow designation is incorrect.
+
+**Solution - Verify Brand Configuration:**
+
+1. **Check Brand Settings:**
+   - Navigate to: **System** → **Brands**
+   - Click on your brand (usually "authentik" or "default")
+   - Scroll to **Flow settings** section
+   - Verify **Enrollment flow** is set to: `default-enrollment-flow`
+   - Click **Update** if you made changes
+
+2. **Verify Flow Designation:**
+   - Navigate to: **Flows & Stages** → **Flows**
+   - Find `default-enrollment-flow`
+   - Click on it to edit
+   - Verify **Designation** is set to: `Enrollment`
+   - Click **Update** if needed
+
+3. **Test the Login Page:**
+   - Logout if currently logged in
+   - Visit: `http://localhost:9000/if/flow/default-authentication-flow/`
+   - The "Sign up" link should now appear at the bottom
+
+**Workaround - Use Homepage Sign Up Button:**
+
+Even if the automatic link doesn't appear, users can still register via the **Sign Up** button on your Portfolio Manager homepage (`http://localhost:3000`). This button goes directly to the enrollment flow, bypassing the need for the Authentik login page link.
+
+**Alternative - Direct URL:**
+
+You can also share the enrollment URL directly: `http://localhost:9000/if/flow/default-enrollment-flow/`
 
 ### Email verification not working
 

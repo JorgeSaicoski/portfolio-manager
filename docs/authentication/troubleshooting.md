@@ -35,6 +35,37 @@ Follow the detailed guide: **[ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)**
 
 ## 🚨 Common Login Errors
 
+### Error: "Client ID Error" - client_id is missing or invalid
+
+**Symptoms:**
+- Login redirects to Authentik
+- Authentik shows error page: "Client ID Error"
+- Message: "The client identifier (client_id) is missing or invalid"
+- Cannot proceed with authentication
+
+**Root Cause:**
+The OAuth2 provider in Authentik is configured as **"Confidential"** client type. Browser-based applications (SPAs) must use **"Public"** client type with PKCE security.
+
+**Solution: Change to Public Client Type**
+
+1. **Open Authentik Admin**: http://localhost:9000/
+2. **Navigate**: Applications → Providers
+3. **Edit** your OAuth2 provider
+4. **Find**: Protocol settings → Client type
+5. **Change**: From `Confidential` → To `Public`
+6. **Click**: Update button
+7. **Test**: Try login again
+
+**Why Public Client Type?**
+- Browser applications cannot securely store client secrets
+- Public clients use PKCE (Proof Key for Code Exchange) for security
+- PKCE provides equivalent protection without requiring secrets
+- This is the OAuth2 best practice for Single Page Applications
+
+**Note:** Even though it's called "Public", PKCE still provides strong security through cryptographic challenge/response.
+
+---
+
 ### Error: "Invalid client secret"
 
 **Symptoms:**
@@ -312,13 +343,15 @@ DB_PASSWORD=portfolio_pass
 
 **OAuth2 Provider Settings:**
 - Name: `Portfolio Manager Provider`
-- Client Type: `Confidential`
+- Client Type: **`Public`** (CRITICAL - NOT Confidential!)
 - Client ID: `portfolio-manager`
 - Redirect URIs:
   - `http://localhost:3000/auth/callback`
   - `http://localhost:3000/`
 - Scopes: `openid`, `email`, `profile`
 - Signing Key: `authentik Self-signed Certificate`
+
+**Why Public?** Browser-based apps require Public client type with PKCE security. Setting this to Confidential will cause "Client ID Error".
 
 **Application Settings:**
 - Name: `Portfolio Manager`
@@ -480,6 +513,28 @@ podman compose logs portfolio-frontend
 podman compose down
 podman compose up -d
 ```
+
+### Users Can Access Authentik User Interface
+
+**Observation:** Regular users can access `http://localhost:9000` and see their account settings, including a "Sessions" tab where they can view and delete active sessions.
+
+**This is expected behavior:**
+- Authentik provides a user self-service interface by design
+- Users can manage their own account settings, change passwords, view active sessions
+- This allows users to logout from compromised devices (important security feature)
+- Only admin users can access the Authentik Admin interface
+
+**Why users should have session access:**
+1. **Security:** Users can review active sessions and revoke access from unknown devices
+2. **Privacy:** Users can see where they're logged in
+3. **Control:** Users can logout remotely if they left a session open
+
+**If you want to restrict this:**
+- Option 1: Use a reverse proxy (nginx/Traefik) to block `/if/user/` paths for non-admin users
+- Option 2: Configure custom Authentik permissions (advanced)
+- Option 3: Use custom CSS to hide UI elements (fragile, not recommended)
+
+**Recommended approach:** Keep this functionality enabled. It's a security feature that helps users protect their accounts.
 
 ## Security Considerations
 

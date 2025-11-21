@@ -9,9 +9,6 @@
     goto("/dashboard");
     console.log("Navigation called");
   }
-  function handleShowRegister() {
-    goto("/auth/register");
-  }
 </script>
 
 <svelte:head>
@@ -21,5 +18,4 @@
 
 <Login
   onLoginSuccess={handleLoginSuccess}
-  onShowRegister={handleShowRegister}
 />

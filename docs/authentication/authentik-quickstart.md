@@ -41,13 +41,12 @@ Your frontend is trying to authenticate with `client_id=portfolio-manager`, but 
    - **Authorization flow**: `default-provider-authorization-explicit-consent` (select from dropdown)
 
    **Protocol Settings:**
-   - **Client type**: `Confidential`
+   - **Client type**: `Public` **⚠️ CRITICAL: Must be Public, NOT Confidential!**
    - **Client ID**: `portfolio-manager` (IMPORTANT: must match exactly)
-   - **Client Secret**: Click "Generate" or it will auto-generate
 
-     **⚠️ IMPORTANT**: Copy this secret immediately! You'll need it for the `.env` file
-
-     Example: `fsDOReE4LH6YWK25oMxLeDKqrhKCLCjBOvVg25zcjPO2p1SST1zoPmFAFyHNnuvjUHiu3FadHsFC6IHnt1MMEKqeVz6xMSlleZW3UHic3ovO9Hlp121eXxullcu2JSo4`
+     **Why Public?** Browser-based applications cannot securely store client secrets.
+     They must use "Public" client type with PKCE (Proof Key for Code Exchange) security.
+     Setting this to "Confidential" will cause "Client ID Error" during login.
 
    **Redirect URIs** (Click "+ Add" for each):
    ```

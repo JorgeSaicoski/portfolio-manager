@@ -95,17 +95,35 @@
   color: var(--color-white);
   border-color: var(--color-secondary);
   box-shadow: var(--shadow-md);
-  
+
   &:hover {
     background-color: var(--color-secondary-light);
     border-color: var(--color-secondary-light);
     box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
   }
-  
+
   &:active {
     transform: translateY(0);
     box-shadow: var(--shadow-md);
+  }
+}
+
+// === TERTIARY BUTTON (Subtle - Low priority actions) ===
+.btn-tertiary {
+  background-color: transparent;
+  color: var(--color-gray-700);
+  border-color: var(--color-gray-300);
+
+  &:hover {
+    background-color: var(--color-gray-100);
+    border-color: var(--color-gray-400);
+    color: var(--color-gray-900);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
