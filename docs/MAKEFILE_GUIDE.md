@@ -527,6 +527,60 @@ cat backups/portfolio_db_20241026_143000.sql | \
 
 ---
 
+### Database UI
+
+#### `make db-ui-start`
+Start Adminer database management interface.
+
+```bash
+make db-ui-start
+```
+
+**Access**: http://localhost:8080
+
+**What you'll see**:
+- URL and access instructions
+- Database credentials
+- Login details
+
+**Login to Adminer**:
+- System: PostgreSQL
+- Server: portfolio-postgres
+- Username: portfolio_user
+- Password: (from your `.env` file)
+- Database: portfolio_db or authentik
+
+---
+
+#### `make db-ui-stop`
+Stop Adminer database UI.
+
+```bash
+make db-ui-stop
+```
+
+---
+
+#### `make db-ui-open`
+Open Adminer in your default browser.
+
+```bash
+make db-ui-open
+```
+
+**Shortcut**: Automatically opens http://localhost:8080
+
+---
+
+#### `make db-ui-restart`
+Restart Adminer (useful after configuration changes).
+
+```bash
+make db-ui-restart
+```
+
+---
+
 ### Monitoring
 
 #### `make monitoring-start`

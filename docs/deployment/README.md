@@ -35,6 +35,17 @@ Set up Prometheus and Grafana for metrics and monitoring.
 - Alerting rules
 - Performance monitoring
 
+### [Database UI](database-ui.md)
+Manage databases with Adminer web interface.
+
+**Includes:**
+- Adminer setup and access
+- Managing multiple databases (portfolio_db, authentik, future services)
+- Running SQL queries
+- Import/export data
+- User and permission management
+- Security best practices
+
 ## Quick Deployment
 
 ### Local Development

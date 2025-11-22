@@ -66,6 +66,12 @@ make authentik-guide
 
 # 6. Verify everything works
 make verify-setup
+
+# Optional: Start monitoring (Prometheus + Grafana)
+make monitoring-start
+
+# Optional: Start database UI (Adminer)
+make db-ui-start
 ```
 
 📖 **Makefile Reference**: See [docs/MAKEFILE_GUIDE.md](docs/MAKEFILE_GUIDE.md) for all available commands.
@@ -219,8 +225,9 @@ Portfolio Manager is the **central foundation** of a microservices ecosystem. It
 | Authentik | 9000 | http://localhost:9000 | Authentication provider |
 | PostgreSQL | 5432 | localhost:5432 | Database |
 | Redis | 6379 | localhost:6379 | Cache/sessions |
-| Prometheus | 9090 | http://localhost:9090 | Metrics collection |
-| Grafana | 3001 | http://localhost:3001 | Metrics visualization |
+| Prometheus (optional) | 9090 | http://localhost:9090 | Metrics collection |
+| Grafana (optional) | 3001 | http://localhost:3001 | Metrics visualization |
+| Adminer (optional) | 8080 | http://localhost:8080 | Database management UI |
 
 ## 🚧 Project Status
 

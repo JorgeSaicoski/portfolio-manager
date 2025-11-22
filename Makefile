@@ -279,6 +279,41 @@ db-backup: ## Backup database to file
 	@podman exec portfolio-postgres pg_dump -U portfolio_user portfolio_db > backups/portfolio_db_$$(date +%Y%m%d_%H%M%S).sql
 	@echo "$(GREEN)✓ Database backed up to backups/$(RESET)"
 
+##@ Database UI
+
+db-ui-start: ## Start Adminer database UI (http://localhost:8080)
+	@echo "$(BLUE)Starting Adminer database UI...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile db-ui up -d
+	@echo "$(GREEN)✓ Adminer started$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Access Adminer:$(RESET)"
+	@echo "  URL: $(BLUE)http://localhost:8080$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Database Credentials:$(RESET)"
+	@echo "  System: PostgreSQL"
+	@echo "  Server: portfolio-postgres"
+	@echo "  Username: portfolio_user"
+	@echo "  Password: (from your .env file)"
+	@echo "  Database: portfolio_db (or authentik)"
+	@echo ""
+	@echo "$(YELLOW)Quick Access:$(RESET) make db-ui-open"
+
+db-ui-stop: ## Stop Adminer database UI
+	@echo "$(BLUE)Stopping Adminer...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile db-ui down
+	@echo "$(GREEN)✓ Adminer stopped$(RESET)"
+
+db-ui-open: ## Open Adminer in browser
+	@echo "$(BLUE)Opening Adminer in browser...$(RESET)"
+	@command -v xdg-open >/dev/null 2>&1 && xdg-open http://localhost:8080 || \
+	command -v open >/dev/null 2>&1 && open http://localhost:8080 || \
+	echo "$(YELLOW)Please open manually: http://localhost:8080$(RESET)"
+
+db-ui-restart: ## Restart Adminer
+	@echo "$(BLUE)Restarting Adminer...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile db-ui restart adminer
+	@echo "$(GREEN)✓ Adminer restarted$(RESET)"
+
 ##@ Monitoring
 
 monitoring-start: ## Start Prometheus and Grafana

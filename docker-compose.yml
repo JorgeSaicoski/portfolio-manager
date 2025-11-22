@@ -216,6 +216,23 @@ services:
     depends_on:
       - prometheus
 
+  # Adminer - Database UI (Optional Profile)
+  adminer:
+    image: adminer:latest
+    container_name: portfolio-adminer
+    restart: unless-stopped
+    profiles:
+      - db-ui
+    environment:
+      - ADMINER_DEFAULT_SERVER=portfolio-postgres
+      - ADMINER_DESIGN=${ADMINER_DESIGN:-nette}
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    networks:
+      - portfolio-network
+    depends_on:
+      - portfolio-postgres
+
 volumes:
   postgres_data:
     driver: local
