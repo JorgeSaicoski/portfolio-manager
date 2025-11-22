@@ -41,7 +41,8 @@ Guides for contributing and developing Portfolio Manager.
 - **[Frontend Guide](development/frontend-guide.md)** - Complete frontend integration guide
 - **[Backend Development](development/backend.md)** - Go/Gin development guide
 - **[Testing Guide](development/testing.md)** - Writing and running tests
-- **[Architecture](development/architecture.md)** - System architecture deep-dive
+- **[Architecture](development/architecture.md)** - System architecture and ecosystem design
+- **[Microservices Integration](development/microservices-integration.md)** - Guide for adding new services
 - **[Makefile Implementation](MAKEFILE_IMPLEMENTATION_SUMMARY.md)** - Makefile automation details
 
 ### 🛡️ [Security](security/)

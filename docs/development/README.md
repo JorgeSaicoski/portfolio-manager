@@ -44,14 +44,26 @@ Writing and running tests.
 - CI/CD integration
 
 ### [Architecture](architecture.md)
-System architecture deep-dive.
+System architecture and ecosystem design.
 
 **Explains:**
-- Microservices architecture
-- Data flow
-- Authentication architecture
-- Database schema
-- API design
+- Ecosystem vision (Portfolio Manager as central foundation)
+- Shared services architecture (PostgreSQL, Authentik, Grafana)
+- Current microservices architecture
+- Service integration patterns
+- Data flow and authentication architecture
+- Database schema and scaling patterns
+
+### [Microservices Integration](microservices-integration.md)
+Complete guide for adding new services to the ecosystem.
+
+**Explains:**
+- How to connect to shared PostgreSQL
+- Integrating with Authentik authentication
+- Adding Prometheus metrics for monitoring
+- Network configuration (same compose, separate compose, external servers)
+- Deployment patterns with examples
+- Security and production considerations
 
 ## Quick Start for Developers
 

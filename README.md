@@ -1,6 +1,6 @@
 # Portfolio Manager
 
-Modern, secure portfolio management platform built with microservices architecture and enterprise-grade authentication.
+**Central ecosystem foundation for microservices** - Modern, secure portfolio management platform with shared infrastructure (PostgreSQL, Authentik, Grafana) designed as the starting point for an extensible microservices architecture.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
@@ -104,6 +104,40 @@ podman compose up -d
 | **[Security](docs/security/)** | Security best practices, audit reports |
 
 ## 🏗️ Architecture
+
+### Ecosystem Vision
+
+Portfolio Manager is the **central foundation** of a microservices ecosystem. It provides shared infrastructure that future services can leverage:
+
+- **Shared PostgreSQL** - Multiple databases/schemas for different services
+- **Shared Authentik** - Centralized authentication for all services
+- **Shared Grafana/Prometheus** - Unified monitoring across the ecosystem
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    CENTRAL ECOSYSTEM                        │
+│                 (Portfolio Manager Core)                    │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │  PostgreSQL  │  │  Authentik   │  │   Grafana    │    │
+│  │   Database   │  │    Auth      │  │  Monitoring  │    │
+│  └──────────────┘  └──────────────┘  └──────────────┘    │
+│         ▲                 ▲                  ▲             │
+└─────────┼─────────────────┼──────────────────┼─────────────┘
+          │                 │                  │
+          │                 │                  │
+    ┌─────┴─────┬──────────┴────────┬─────────┴──────┐
+    │           │                   │                 │
+┌───▼───┐  ┌───▼────┐         ┌───▼────┐      ┌────▼─────┐
+│Portfolio│ │Loyalty │         │Analytics│      │Future   │
+│Manager │ │Points  │         │Service │      │Service N│
+│  API   │ │System  │         │        │      │         │
+└────────┘ └────────┘         └────────┘      └──────────┘
+```
+
+**See [Architecture Documentation](docs/development/architecture.md) for detailed ecosystem design and [Microservices Integration Guide](docs/development/microservices-integration.md) for adding new services.**
+
+### Current Architecture (Portfolio Manager)
 
 ```
 ┌─────────────────┐
