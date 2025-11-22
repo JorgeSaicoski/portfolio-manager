@@ -196,7 +196,7 @@ services:
 
   # Grafana - Monitoring Profile
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.3.0
     container_name: portfolio-grafana
     restart: unless-stopped
     profiles:
