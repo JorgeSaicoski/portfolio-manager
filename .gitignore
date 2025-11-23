@@ -289,8 +289,8 @@ backups/
 *.dump.gz
 *.sql
 
-# Test output files
-backend/test-output.txt
+# Audit logs and test output
+backend/audit/
 
 # ===== Cache =====
 .cache/

@@ -322,15 +322,17 @@ test: test-backend ## Run all tests
 
 test-backend: ## Run backend tests
 	@echo "$(BLUE)Running backend tests...$(RESET)"
-	@cd backend && go test ./cmd/test/... -v -race -coverprofile=coverage.out
+	@mkdir -p backend/audit
+	@cd backend && go test ./cmd/test/... -v -race -coverprofile=audit/coverage.out
 	@echo "$(GREEN)✓ Backend tests complete$(RESET)"
 
 test-backend-coverage: ## Run backend tests with coverage report
 	@echo "$(BLUE)Running backend tests with coverage...$(RESET)"
-	@cd backend && go test ./cmd/test/... -v -race -coverprofile=coverage.out
-	@cd backend && go tool cover -html=coverage.out -o coverage.html
-	@cd backend && go tool cover -func=coverage.out
-	@echo "$(GREEN)✓ Coverage report: backend/coverage.html$(RESET)"
+	@mkdir -p backend/audit
+	@cd backend && go test ./cmd/test/... -v -race -coverprofile=audit/coverage.out
+	@cd backend && go tool cover -html=audit/coverage.out -o audit/coverage.html
+	@cd backend && go tool cover -func=audit/coverage.out
+	@echo "$(GREEN)✓ Coverage report: backend/audit/coverage.html$(RESET)"
 
 test-frontend: ## Run frontend tests (if configured)
 	@echo "$(BLUE)Running frontend tests...$(RESET)"
@@ -338,12 +340,13 @@ test-frontend: ## Run frontend tests (if configured)
 
 test-fail-logs: ## Run tests, save full output to file, and show failures
 	@echo "$(BLUE)Running tests and saving output...$(RESET)"
-	@cd backend && go test ./cmd/test/... -v -race -coverprofile=coverage.out 2>&1 | tee test-output.txt
+	@mkdir -p backend/audit
+	@cd backend && go test ./cmd/test/... -v -race -coverprofile=audit/coverage.out 2>&1 | tee audit/test-output.txt
 	@echo ""
 	@echo "$(BLUE)Extracting failures...$(RESET)"
-	@grep -E "(FAIL|Error:|Expected|Actual)" backend/test-output.txt || echo "$(GREEN)No test failures found$(RESET)"
+	@grep -E "(FAIL|Error:|Expected|Actual)" backend/audit/test-output.txt || echo "$(GREEN)No test failures found$(RESET)"
 	@echo ""
-	@echo "$(YELLOW)Full test output saved to: backend/test-output.txt$(RESET)"
+	@echo "$(YELLOW)Full test output saved to: backend/audit/test-output.txt$(RESET)"
 
 lint: lint-backend lint-frontend ## Run all linters
 
