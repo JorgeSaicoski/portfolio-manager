@@ -336,9 +336,14 @@ test-frontend: ## Run frontend tests (if configured)
 	@echo "$(BLUE)Running frontend tests...$(RESET)"
 	@cd frontend && npm test || echo "$(YELLOW)No tests configured$(RESET)"
 
-test-fail-logs: ## Run tests and show only failed test output
-	@echo "$(BLUE)Running tests and filtering failures...$(RESET)"
-	@cd backend && go test ./cmd/test/... -v 2>&1 | grep -E "(FAIL|Error:|Expected|Actual)" || echo "$(GREEN)No test failures found$(RESET)"
+test-fail-logs: ## Run tests, save full output to file, and show failures
+	@echo "$(BLUE)Running tests and saving output...$(RESET)"
+	@cd backend && go test ./cmd/test/... -v -race -coverprofile=coverage.out 2>&1 | tee test-output.txt
+	@echo ""
+	@echo "$(BLUE)Extracting failures...$(RESET)"
+	@grep -E "(FAIL|Error:|Expected|Actual)" backend/test-output.txt || echo "$(GREEN)No test failures found$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Full test output saved to: backend/test-output.txt$(RESET)"
 
 lint: lint-backend lint-frontend ## Run all linters
 

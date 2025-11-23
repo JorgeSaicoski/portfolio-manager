@@ -289,6 +289,9 @@ backups/
 *.dump.gz
 *.sql
 
+# Test output files
+backend/test-output.txt
+
 # ===== Cache =====
 .cache/
 **/.cache/
