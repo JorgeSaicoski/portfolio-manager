@@ -51,23 +51,32 @@ Portfolio Manager is **not just an application** - it's the **foundation of an e
 
 ### Example Use Cases
 
-**Loyalty Points System:**
-- Uses shared PostgreSQL database (new schema: `loyalty_db`)
+> **Note:** The following examples illustrate different types of microservices that *could* be integrated into the ecosystem. These are **architectural examples** to demonstrate integration patterns—they are not currently implemented. You can build any service that fits your needs: e-commerce cart systems, product catalogs, inventory management, customer loyalty programs, etc.
+
+**Example 1: Loyalty Points System (or any customer engagement service):**
+- Uses shared PostgreSQL database (new schema: `loyalty_db`, `rewards_db`, etc.)
 - Authenticates users via shared Authentik
 - Reports metrics to shared Grafana/Prometheus
-- Can add MongoDB if needed (added to the ecosystem)
+- Can add service-specific database if needed (MongoDB, Redis, etc.)
 
-**Analytics Service:**
-- Reads from shared PostgreSQL (read-only access to portfolio and loyalty data)
+**Example 2: E-Commerce Services (Cart, Catalog, Inventory):**
+- Shopping cart service manages user baskets
+- Product catalog service handles listings
+- Inventory service tracks stock levels
+- All authenticate via shared Authentik
+- All share monitoring infrastructure
+
+**Example 3: Analytics Service:**
+- Reads from shared PostgreSQL (read-only access to portfolio and other service data)
 - Authenticates via Authentik
 - May use its own ClickHouse database for analytics
 - Exports metrics to shared monitoring
 
-**Future Services:**
-- Trading Bot
-- Market Data Aggregator
-- Risk Assessment Engine
-- Social Trading Features
+**Other Potential Services:**
+- Trading Bot / Market Data
+- Notification Service (Email, SMS, Push)
+- Payment Processing
+- Reporting & Business Intelligence
 - All share the same core infrastructure
 
 ---
@@ -392,7 +401,9 @@ services:
 
 ## Adding a New Service: Complete Example
 
-Let's walk through adding a **Loyalty Points System** to the ecosystem.
+> **Important:** This is a **hypothetical example** demonstrating how to integrate a new microservice. The "Loyalty Points System" used here is purely illustrative—you could follow the same pattern to add **any** microservice (shopping cart, product catalog, inventory management, CRM, etc.).
+
+Let's walk through adding a **Loyalty Points System** (example service) to the ecosystem.
 
 ### Step 1: Define Service Requirements
 
@@ -731,32 +742,35 @@ portfolio-authentik-worker:
 
 ## Future Roadmap
 
-### Planned Ecosystem Services
+### Potential Service Ideas
 
-1. **Loyalty Points System** (Next)
-   - Track user engagement
-   - Award points for actions
-   - Redeem points for features
+> **Note:** These are examples of services that could be built using the ecosystem patterns described in this document. None of these are currently implemented.
 
-2. **Analytics Service**
+1. **Customer Engagement Services**
+   - Loyalty/rewards programs
+   - Referral tracking
+   - Gamification systems
+
+2. **E-Commerce Services**
+   - Shopping cart management
+   - Product catalog
+   - Inventory tracking
+   - Order management
+
+3. **Analytics & Reporting**
    - Data aggregation
    - Business intelligence
    - Performance metrics
 
-3. **Trading Bot**
-   - Automated trading
-   - Strategy backtesting
-   - Real-time execution
-
-4. **Market Data Aggregator**
-   - Real-time market data
-   - Historical data storage
-   - Data normalization
-
-5. **Notification Service**
-   - Email notifications
+4. **Communication Services**
+   - Email/SMS notifications
    - Push notifications
-   - SMS alerts
+   - In-app messaging
+
+5. **Domain-Specific Services**
+   - Your custom business logic
+   - Industry-specific features
+   - Integration with third-party APIs
 
 ### Infrastructure Enhancements
 

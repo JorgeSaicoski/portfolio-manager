@@ -283,6 +283,15 @@ $RECYCLE.BIN/
 *.backup
 *.orig
 
+# Database backups directory
+backups/
+*.dump
+*.dump.gz
+*.sql
+
+# Audit logs and test output
+backend/audit/
+
 # ===== Cache =====
 .cache/
 **/.cache/

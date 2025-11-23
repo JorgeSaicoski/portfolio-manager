@@ -1,5 +1,7 @@
 # Microservices Integration Guide
 
+> **Important:** This guide provides a **generic template** for integrating **any** new microservice into the Portfolio Manager ecosystem. Whether you're building a loyalty system, shopping cart, product catalog, analytics service, or custom business logic—follow these patterns for consistent integration.
+
 Complete step-by-step guide for integrating new microservices into the Portfolio Manager ecosystem.
 
 ## Table of Contents
@@ -427,11 +429,11 @@ var (
         []string{"method", "endpoint"},
     )
 
-    // Custom business metrics
-    pointsAwarded = prometheus.NewCounter(
+    // Custom business metrics (examples - customize for your service)
+    customBusinessMetric = prometheus.NewCounter(
         prometheus.CounterOpts{
-            Name: "loyalty_points_awarded_total",
-            Help: "Total loyalty points awarded",
+            Name: "service_specific_operations_total",
+            Help: "Total number of service-specific operations",
         },
     )
 )
@@ -439,7 +441,7 @@ var (
 func init() {
     prometheus.MustRegister(httpRequestsTotal)
     prometheus.MustRegister(httpRequestDuration)
-    prometheus.MustRegister(pointsAwarded)
+    prometheus.MustRegister(customBusinessMetric)
 }
 
 func setupMetrics(router *gin.Engine) {
