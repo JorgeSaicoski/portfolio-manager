@@ -135,11 +135,14 @@ Portfolio Manager is the **central foundation** of a microservices ecosystem. It
     ┌─────┴─────┬──────────┴────────┬─────────┴──────┐
     │           │                   │                 │
 ┌───▼───┐  ┌───▼────┐         ┌───▼────┐      ┌────▼─────┐
-│Portfolio│ │Loyalty │         │Analytics│      │Future   │
-│Manager │ │Points  │         │Service │      │Service N│
-│  API   │ │System  │         │        │      │         │
+│Portfolio│ │ Your   │         │ Your   │      │  Your    │
+│Manager │ │Service │         │Service │      │ Service  │
+│  API   │ │   A    │         │   B    │      │    N     │
 └────────┘ └────────┘         └────────┘      └──────────┘
+ (Active)   (Example)          (Example)        (Example)
 ```
+
+> **Note:** Services shown in the diagram above (besides Portfolio Manager) are **examples** to illustrate the extensible architecture. You can integrate any microservice you need: e-commerce cart, product catalog, loyalty programs, analytics, etc.
 
 **See [Architecture Documentation](docs/development/architecture.md) for detailed ecosystem design and [Microservices Integration Guide](docs/development/microservices-integration.md) for adding new services.**
 

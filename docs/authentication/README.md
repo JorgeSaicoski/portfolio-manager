@@ -125,6 +125,68 @@ Covers:
 
 **When to use:** Ensure users provide valid email addresses
 
+## User Management
+
+### [Creating Users](user-management/creating-users.md) 🆕
+**Step-by-step guide for creating and managing users in Authentik UI**
+
+Covers:
+- Creating regular and admin users
+- Setting user passwords
+- Activating and deactivating accounts
+- Editing user information
+- Common scenarios and best practices
+
+**When to use:** Day-to-day user management through Authentik interface
+
+### [Managing Groups](user-management/managing-groups.md) 🆕
+**Guide for creating and managing user groups in Authentik UI**
+
+Covers:
+- Creating and editing groups
+- Assigning users to groups
+- Group hierarchies and organization
+- Application-specific groups
+- Multi-tenant group structures
+
+**When to use:** Organizing users and controlling permissions
+
+### [User Approval Setup](user-management/user-approval-setup.md) 🆕
+**Configure Authentik to require admin approval for new users**
+
+Covers:
+- Setting up approval workflow in Authentik UI
+- Configuring enrollment flow with inactive users
+- Email notifications for admins
+- Approving and rejecting users
+- Testing the approval process
+
+**When to use:** B2B applications or when user verification is required
+
+### [Application Access Control](user-management/application-access-control.md) 🆕
+**Control which users can access which applications using groups**
+
+Covers:
+- Single and multi-application access patterns
+- Setting up application-specific groups
+- Granting and revoking access
+- Multi-organization setups
+- Verifying access
+
+**When to use:** Managing access across Portfolio Manager and other services
+
+### [Authentik API Integration](user-management/authentik-api-integration.md) 🆕
+**For developers: Integrating Authentik API for automation**
+
+Covers:
+- When to use API vs UI
+- API authentication and tokens
+- Referencing existing code in repository
+- Common API operations
+- Bulk user creation examples
+
+**When to use:** Automating user management or bulk operations
+
 ### [Troubleshooting](troubleshooting.md)
 **Common authentication issues and solutions**
 
