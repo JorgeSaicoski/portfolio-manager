@@ -467,6 +467,93 @@ See: [Single-Tenant Deployment](./single-tenant-deployment.md)
 
 ---
 
+## Database Backup During Onboarding
+
+### Create Backup Before Client Onboarding
+
+**Always create a backup before onboarding a new client** to ensure you can rollback if something goes wrong.
+
+```bash
+# Create backup
+make db-backup
+```
+
+This creates compressed backups of both `portfolio_db` and `authentik` databases with timestamp.
+
+**Output example:**
+```
+[INFO] Starting database backup...
+[SUCCESS] Portfolio database dumped successfully
+[SUCCESS] Authentik database dumped successfully
+[SUCCESS] Backups compressed:
+  - portfolio_db_20250123_140530.dump.gz (2.3M)
+  - authentik_20250123_140530.dump.gz (1.8M)
+
+Backup location: /home/bardockgaucho/GolandProjects/portfolio-manager/backups
+Timestamp: 20250123_140530
+```
+
+### Verify Backup Was Created
+
+```bash
+make db-list-backups
+```
+
+### Rollback if Needed
+
+If something goes wrong during onboarding, restore from backup:
+
+```bash
+# Restore from latest backup
+make db-restore BACKUP=latest
+
+# Or restore from specific timestamp
+make db-restore BACKUP=20250123_140530
+```
+
+**Warning:** This will overwrite current database with backup data. All changes since backup will be lost.
+
+### Post-Onboarding Backup
+
+**After successfully onboarding a client**, create another backup:
+
+```bash
+make db-backup
+```
+
+This creates a known-good state with the new client configured.
+
+### Backup Best Practices for Onboarding
+
+1. **Before onboarding:** Create backup
+2. **Test client access:** Verify login works
+3. **After successful onboarding:** Create backup
+4. **Keep onboarding backups:** For at least 30 days
+
+**Example workflow:**
+
+```bash
+# Step 1: Backup before onboarding
+make db-backup
+# Note timestamp: 20250123_140530
+
+# Step 2: Onboard client
+./scripts/onboard-client.go --name "NextDoor Market" --slug "nextdoor" ...
+
+# Step 3: Test client login
+# Visit http://localhost:3000 and test login
+
+# Step 4: If something went wrong, rollback
+make db-restore BACKUP=20250123_140530
+
+# Step 5: If successful, create post-onboarding backup
+make db-backup
+```
+
+See **[Backup & Restore Guide](../operations/backup-restore.md)** for complete backup documentation.
+
+---
+
 ## Related Documentation
 
 - **[Admin User Creation](../authentication/admin-user-creation.md)** - Create org admins
