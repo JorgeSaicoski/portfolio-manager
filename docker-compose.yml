@@ -108,6 +108,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8000}:8000"
+    volumes:
+      - ./backend/audit:/app/audit
     environment:
       - PORT=${PORT:-8000}
       - GIN_MODE=${GIN_MODE:-release}

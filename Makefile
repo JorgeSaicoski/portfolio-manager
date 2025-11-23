@@ -362,6 +362,11 @@ lint-frontend: ## Run frontend linter
 
 ##@ Database
 
+db-create-test: ## Create test database (portfolio_test_db)
+	@echo "$(BLUE)Creating test database...$(RESET)"
+	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_test_db OWNER portfolio_user;" 2>/dev/null || echo "$(YELLOW)Database already exists or connection failed$(RESET)"
+	@echo "$(GREEN)✓ Test database ready$(RESET)"
+
 db-migrate: ## Run database migrations (automatic on backend start)
 	@echo "$(BLUE)Running database migrations...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) restart portfolio-backend
