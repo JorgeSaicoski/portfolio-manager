@@ -3,7 +3,7 @@
 # Uses Podman as the container runtime (Podman v4.0+)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start stop restart status logs clean
+.PHONY: help setup start stop restart status logs clean complete-start complete-stop complete-restart complete-update complete-down
 
 # Colors for terminal output
 BOLD := \033[1m
@@ -34,6 +34,12 @@ help: ## Display this help message
 	@echo "  2. make start              # Start all services"
 	@echo "  3. make authentik-guide    # Follow Authentik configuration steps"
 	@echo "  4. make verify-setup       # Verify everything is working"
+	@echo ""
+	@echo "$(BLUE)Complete Stack Commands:$(RESET)"
+	@echo "  make complete-start        # Start everything (core + monitoring + DB UI)"
+	@echo "  make complete-stop         # Stop everything"
+	@echo "  make complete-update       # Rebuild and update all services"
+	@echo "  make complete-restart      # Restart all services"
 	@echo ""
 	@echo "$(YELLOW)Documentation:$(RESET) See docs/MAKEFILE_GUIDE.md for detailed usage"
 
@@ -102,10 +108,58 @@ start: ## Start all services in detached mode
 	@echo "$(YELLOW)Check status with:$(RESET) make status"
 	@echo "$(YELLOW)View logs with:$(RESET) make logs"
 
+complete-start: ## Start everything (core services + monitoring + database UI)
+	@echo "$(BOLD)$(BLUE)Starting Complete Portfolio Manager Stack$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 1/3: Starting core services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) up -d
+	@echo "$(GREEN)✓ Core services started$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 2/3: Starting monitoring (Prometheus + Grafana)...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring up -d
+	@echo "$(GREEN)✓ Monitoring services started$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 3/3: Starting database UI (Adminer)...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile db-ui up -d
+	@echo "$(GREEN)✓ Database UI started$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ Complete stack is now running!$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Access URLs:$(RESET)"
+	@echo "  $(BLUE)Frontend:$(RESET)        http://localhost:3000"
+	@echo "  $(BLUE)Backend API:$(RESET)     http://localhost:8000"
+	@echo "  $(BLUE)Authentik:$(RESET)       http://localhost:9000"
+	@echo "  $(BLUE)Prometheus:$(RESET)      http://localhost:9090"
+	@echo "  $(BLUE)Grafana:$(RESET)         http://localhost:3001 (admin/admin)"
+	@echo "  $(BLUE)Adminer (DB):$(RESET)    http://localhost:8080"
+	@echo ""
+	@echo "$(YELLOW)Useful commands:$(RESET)"
+	@echo "  make status              # Check all services"
+	@echo "  make complete-stop       # Stop everything"
+	@echo "  make complete-update     # Update all services"
+
 stop: ## Stop all services (keeps containers)
 	@echo "$(BLUE)Stopping all services...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) stop
 	@echo "$(GREEN)✓ Services stopped$(RESET)"
+
+complete-stop: ## Stop everything (all services + monitoring + database UI)
+	@echo "$(BOLD)$(BLUE)Stopping Complete Portfolio Manager Stack$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 1/3: Stopping database UI...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile db-ui stop
+	@echo "$(GREEN)✓ Database UI stopped$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 2/3: Stopping monitoring services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring stop
+	@echo "$(GREEN)✓ Monitoring stopped$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 3/3: Stopping core services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) stop
+	@echo "$(GREEN)✓ Core services stopped$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ All services stopped!$(RESET)"
+	@echo "$(YELLOW)Tip: Use 'make complete-start' to start everything again$(RESET)"
 
 down: ## Stop and remove all containers (keeps volumes/data)
 	@echo "$(BLUE)Stopping and removing containers...$(RESET)"
@@ -113,10 +167,27 @@ down: ## Stop and remove all containers (keeps volumes/data)
 	@echo "$(GREEN)✓ Containers removed (volumes preserved)$(RESET)"
 	@echo "$(YELLOW)Note: Use 'make clean' to also delete volumes and data$(RESET)"
 
+complete-down: ## Stop and remove everything (all profiles, keeps volumes/data)
+	@echo "$(BOLD)$(BLUE)Removing Complete Portfolio Manager Stack$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Stopping and removing all containers...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui down
+	@echo "$(GREEN)✓ All containers removed (volumes preserved)$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Note: Data is preserved. Use 'make clean' to delete volumes too$(RESET)"
+
 restart: ## Restart all services
 	@echo "$(BLUE)Restarting all services...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) restart
 	@echo "$(GREEN)✓ Services restarted$(RESET)"
+
+complete-restart: ## Restart everything (all services + monitoring + database UI)
+	@echo "$(BOLD)$(BLUE)Restarting Complete Portfolio Manager Stack$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Restarting all services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui restart
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ All services restarted!$(RESET)"
 
 restart-backend: ## Restart only backend service
 	@echo "$(BLUE)Restarting backend...$(RESET)"
@@ -142,6 +213,31 @@ update: ## Rebuild and restart all services with latest code changes
 	@echo "$(YELLOW)Step 3/3: Starting services...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) up -d
 	@echo "$(GREEN)✓ All services updated and running with latest code$(RESET)"
+
+complete-update: ## Rebuild and restart everything with latest code changes
+	@echo "$(BOLD)$(BLUE)Updating Complete Portfolio Manager Stack$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 1/3: Stopping all containers...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui down
+	@echo "$(GREEN)✓ Containers stopped$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 2/3: Building all images (this may take a while)...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui build --no-cache
+	@echo "$(GREEN)✓ Images built$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 3/3: Starting all services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui up -d
+	@echo "$(GREEN)✓ Services started$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ Complete stack updated and running with latest code!$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Access URLs:$(RESET)"
+	@echo "  $(BLUE)Frontend:$(RESET)        http://localhost:3000"
+	@echo "  $(BLUE)Backend API:$(RESET)     http://localhost:8000"
+	@echo "  $(BLUE)Authentik:$(RESET)       http://localhost:9000"
+	@echo "  $(BLUE)Prometheus:$(RESET)      http://localhost:9090"
+	@echo "  $(BLUE)Grafana:$(RESET)         http://localhost:3001 (admin/admin)"
+	@echo "  $(BLUE)Adminer (DB):$(RESET)    http://localhost:8080"
 
 update-backend: ## Rebuild and restart backend with latest code
 	@echo "$(BLUE)Updating backend with latest code...$(RESET)"
