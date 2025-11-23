@@ -369,11 +369,29 @@ db-reset: ## Reset database (WARNING: deletes all data)
 		echo "$(YELLOW)Cancelled$(RESET)"; \
 	fi
 
-db-backup: ## Backup database to file
+db-backup: ## Backup database with compression and retention (recommended)
+	@./scripts/backup.sh
+
+db-backup-simple: ## Simple backup to SQL file (old method)
 	@echo "$(BLUE)Backing up database...$(RESET)"
 	@mkdir -p backups
 	@podman exec portfolio-postgres pg_dump -U portfolio_user portfolio_db > backups/portfolio_db_$$(date +%Y%m%d_%H%M%S).sql
 	@echo "$(GREEN)✓ Database backed up to backups/$(RESET)"
+
+db-restore: ## Restore database from backup (usage: make db-restore BACKUP=timestamp)
+	@if [ -z "$(BACKUP)" ]; then \
+		echo "$(RED)Error: Please specify BACKUP=timestamp$(RESET)"; \
+		echo "Example: make db-restore BACKUP=20250123_140530"; \
+		echo "Or use: make db-restore BACKUP=latest"; \
+		echo ""; \
+		echo "Available backups:"; \
+		./scripts/list-backups.sh; \
+		exit 1; \
+	fi
+	@./scripts/restore.sh $(BACKUP)
+
+db-list-backups: ## List all available database backups
+	@./scripts/list-backups.sh
 
 ##@ Database UI
 
