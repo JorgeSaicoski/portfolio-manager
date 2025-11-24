@@ -19,6 +19,49 @@ Complete guide to setting up and configuring authentication for Portfolio Manage
    - Common issues and solutions
    - Error message reference
 
+## ⭐ Featured: Custom Enrollment with Admin Approval
+
+**Enable self-service registration while maintaining control over who gets access!**
+
+### 🎯 Quick Start (20 minutes)
+
+**[📖 Custom Enrollment Quickstart Guide](custom-enrollment-quickstart.md)**
+
+Get users registering themselves while you maintain approval control:
+
+```
+User registers → Account created (INACTIVE) → Admin approves → User gains access ✅
+```
+
+**Perfect for:**
+- 🏢 B2B applications requiring verification
+- 🔒 Controlled access environments
+- ✅ Compliance and vetting requirements
+- 🛡️ Preventing spam registrations
+
+**What you'll get:**
+- ✅ Complete step-by-step configuration (with examples!)
+- ✅ Email notification templates ready to use
+- ✅ Approval workflow and decision guidelines
+- ✅ Real user journey examples
+- ✅ Troubleshooting tips
+
+**Key Features:**
+- **Users** create their own accounts (no admin manual work)
+- **Accounts start INACTIVE** (users can't login until approved)
+- **Admins receive email** notification for each registration
+- **One-click approval** process (Check "Is active" + Add to group)
+- **Immediate access** after approval
+
+### 📚 Related Documentation
+
+- **[Custom Enrollment Quickstart](custom-enrollment-quickstart.md)** 🚀 (20 min) - Complete setup with examples
+- **[Enrollment Setup](enrollment-setup.md)** 📝 (15 min) - Detailed enrollment configuration
+- **[User Approval Setup](user-management/user-approval-setup.md)** 🔐 (15 min) - Advanced approval workflows
+- **[Email Configuration](email-configuration.md)** 📧 (15 min) - Required for notifications
+
+---
+
 ## Guides
 
 ### Getting Started (Choose Your Path)
@@ -151,7 +194,7 @@ Covers:
 
 **When to use:** Organizing users and controlling permissions
 
-### [User Approval Setup](user-management/user-approval-setup.md) 🆕
+### [User Approval Setup](user-management/user-approval-setup.md) ⭐ Featured
 **Configure Authentik to require admin approval for new users**
 
 Covers:
@@ -160,8 +203,11 @@ Covers:
 - Email notifications for admins
 - Approving and rejecting users
 - Testing the approval process
+- Complete workflow examples with real scenarios
 
 **When to use:** B2B applications or when user verification is required
+
+**See also:** [Custom Enrollment Quickstart](custom-enrollment-quickstart.md) for a faster setup guide with practical examples
 
 ### [Application Access Control](user-management/application-access-control.md) 🆕
 **Control which users can access which applications using groups**

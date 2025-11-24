@@ -101,7 +101,7 @@ By default, Authentik doesn't allow users to self-register. To enable this:
 
 1. Navigate to **Flows & Stages** → **Flows**
 
-2. Find the flow named `default-enrollment-flow` (or create one if it doesn't exist)
+2. Find the flow named `portfolio-enrollment` (or create one if it doesn't exist)
 
 3. Click on the flow to view details
 
@@ -113,7 +113,7 @@ By default, Authentik doesn't allow users to self-register. To enable this:
 5. Go to **System** → **Brands** → Click on your brand (usually "authentik")
 
 6. In the **Flow settings** section:
-   - **Enrollment flow**: Select `default-enrollment-flow`
+   - **Enrollment flow**: Select `portfolio-enrollment`
 
 7. Click **Update**
 

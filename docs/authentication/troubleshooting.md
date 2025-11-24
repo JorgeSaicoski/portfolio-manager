@@ -27,7 +27,7 @@ Follow the detailed guide: **[ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)**
 
 **TL;DR:**
 1. In Authentik admin: System → Brands → Your brand
-2. Set **Enrollment flow** to `default-enrollment-flow`
+2. Set **Enrollment flow** to `portfolio-enrollment`
 3. Click Update
 4. Test registration at `http://localhost:3000/auth/register`
 
@@ -130,7 +130,7 @@ Follow Step 1 above: "Create OAuth2 Provider in Authentik"
 - Only routine health checks appear in Authentik logs
 
 **Root Cause:**
-The enrollment flow (`default-enrollment-flow`) does not exist in your Authentik instance. The frontend redirects to `http://localhost:9000/if/flow/default-enrollment-flow/` but this URL returns 404 because the flow hasn't been created yet.
+The enrollment flow (`portfolio-enrollment`) does not exist in your Authentik instance. The frontend redirects to `http://localhost:9000/if/flow/portfolio-enrollment/` but this URL returns 404 because the flow hasn't been created yet.
 
 **How to Verify the Issue:**
 
@@ -142,7 +142,7 @@ The enrollment flow (`default-enrollment-flow`) does not exist in your Authentik
 
 2. **Test the enrollment URL directly** - Open in browser:
    ```
-   http://localhost:9000/if/flow/default-enrollment-flow/
+   http://localhost:9000/if/flow/portfolio-enrollment/
    ```
    - If you see **404**: Enrollment flow doesn't exist (confirmed)
    - If you see registration form: Enrollment flow exists (not the issue)
@@ -150,7 +150,7 @@ The enrollment flow (`default-enrollment-flow`) does not exist in your Authentik
 3. **Check flow exists in Authentik Admin**:
    - Go to: http://localhost:9000/
    - Navigate: Flows & Stages → Flows
-   - Search for: `default-enrollment-flow`
+   - Search for: `portfolio-enrollment`
    - If not found: Flow doesn't exist (confirmed)
 
 **Solution: Create the Enrollment Flow**
@@ -163,7 +163,7 @@ make authentik-guide
 This will show you step-by-step instructions to create the enrollment flow. The key steps are:
 
 1. **Create Enrollment Flow** (Flows & Stages → Create)
-   - Name: `default-enrollment-flow`
+   - Name: `portfolio-enrollment`
    - Designation: `Enrollment`
 
 2. **Create Username Prompt** (Flows & Stages → Stages → Create)
@@ -180,7 +180,7 @@ This will show you step-by-step instructions to create the enrollment flow. The 
    - Session duration: `seconds=0` (use default)
 
 5. **Bind All Stages to Flow**
-   - Go to: Flows & Stages → Flows → `default-enrollment-flow`
+   - Go to: Flows & Stages → Flows → `portfolio-enrollment`
    - Click: Stage Bindings tab
    - Add: Prompt Stage (order 10)
    - Add: User Write Stage (order 20)
@@ -188,14 +188,14 @@ This will show you step-by-step instructions to create the enrollment flow. The 
 
 6. **Link to Brand**
    - Go to: System → Brands → Your brand (e.g., "authentik-default")
-   - Set: Enrollment flow → `default-enrollment-flow`
+   - Set: Enrollment flow → `portfolio-enrollment`
    - Click: Update
 
 **Quick Verification Checklist:**
-- [ ] Enrollment flow exists: Flows & Stages → Flows → `default-enrollment-flow`
+- [ ] Enrollment flow exists: Flows & Stages → Flows → `portfolio-enrollment`
 - [ ] Flow has 3 stages bound (Prompt, User Write, User Login)
 - [ ] Brand points to enrollment flow: System → Brands → Check enrollment flow field
-- [ ] Test URL works: `http://localhost:9000/if/flow/default-enrollment-flow/` (should NOT be 404)
+- [ ] Test URL works: `http://localhost:9000/if/flow/portfolio-enrollment/` (should NOT be 404)
 - [ ] Frontend registration works: Try `http://localhost:3000/auth/register`
 
 **Alternative Solution (Quick Fix):**
@@ -291,7 +291,7 @@ async register(username: string, email: string, password: string): Promise<ApiRe
 
 1. User clicks "Register" at `http://localhost:3000/auth/register`
 2. User fills out registration form (username, email, password)
-3. Frontend redirects to Authentik: `http://localhost:9000/if/flow/default-enrollment-flow/`
+3. Frontend redirects to Authentik: `http://localhost:9000/if/flow/portfolio-enrollment/`
 4. Authentik creates the user account
 5. User is automatically logged in
 6. User can now use those credentials to login to Portfolio Manager
@@ -360,7 +360,7 @@ DB_PASSWORD=portfolio_pass
 - Launch URL: `http://localhost:3000`
 
 **Brand Settings (for enrollment):**
-- Enrollment Flow: `default-enrollment-flow`
+- Enrollment Flow: `portfolio-enrollment`
 - Authentication Flow: `default-authentication-flow`
 
 ## Testing Your Setup
@@ -403,7 +403,7 @@ podman compose ps
 # 3. Click "Continue to Registration"
 
 # 4. You should be redirected to Authentik enrollment
-# Expected URL: http://localhost:9000/if/flow/default-enrollment-flow/
+# Expected URL: http://localhost:9000/if/flow/portfolio-enrollment/
 
 # 5. Complete the Authentik registration form
 
@@ -482,7 +482,7 @@ podman compose logs -f portfolio-backend
 **Solution:**
 1. Check enrollment flow exists: System → Brands → Enrollment flow
 2. If not set, follow [ENROLLMENT_SETUP.md](./ENROLLMENT_SETUP.md)
-3. Test enrollment URL directly: `http://localhost:9000/if/flow/default-enrollment-flow/`
+3. Test enrollment URL directly: `http://localhost:9000/if/flow/portfolio-enrollment/`
 4. If 404: Flow doesn't exist, create it in Flows & Stages
 
 ### CORS Errors

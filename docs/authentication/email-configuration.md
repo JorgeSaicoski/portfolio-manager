@@ -487,7 +487,7 @@ Test the full enrollment flow:
 1. **Logout** from Authentik (or use incognito mode)
 
 2. **Start enrollment:**
-   - Go to `http://localhost:9000/if/flow/default-enrollment-flow/`
+   - Go to `http://localhost:9000/if/flow/portfolio-enrollment/`
    - Or go to `http://localhost:3000` and click "Register"
 
 3. **Fill in registration form**
