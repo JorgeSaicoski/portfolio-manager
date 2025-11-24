@@ -1,6 +1,10 @@
-import { writable, type Writable } from "svelte/store";
+import { writable } from "svelte/store";
 import { authenticatedFetch } from "./auth";
 import { browser } from "$app/environment";
+import { createDebugLogger } from "$lib/utils/debug";
+import { transformPortfolio, transformPortfolios } from "$lib/utils/transform";
+
+const debug = createDebugLogger("PortfolioStore");
 
 const API_BASE_URL = browser
   ? import.meta.env.VITE_API_URL || "http://localhost:8000/api"
@@ -23,43 +27,66 @@ export interface PortfolioState {
   currentPortfolio: Portfolio | null;
 }
 
+interface ApiResponse<T = unknown> {
+  success?: boolean;
+  data?: T;
+  error?: string;
+}
+
 function createPortfolioStore() {
-  const { subscribe, set, update } = writable<PortfolioState>({
+  const { subscribe, update } = writable<PortfolioState>({
     portfolios: [],
     loading: false,
     error: null,
     currentPortfolio: null,
   });
 
+  debug.info("Portfolio store initialized", { API_BASE_URL, PORTFOLIO_API_URL });
+
   return {
     subscribe,
 
     async getOwn(page = 1, limit = 10) {
-      update((state) => ({ ...state, loading: true, error: null }));
+      const url = `${PORTFOLIO_API_URL}/own?page=${page}&limit=${limit}`;
+      debug.request({ method: "GET", url });
+      debug.storeUpdate("portfolioStore", "getOwn", { page, limit });
+
+      update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
       try {
-        const response = await authenticatedFetch(
-          `${PORTFOLIO_API_URL}/own?page=${page}&limit=${limit}`
-        );
-        const data = await response.json();
+        const response = await authenticatedFetch(url);
+        const data: ApiResponse<any[]> = await response.json();
+
+        debug.response({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
 
         if (response.ok) {
-          const portfolios = data.data;
-          update((state) => ({
+          const rawPortfolios = data.data || [];
+          const portfolios = transformPortfolios(rawPortfolios);
+          debug.storeUpdate("portfolioStore", "getOwn.success", {
+            portfoliosCount: portfolios.length,
+            portfolios
+          });
+
+          update((state: PortfolioState) => ({
             ...state,
-            portfolios: portfolios || [],
+            portfolios,
             loading: false,
           }));
           return portfolios;
         } else {
-          console.error("Failed to load portfolios:", data.error);
-          throw new Error(data.error);
+          debug.error("Failed to load portfolios", data.error);
+          throw new Error(data.error || "Failed to load portfolios");
         }
       } catch (error) {
-        console.error("Error loading portfolios:", error);
+        debug.error("Error loading portfolios", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
-        update((state) => ({
+        update((state: PortfolioState) => ({
           ...state,
           loading: false,
           error: errorMessage,
@@ -69,30 +96,44 @@ function createPortfolioStore() {
     },
 
     async getById(id: number) {
-      update((state) => ({ ...state, loading: true, error: null }));
+      const url = `${API_BASE_URL}/portfolios/id/${id}`;
+      debug.request({ method: "GET", url });
+      debug.storeUpdate("portfolioStore", "getById", { id });
+
+      update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
       try {
         // Use regular fetch (not authenticatedFetch) since it's a public route
-        const response = await fetch(`${API_BASE_URL}/portfolios/id/${id}`);
-        const data = await response.json();
+        const response = await fetch(url);
+        const data: ApiResponse<any> = await response.json();
+
+        debug.response({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
 
         if (response.ok) {
-          const portfolio = data.data;
-          update((state) => ({
+          const rawPortfolio = data.data;
+          const portfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
+          debug.storeUpdate("portfolioStore", "getById.success", { portfolio });
+
+          update((state: PortfolioState) => ({
             ...state,
             currentPortfolio: portfolio,
             loading: false,
           }));
-          return data;
+          return { ...data, data: portfolio };
         } else {
-          console.error("Failed to load portfolio:", data.error);
-          throw new Error(data.error);
+          debug.error("Failed to load portfolio", data.error);
+          throw new Error(data.error || "Failed to load portfolio");
         }
       } catch (error) {
-        console.error("Error loading portfolio:", error);
+        debug.error("Error loading portfolio", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
-        update((state) => ({
+        update((state: PortfolioState) => ({
           ...state,
           loading: false,
           error: errorMessage,
@@ -103,32 +144,46 @@ function createPortfolioStore() {
     },
 
     async create(portfolioData: Partial<Portfolio>) {
-      update((state) => ({ ...state, loading: true, error: null }));
+      const url = `${PORTFOLIO_API_URL}/own`;
+      debug.request({ method: "POST", url, body: portfolioData });
+      debug.storeUpdate("portfolioStore", "create", { portfolioData });
+
+      update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
       try {
-        const response = await authenticatedFetch(`${PORTFOLIO_API_URL}/own`, {
+        const response = await authenticatedFetch(url, {
           method: "POST",
           body: JSON.stringify(portfolioData),
         });
-        const data = await response.json();
+        const data: ApiResponse<any> = await response.json();
+
+        debug.response({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
 
         if (response.ok) {
-          const newPortfolio = data.data;
-          update((state) => ({
+          const rawPortfolio = data.data;
+          const newPortfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
+          debug.storeUpdate("portfolioStore", "create.success", { newPortfolio });
+
+          update((state: PortfolioState) => ({
             ...state,
-            portfolios: [...(state.portfolios || []), newPortfolio],
+            portfolios: [...(state.portfolios || []), newPortfolio!],
             loading: false,
           }));
-          return data;
+          return { ...data, data: newPortfolio };
         } else {
-          console.error("Failed to create portfolio:", data.error);
-          throw new Error(data.error);
+          debug.error("Failed to create portfolio", data.error);
+          throw new Error(data.error || "Failed to create portfolio");
         }
       } catch (error) {
-        console.error("Error creating portfolio:", error);
+        debug.error("Error creating portfolio", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
-        update((state) => ({
+        update((state: PortfolioState) => ({
           ...state,
           loading: false,
           error: errorMessage,
@@ -138,37 +193,48 @@ function createPortfolioStore() {
     },
 
     async update(id: number, portfolioData: Partial<Portfolio>) {
-      update((state) => ({ ...state, loading: true, error: null }));
+      const url = `${PORTFOLIO_API_URL}/own/${id}`;
+      debug.request({ method: "PUT", url, body: portfolioData });
+      debug.storeUpdate("portfolioStore", "update", { id, portfolioData });
+
+      update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
       try {
-        const response = await authenticatedFetch(
-          `${PORTFOLIO_API_URL}/own/${id}`,
-          {
-            method: "PUT",
-            body: JSON.stringify(portfolioData),
-          }
-        );
-        const data = await response.json();
+        const response = await authenticatedFetch(url, {
+          method: "PUT",
+          body: JSON.stringify(portfolioData),
+        });
+        const data: ApiResponse<any> = await response.json();
+
+        debug.response({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
 
         if (response.ok) {
-          const updatedPortfolio = data.data;
-          update((state) => ({
+          const rawPortfolio = data.data;
+          const updatedPortfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
+          debug.storeUpdate("portfolioStore", "update.success", { updatedPortfolio });
+
+          update((state: PortfolioState) => ({
             ...state,
-            portfolios: state.portfolios.map((p) =>
-              p.ID === id ? updatedPortfolio : p
+            portfolios: state.portfolios.map((p: Portfolio) =>
+              p.ID === id ? updatedPortfolio! : p
             ),
             loading: false,
           }));
-          return data;
+          return { ...data, data: updatedPortfolio };
         } else {
-          console.error("Failed to update portfolio:", data.error);
-          throw new Error(data.error);
+          debug.error("Failed to update portfolio", data.error);
+          throw new Error(data.error || "Failed to update portfolio");
         }
       } catch (error) {
-        console.error("Error updating portfolio:", error);
+        debug.error("Error updating portfolio", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
-        update((state) => ({
+        update((state: PortfolioState) => ({
           ...state,
           loading: false,
           error: errorMessage,
@@ -178,32 +244,42 @@ function createPortfolioStore() {
     },
 
     async delete(id: number) {
-      update((state) => ({ ...state, loading: true, error: null }));
+      const url = `${PORTFOLIO_API_URL}/own/${id}`;
+      debug.request({ method: "DELETE", url });
+      debug.storeUpdate("portfolioStore", "delete", { id });
+
+      update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
       try {
-        const response = await authenticatedFetch(
-          `${PORTFOLIO_API_URL}/own/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const response = await authenticatedFetch(url, {
+          method: "DELETE",
+        });
+
+        debug.response({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data: response.ok ? "Success" : "Failed"
+        });
 
         if (response.ok) {
-          update((state) => ({
+          debug.storeUpdate("portfolioStore", "delete.success", { id });
+
+          update((state: PortfolioState) => ({
             ...state,
-            portfolios: state.portfolios.filter((p) => p.ID !== id),
+            portfolios: state.portfolios.filter((p: Portfolio) => p.ID !== id),
             loading: false,
           }));
         } else {
-          const data = await response.json();
-          console.error("Failed to delete portfolio:", data.error);
-          throw new Error(data.error);
+          const data: ApiResponse = await response.json();
+          debug.error("Failed to delete portfolio", data.error);
+          throw new Error(data.error || "Failed to delete portfolio");
         }
       } catch (error) {
-        console.error("Error deleting portfolio:", error);
+        debug.error("Error deleting portfolio", error);
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
-        update((state) => ({
+        update((state: PortfolioState) => ({
           ...state,
           loading: false,
           error: errorMessage,

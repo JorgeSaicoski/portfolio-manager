@@ -19,6 +19,9 @@ COMPOSE_FILE := docker-compose.yml
 ENV_FILE := .env
 ENV_EXAMPLE := .env.example
 
+# Detect container runtime (docker or podman)
+CONTAINER_CMD := $(shell command -v podman 2>/dev/null || command -v docker 2>/dev/null)
+
 # Service names
 SERVICES := portfolio-postgres portfolio-redis portfolio-authentik-server portfolio-authentik-worker portfolio-backend portfolio-frontend
 
@@ -316,6 +319,55 @@ build-frontend: ## Build frontend container image
 	@podman compose -f $(COMPOSE_FILE) build portfolio-frontend
 	@echo "$(GREEN)✓ Frontend image built$(RESET)"
 
+##@ Audit Logs
+
+audit-logs: ## View all audit logs in real-time (tail -f)
+	@if [ -z "$(CONTAINER_CMD)" ]; then \
+		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Tailing all audit logs... (Ctrl+C to exit)$(RESET)"
+	@$(CONTAINER_CMD) exec portfolio-backend sh -c "tail -f /app/audit/create.log /app/audit/update.log /app/audit/delete.log" 2>/dev/null || echo "$(YELLOW)No audit logs found yet$(RESET)"
+
+audit-export: ## Export audit logs to backend/audit-export/
+	@if [ -z "$(CONTAINER_CMD)" ]; then \
+		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Exporting audit logs...$(RESET)"
+	@rm -rf backend/audit-export
+	@$(CONTAINER_CMD) cp portfolio-backend:/app/audit backend/audit-export 2>&1 | grep -v "Error" || true
+	@if [ -d backend/audit-export ]; then \
+		echo "$(GREEN)✓ Logs exported to backend/audit-export/$(RESET)"; \
+		ls -lh backend/audit-export/; \
+	else \
+		echo "$(YELLOW)Failed to export audit logs$(RESET)"; \
+	fi
+
+audit-view-create: ## View last 50 create operation logs
+	@if [ -z "$(CONTAINER_CMD)" ]; then \
+		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Last 50 CREATE operations:$(RESET)"
+	@$(CONTAINER_CMD) exec portfolio-backend cat /app/audit/create.log 2>/dev/null | tail -50 || echo "$(YELLOW)No create logs found yet$(RESET)"
+
+audit-view-delete: ## View last 50 delete operation logs
+	@if [ -z "$(CONTAINER_CMD)" ]; then \
+		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Last 50 DELETE operations:$(RESET)"
+	@$(CONTAINER_CMD) exec portfolio-backend cat /app/audit/delete.log 2>/dev/null | tail -50 || echo "$(YELLOW)No delete logs found yet$(RESET)"
+
+audit-view-update: ## View last 50 update operation logs
+	@if [ -z "$(CONTAINER_CMD)" ]; then \
+		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Last 50 UPDATE operations:$(RESET)"
+	@$(CONTAINER_CMD) exec portfolio-backend cat /app/audit/update.log 2>/dev/null | tail -50 || echo "$(YELLOW)No update logs found yet$(RESET)"
+
 ##@ Testing
 
 test: test-backend ## Run all tests
@@ -361,6 +413,11 @@ lint-frontend: ## Run frontend linter
 	@cd frontend && npm run lint || echo "$(YELLOW)Linter not configured$(RESET)"
 
 ##@ Database
+
+db-create-test: ## Create test database (portfolio_test_db)
+	@echo "$(BLUE)Creating test database...$(RESET)"
+	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_test_db OWNER portfolio_user;" 2>/dev/null || echo "$(YELLOW)Database already exists or connection failed$(RESET)"
+	@echo "$(GREEN)✓ Test database ready$(RESET)"
 
 db-migrate: ## Run database migrations (automatic on backend start)
 	@echo "$(BLUE)Running database migrations...$(RESET)"

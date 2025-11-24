@@ -108,6 +108,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8000}:8000"
+    volumes:
+      - portfolio-audit:/app/audit
     environment:
       - PORT=${PORT:-8000}
       - GIN_MODE=${GIN_MODE:-release}
@@ -245,6 +247,8 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  portfolio-audit:
     driver: local
 
 networks:
