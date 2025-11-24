@@ -1,8 +1,67 @@
 # Image Model Refactoring - Implementation Plan
 
-**Total Steps:** 45
-**Estimated Time:** 6-10 days
-**Focus:** Low cost, optimized storage, simple deployment
+**Total Steps:** 51 (was 45, added 6 infrastructure steps)
+**Estimated Time:** 7-11 days
+**Focus:** Low cost, optimized storage, simple deployment, data persistence
+
+---
+
+## Critical Requirements
+
+### 1. Audit Logging
+**Requirement:** All image operations (upload, update, delete) MUST be logged in the audit system.
+
+**Implementation:**
+- Add audit log entries for:
+  - Image upload: Log user, entity type, entity ID, filename, file size
+  - Image deletion: Log user, image ID, filename, entity info
+  - Image update: Log user, image ID, changes (alt text, is_main)
+- Use existing audit logger infrastructure from `backend/internal/infrastructure/audit/`
+- Include image metadata in audit entries for traceability
+
+**Files to modify:**
+- `backend/internal/application/handler/image.go` - Add audit.Logger calls
+
+### 2. Backup Integration
+**Requirement:** Image files and metadata MUST be included in backup flows.
+
+**Implementation:**
+- **Database backup:** Image metadata automatically included in PostgreSQL dumps (images table)
+- **File backup:** Include `backend/uploads/` directory in backup scripts
+- **Backup script modifications:**
+  - Add `uploads/images/` to backup tar/zip archives
+  - Document restore procedure for both DB and files
+  - Test backup/restore workflow
+
+**Files to create/modify:**
+- Update existing backup scripts to include uploads directory
+- Add restore documentation with file permissions (755 for dirs, 644 for files)
+
+### 3. Data Persistence (Podman/Docker)
+**Requirement:** Image files MUST persist across container restarts/resets.
+
+**Implementation:**
+- **Volume mounting required:** Map `backend/uploads/` to host filesystem
+- **Docker Compose configuration:**
+  ```yaml
+  services:
+    backend:
+      volumes:
+        - ./backend/uploads:/app/uploads  # Persistent volume
+  ```
+- **Permissions:** Ensure container user has write access to mounted volume
+- **Directory initialization:** Container must create subdirectories on first run if they don't exist
+
+**Files to modify:**
+- `docker-compose.yml` or Podman configuration
+- Backend startup script to ensure upload directories exist
+- Documentation for deployment setup
+
+### 4. Additional Safeguards
+- **Orphan detection:** Periodic cleanup of image files without DB records
+- **Consistency checks:** Verify file existence matches DB records
+- **Disk space monitoring:** Alert when uploads directory exceeds threshold
+- **Backup verification:** Automated tests that backup/restore works
 
 ---
 
@@ -249,9 +308,191 @@ db.Preload("Images").Find(&projects)
 
 ---
 
+## Phase 2.5: Infrastructure & Operations (6 steps)
+
+### Step 21: Add Audit Logging to Image Handler
+**File:** `backend/internal/application/handler/image.go`
+
+**Implementation:**
+```go
+import "github.com/JorgeSaicoski/portfolio-manager/backend/internal/infrastructure/audit"
+
+// In UploadImage handler
+audit.Logger.Info("Image uploaded",
+    "user_id", userID,
+    "entity_type", entityType,
+    "entity_id", entityID,
+    "filename", filename,
+    "file_size", fileSize,
+    "mime_type", mimeType)
+
+// In DeleteImage handler
+audit.Logger.Info("Image deleted",
+    "user_id", userID,
+    "image_id", imageID,
+    "filename", image.FileName,
+    "entity_type", image.EntityType,
+    "entity_id", image.EntityID)
+
+// In UpdateImage handler
+audit.Logger.Info("Image updated",
+    "user_id", userID,
+    "image_id", imageID,
+    "changes", changes)
+```
+
+### Step 22: Configure Docker/Podman Volume Persistence
+**File:** `docker-compose.yml` or Podman configuration
+
+**Add volume mapping:**
+```yaml
+services:
+  backend:
+    volumes:
+      - ./backend/uploads:/app/uploads:rw  # Persistent storage
+      # OR for named volume:
+      # - portfolio_uploads:/app/uploads
+
+# If using named volume:
+volumes:
+  portfolio_uploads:
+    driver: local
+```
+
+**Verify permissions:**
+- Container user must have write access (UID/GID mapping)
+- Host directory: `chmod 755 backend/uploads/images/`
+- Subdirectories created on container startup
+
+### Step 23: Add Startup Directory Initialization
+**File:** `backend/cmd/main/main.go` or startup script
+
+**Add at application startup:**
+```go
+import "os"
+
+func initializeUploadDirectories() error {
+    dirs := []string{
+        "./uploads/images/original",
+        "./uploads/images/thumbnail",
+    }
+
+    for _, dir := range dirs {
+        if err := os.MkdirAll(dir, 0755); err != nil {
+            return fmt.Errorf("failed to create directory %s: %v", dir, err)
+        }
+    }
+
+    log.Info("Upload directories initialized successfully")
+    return nil
+}
+
+// In main():
+if err := initializeUploadDirectories(); err != nil {
+    log.Fatal("Failed to initialize upload directories", "error", err)
+}
+```
+
+### Step 24: Update Backup Scripts
+**Files:** Create/modify backup scripts
+
+**Database backup** (already includes images table):
+```bash
+# backup-db.sh - existing script should handle images table automatically
+pg_dump portfolio_db > backup_$(date +%Y%m%d_%H%M%S).sql
+```
+
+**File backup script:**
+```bash
+# backup-uploads.sh (NEW)
+#!/bin/bash
+BACKUP_DIR="./backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR"
+
+# Backup uploads directory
+tar -czf "$BACKUP_DIR/uploads_$DATE.tar.gz" ./backend/uploads/
+
+# Keep only last 7 backups
+ls -t "$BACKUP_DIR"/uploads_*.tar.gz | tail -n +8 | xargs rm -f
+
+echo "Upload backup created: uploads_$DATE.tar.gz"
+```
+
+**Full backup script:**
+```bash
+# backup-all.sh (MODIFIED)
+#!/bin/bash
+./backup-db.sh
+./backup-uploads.sh
+echo "Full backup completed"
+```
+
+### Step 25: Create Restore Documentation
+**File:** `docs/RESTORE.md` (NEW)
+
+**Content:**
+```markdown
+# Backup & Restore Procedures
+
+## Database Restore
+psql portfolio_db < backup_YYYYMMDD_HHMMSS.sql
+
+## File Restore
+tar -xzf backups/uploads_YYYYMMDD_HHMMSS.tar.gz -C /
+
+## Set Correct Permissions
+chmod 755 backend/uploads/images/
+chmod 755 backend/uploads/images/original/
+chmod 755 backend/uploads/images/thumbnail/
+chmod 644 backend/uploads/images/original/*
+chmod 644 backend/uploads/images/thumbnail/*
+
+## Verify Restore
+- Check database: SELECT COUNT(*) FROM images;
+- Check files match DB records
+- Test image upload/display
+```
+
+### Step 26: Add Deployment Configuration Documentation
+**File:** `docs/DEPLOYMENT.md` (UPDATE)
+
+**Add section:**
+```markdown
+## Image Storage Configuration
+
+### Volume Mounting (Required)
+The backend/uploads directory MUST be mounted as a persistent volume to prevent data loss on container restart.
+
+**Docker Compose:**
+- ./backend/uploads:/app/uploads:rw
+
+**Podman:**
+podman run -v ./backend/uploads:/app/uploads:rw ...
+
+### Permissions
+- Upload directory: 755
+- Image files: 644
+- Container user must have write access
+
+### Backup Integration
+- Automated backups run daily via cron
+- Includes both database and file backups
+- See docs/RESTORE.md for restore procedures
+
+### Disk Space Monitoring
+- Monitor uploads directory size
+- Set alerts for >80% capacity
+- Plan for ~100MB per 1000 images (average)
+```
+
+---
+
 ## Phase 3: Frontend Foundation (10 steps)
 
-### Step 21: Update API Types - Add Image Interface
+### Step 27: Update API Types - Add Image Interface
 **File:** `frontend/src/lib/types/api.ts`
 
 **Add:**
@@ -668,6 +909,55 @@ export function hasImages(project: Project): boolean {
 5. No console errors
 6. No memory leaks (upload 20+ images)
 
+### Step 46: Test Audit Logging
+**Verify:**
+1. Image upload events logged with user_id, entity info, filename, size
+2. Image deletion events logged with complete metadata
+3. Image update events logged with change details
+4. Audit logs searchable and formatted correctly
+5. No sensitive data leaked in audit logs
+
+### Step 47: Test Volume Persistence
+**Verify:**
+1. Upload images to running container
+2. Restart container (podman/docker restart)
+3. Verify images still accessible
+4. Verify database records intact
+5. Test with container complete recreation (stop, rm, create)
+
+### Step 48: Test Backup & Restore
+**Full workflow:**
+1. Create test data (projects with images)
+2. Run backup scripts (DB + files)
+3. Delete test data from system
+4. Restore from backup
+5. Verify all images display correctly
+6. Verify database consistency
+
+### Step 49: Verify Directory Initialization
+**Test:**
+1. Delete upload directories
+2. Restart application
+3. Verify directories auto-created
+4. Verify correct permissions (755)
+5. Test image upload works immediately
+
+### Step 50: Load Testing
+**Performance:**
+1. Upload 100 images sequentially
+2. Upload 10 images concurrently
+3. Load project list with 50 projects (thumbnails)
+4. Monitor disk space usage
+5. Check response times remain acceptable
+
+### Step 51: Documentation Review
+**Verify:**
+1. RESTORE.md complete and accurate
+2. DEPLOYMENT.md updated with volume config
+3. Backup scripts executable and tested
+4. All configuration examples valid
+5. Troubleshooting guide included
+
 ---
 
 ## Cost Optimization Summary
@@ -696,21 +986,27 @@ Current implementation is CDN-ready:
 ### Before Deployment
 - [ ] Run all tests (unit, integration, HTTP)
 - [ ] Test migration on staging database
-- [ ] Create database backup
+- [ ] Create database backup (DB + files)
 - [ ] Build production assets
+- [ ] Configure Docker/Podman volume mounting
 - [ ] Set upload directory permissions (755)
+- [ ] Test backup and restore procedures
+- [ ] Verify audit logging configuration
 
 ### Deployment Steps
 1. Stop application (maintenance mode)
-2. Run database migrations
-3. Run data migration script
-4. Create upload directories
-5. Deploy new backend binary
-6. Deploy new frontend build
-7. Start application
-8. Verify health check
-9. Test image upload
-10. Monitor logs for errors
+2. **Configure volume persistence** (docker-compose.yml or podman)
+3. Run database migrations
+4. Run data migration script
+5. Create upload directories (or verify auto-creation on startup)
+6. Deploy new backend binary
+7. Deploy new frontend build
+8. Start application
+9. **Verify volume mount working** (check container can write to uploads/)
+10. Verify health check
+11. Test image upload functionality
+12. Verify audit logs capturing events
+13. Monitor logs for errors
 
 ### Rollback Plan
 If issues occur:
@@ -752,6 +1048,22 @@ If issues occur:
 
 ---
 
-**Total Implementation Steps:** 45
-**Focus:** Low cost, simple deployment, optimized performance
-**Ready for:** VULTR deployment with local filesystem storage
+## Implementation Summary
+
+**Total Implementation Steps:** 51
+- Phase 1 (Backend Foundation): 12 steps
+- Phase 2 (Backend Integration): 8 steps
+- Phase 2.5 (Infrastructure & Operations): 6 steps
+- Phase 3 (Frontend Foundation): 10 steps
+- Phase 4 (Frontend Integration): 8 steps
+- Phase 5 (Testing & Validation): 7 steps
+
+**Critical Requirements Addressed:**
+✅ Audit logging for all image operations
+✅ Backup integration (DB + files)
+✅ Data persistence across container restarts
+✅ Volume mounting configuration
+✅ Automated directory initialization
+
+**Focus:** Low cost, simple deployment, optimized performance, data safety
+**Ready for:** VULTR deployment with local filesystem storage and Podman/Docker
