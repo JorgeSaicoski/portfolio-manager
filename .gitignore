@@ -291,6 +291,7 @@ backups/
 
 # Audit logs and test output
 backend/audit/
+backend/audit-export/
 
 # ===== Cache =====
 .cache/

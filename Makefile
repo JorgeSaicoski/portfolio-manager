@@ -316,6 +316,33 @@ build-frontend: ## Build frontend container image
 	@podman compose -f $(COMPOSE_FILE) build portfolio-frontend
 	@echo "$(GREEN)✓ Frontend image built$(RESET)"
 
+##@ Audit Logs
+
+audit-logs: ## View all audit logs in real-time (tail -f)
+	@echo "$(BLUE)Tailing all audit logs... (Ctrl+C to exit)$(RESET)"
+	@podman exec portfolio-backend tail -f /app/audit/*.log 2>/dev/null || echo "$(YELLOW)No audit logs found yet$(RESET)"
+
+audit-export: ## Export audit logs to backend/audit-export/
+	@echo "$(BLUE)Exporting audit logs...$(RESET)"
+	@rm -rf backend/audit-export
+	@podman cp portfolio-backend:/app/audit/ backend/audit-export/ 2>/dev/null || echo "$(YELLOW)No audit logs to export yet$(RESET)"
+	@if [ -d backend/audit-export ]; then \
+		echo "$(GREEN)✓ Logs exported to backend/audit-export/$(RESET)"; \
+		ls -lh backend/audit-export/; \
+	fi
+
+audit-view-create: ## View last 50 create operation logs
+	@echo "$(BLUE)Last 50 CREATE operations:$(RESET)"
+	@podman exec portfolio-backend cat /app/audit/create.log 2>/dev/null | tail -50 || echo "$(YELLOW)No create logs found yet$(RESET)"
+
+audit-view-delete: ## View last 50 delete operation logs
+	@echo "$(BLUE)Last 50 DELETE operations:$(RESET)"
+	@podman exec portfolio-backend cat /app/audit/delete.log 2>/dev/null | tail -50 || echo "$(YELLOW)No delete logs found yet$(RESET)"
+
+audit-view-update: ## View last 50 update operation logs
+	@echo "$(BLUE)Last 50 UPDATE operations:$(RESET)"
+	@podman exec portfolio-backend cat /app/audit/update.log 2>/dev/null | tail -50 || echo "$(YELLOW)No update logs found yet$(RESET)"
+
 ##@ Testing
 
 test: test-backend ## Run all tests
