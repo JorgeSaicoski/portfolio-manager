@@ -3,7 +3,7 @@
   import { auth } from '$lib/stores/auth';
 
   const AUTHENTIK_URL = import.meta.env.VITE_AUTHENTIK_URL || 'http://localhost:9000';
-  const ENROLLMENT_FLOW = import.meta.env.VITE_ENROLLMENT_FLOW || 'default-enrollment-flow';
+  const ENROLLMENT_FLOW = import.meta.env.VITE_ENROLLMENT_FLOW || 'portfolio-enrollment';
 
   function goToDashboard() {
     goto('/dashboard');

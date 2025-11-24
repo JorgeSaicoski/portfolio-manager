@@ -314,8 +314,8 @@ function createAuthStore(): AuthStore {
 
       try {
         // Authentik enrollment flow URL
-        // The default enrollment flow allows users to self-register
-        const enrollmentUrl = new URL(`${AUTHENTIK_URL}/if/flow/default-enrollment-flow/`);
+        // The portfolio enrollment flow allows users to self-register
+        const enrollmentUrl = new URL(`${AUTHENTIK_URL}/if/flow/portfolio-enrollment/`);
 
         // Optional: Pre-fill email if supported by your enrollment flow configuration
         // This requires custom configuration in Authentik's enrollment flow
