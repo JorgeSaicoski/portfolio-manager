@@ -70,7 +70,7 @@
       console.error('CategoryModal: No portfolio selected', {
         portfolio_id,
         portfolioIdNum,
-        availablePortfolios: portfolios.map(p => p.id)
+        availablePortfolios: portfolios.map(p => p.ID)
       });
       portfolioError = true;
       toast.error('Please select a portfolio');
@@ -168,7 +168,7 @@
           >
             <option value="0">Select a portfolio</option>
             {#each portfolios as p}
-              <option value={p.id}>{p.title}</option>
+              <option value={p.ID}>{p.title}</option>
             {/each}
           </select>
           {#if portfolioError}
