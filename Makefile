@@ -3,7 +3,7 @@
 # Uses Podman as the container runtime (Podman v4.0+)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start stop restart status logs clean complete-start complete-stop complete-restart complete-update complete-down
+.PHONY: help setup start stop restart status logs clean complete-start complete-stop complete-restart complete-update complete-down clean-images
 
 # Colors for terminal output
 BOLD := \033[1m
@@ -747,6 +747,10 @@ clean-logs: ## Clear all container logs
 		podman logs --tail 0 $$container 2>/dev/null || true; \
 	done
 	@echo "$(GREEN)✓ Logs cleared$(RESET)"
+
+clean-images: ## Remove orphaned uploaded images
+	@echo "$(BLUE)Cleaning up orphaned images...$(RESET)"
+	@./scripts/cleanup-images.sh
 
 ##@ Information
 

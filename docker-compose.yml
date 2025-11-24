@@ -110,6 +110,7 @@ services:
       - "${PORT:-8000}:8000"
     volumes:
       - portfolio-audit:/app/audit
+      - portfolio-uploads:/app/uploads
     environment:
       - PORT=${PORT:-8000}
       - GIN_MODE=${GIN_MODE:-release}
@@ -249,6 +250,8 @@ volumes:
   grafana_data:
     driver: local
   portfolio-audit:
+    driver: local
+  portfolio-uploads:
     driver: local
 
 networks:

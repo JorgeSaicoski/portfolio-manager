@@ -41,3 +41,5 @@ services:
     command: go test ./cmd/test/... -v -race -coverprofile=coverage.out
     volumes:
       - ./backend:/app
+    tmpfs:
+      - /app/uploads  # In-memory for test images
