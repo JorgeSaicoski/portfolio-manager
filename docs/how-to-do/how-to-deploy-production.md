@@ -25,6 +25,11 @@ This guide walks you through deploying Portfolio Manager to production **from sc
 - Users can create accounts and log in
 - Production-ready setup following best practices
 
+**Container runtime options:**
+- This guide supports both **Docker** and **Podman** (open-source alternative)
+- Podman comes pre-installed on RHEL-based distros (Rocky Linux, AlmaLinux, Fedora)
+- All `docker compose` commands work with `podman compose`
+
 ---
 
 ## ✅ Prerequisites
@@ -84,7 +89,7 @@ make help  # Should show available commands
 | **Choose Server** | Cloud Compute - Shared CPU |
 | **CPU & Storage** | Intel Regular Performance |
 | **Server Location** | Choose closest to your users (e.g., "New York" for USA) |
-| **Server Image** | Ubuntu 22.04 LTS x64 |
+| **Server Image** | Ubuntu 22.04 LTS x64 **OR** Rocky Linux 9, AlmaLinux 9, or Fedora Server (RHEL-based, includes Podman) |
 | **Server Size** | $12/month: 2 vCPU, 4GB RAM, 80GB SSD (minimum for production) |
 | **Additional Features** | ✅ Enable IPv6, ✅ Enable Auto Backups (optional, +$1.20/month) |
 | **SSH Keys** | We'll add this in next step |
@@ -198,15 +203,17 @@ make setup-vultr-production PRODUCTION_HOST=$PRODUCTION_HOST
 
 This script will:
 - ✅ Update system packages
-- ✅ Install Docker and Docker Compose
+- ✅ Install Docker/Podman and Docker Compose (detects OS automatically)
 - ✅ Create `deploy` user
-- ✅ Configure firewall (UFW)
+- ✅ Configure firewall (UFW on Ubuntu, firewalld on RHEL)
 - ✅ Install security tools (fail2ban)
 - ✅ Create deployment directories
 - ✅ Configure swap space
 - ✅ Apply security hardening
 
 **This takes 5-10 minutes.** You'll see lots of output - that's normal!
+
+**Note:** If using Rocky Linux/AlmaLinux/Fedora, Podman is already installed and the script will configure `podman compose` instead of Docker.
 
 #### Step 3.2: Add Deploy User SSH Key
 
@@ -300,11 +307,12 @@ Press **Ctrl+X**, then **Y**, then **Enter** to save.
 # Still on server
 cd /opt/portfolio-manager
 
-# Start all services
+# Start all services (docker or podman)
 docker compose up -d
+# Or if using Podman: podman compose up -d
 
 # This will:
-# 1. Download Docker images (first time takes 5-10 minutes)
+# 1. Download container images (first time takes 5-10 minutes)
 # 2. Start PostgreSQL database
 # 3. Start Redis
 # 4. Start Authentik (authentication)
@@ -313,6 +321,7 @@ docker compose up -d
 
 # Watch the logs
 docker compose logs -f
+# Or: podman compose logs -f
 
 # Press Ctrl+C to stop watching (services keep running)
 ```
@@ -320,7 +329,7 @@ docker compose logs -f
 #### Step 4.4: Verify Services Are Running
 
 ```bash
-# Check service status
+# Check service status (docker or podman)
 docker compose ps
 
 # All services should show "Up" or "healthy"
@@ -395,7 +404,7 @@ AUTHENTIK_CLIENT_SECRET=paste_secret_here
 
 # Save (Ctrl+X, Y, Enter)
 
-# Restart services to apply
+# Restart services to apply (docker or podman)
 docker compose restart backend frontend
 ```
 

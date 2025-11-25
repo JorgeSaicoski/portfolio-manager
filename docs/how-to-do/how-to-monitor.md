@@ -37,6 +37,8 @@ Password: admin
 # Change password on first login!
 ```
 
+**Note**: All `docker compose` commands below work with `podman compose` as well. Podman is pre-installed on RHEL-based distros (Rocky Linux, AlmaLinux, Fedora).
+
 ### Key Dashboards
 
 Portfolio Manager includes pre-configured dashboards:
@@ -56,6 +58,7 @@ Portfolio Manager includes pre-configured dashboards:
 # 1. Check services are running
 ssh deploy@your-server-ip
 docker compose ps
+# Or: podman compose ps
 # All should show "Up"
 
 # 2. Check health endpoint
@@ -64,6 +67,7 @@ curl http://localhost:8000/health
 
 # 3. Quick log check
 docker compose logs --tail=50 backend | grep ERROR
+# Or: podman compose logs --tail=50 backend | grep ERROR
 # Should be empty or only expected errors
 
 # 4. Open Grafana
@@ -105,8 +109,9 @@ htop
 # Disk
 df -h
 
-# Docker stats
+# Docker/Podman stats
 docker stats --no-stream
+# Or: podman stats --no-stream
 ```
 
 ### 2. Application Health
@@ -128,8 +133,8 @@ docker stats --no-stream
 
 ```bash
 # Check error rate in logs
-docker compose logs backend --since 1h | \
-  grep -c ERROR
+docker compose logs backend --since 1h | grep -c ERROR
+# Or: podman compose logs backend --since 1h | grep -c ERROR
 
 # Should be very low (0-5 per hour is normal)
 ```
@@ -148,11 +153,12 @@ docker compose logs backend --since 1h | \
 
 ```bash
 # Check connections
-docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c \
-  "SELECT count(*) FROM pg_stat_activity;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c "SELECT count(*) FROM pg_stat_activity;"
+# Or: podman compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c "SELECT count(*) FROM pg_stat_activity;"
 
 # Check slow queries
 docker compose logs portfolio-postgres | grep "duration:" | grep -v "duration: 0\."
+# Or: podman compose logs portfolio-postgres | grep "duration:" | grep -v "duration: 0\."
 ```
 
 ### 4. Business Metrics
@@ -164,7 +170,7 @@ docker compose logs portfolio-postgres | grep "duration:" | grep -v "duration: 0
 - Active users
 
 ```bash
-# Quick stats from database
+# Quick stats from database (works with docker or podman)
 docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db << 'EOF'
 -- Users created today
 SELECT COUNT(*) as new_users_today
@@ -288,14 +294,17 @@ pg_stat_activity_count
 ### Real-time Log Monitoring
 
 ```bash
-# Watch all logs
+# Watch all logs (docker or podman)
 docker compose logs -f
+# Or: podman compose logs -f
 
 # Watch backend only
 docker compose logs -f backend
+# Or: podman compose logs -f backend
 
 # Watch for errors
 docker compose logs -f | grep ERROR
+# Or: podman compose logs -f | grep ERROR
 
 # Watch specific user
 docker compose logs -f backend | grep "userID.*user123"
@@ -307,24 +316,14 @@ docker compose logs -f portfolio-postgres
 ### Log Analysis
 
 ```bash
-# Count errors by type
-docker compose logs backend --since 1h | \
-  grep ERROR | \
-  awk -F'"' '{print $4}' | \
-  sort | uniq -c | sort -nr
+# Count errors by type (docker or podman)
+docker compose logs backend --since 1h | grep ERROR | awk -F'"' '{print $4}' | sort | uniq -c | sort -nr
 
 # Find slowest requests
-docker compose logs backend --since 1h | \
-  grep "duration" | \
-  sort -t: -k4 -nr | \
-  head -10
+docker compose logs backend --since 1h | grep "duration" | sort -t: -k4 -nr | head -10
 
 # Most active users
-docker compose logs backend --since 1h | \
-  grep "userID" | \
-  awk -F'"' '{print $8}' | \
-  sort | uniq -c | sort -nr | \
-  head -10
+docker compose logs backend --since 1h | grep "userID" | awk -F'"' '{print $8}' | sort | uniq -c | sort -nr | head -10
 ```
 
 ---
@@ -352,7 +351,7 @@ EOF
 ### Database Performance
 
 ```bash
-# Slow queries
+# Slow queries (docker or podman)
 docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db << 'EOF'
 SELECT query, calls, total_time, mean_time
 FROM pg_stat_statements
@@ -402,14 +401,16 @@ EOF
 ### Grafana Won't Load
 
 ```bash
-# Check Grafana is running
+# Check Grafana is running (docker or podman)
 docker compose ps | grep grafana
 
 # Restart Grafana
 docker compose restart grafana
+# Or: podman compose restart grafana
 
 # Check logs
 docker compose logs grafana
+# Or: podman compose logs grafana
 
 # Access issue
 sudo ufw allow 3001/tcp
@@ -422,7 +423,7 @@ sudo ufw allow 3001/tcp
 # Open: http://your-server-ip:9090/targets
 # All should show "UP"
 
-# Restart Prometheus
+# Restart Prometheus (docker or podman)
 docker compose restart prometheus
 
 # Check configuration
@@ -439,7 +440,7 @@ docker compose exec prometheus cat /etc/prometheus/prometheus.yml
 # Test notification channel
 # Grafana → Notification channels → Test
 
-# Check Grafana logs
+# Check Grafana logs (docker or podman)
 docker compose logs grafana | grep alert
 ```
 

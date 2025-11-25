@@ -527,20 +527,20 @@
            </div>
 
            <!-- Future sections placeholder -->
-           <div class="card" style="margin-top: var(--space-6);">
-             <div class="card-body">
-               <div class="text-center">
-                 <h4>Portfolio Sections</h4>
-                 <p class="text-muted">
-                   Portfolio sections and content management will be available
-                   here.
-                 </p>
-                 <button class="btn btn-outline" disabled>
-                   Manage Sections
-                 </button>
-               </div>
-             </div>
-           </div>
+          <div class="card" style="margin-top: var(--space-6);">
+            <div class="card-body">
+              <div class="text-center">
+                <h4>Portfolio Sections</h4>
+                <p class="text-muted">
+                  Portfolio sections and content management will be available
+                  here.
+                </p>
+                <button class="btn btn-outline" disabled>
+                  Manage Sections
+                </button>
+              </div>
+            </div>
+          </div>
          {/if}
        </div>
      {/if}

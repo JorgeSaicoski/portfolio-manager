@@ -169,8 +169,21 @@
 
   <!-- Modal for Create/Edit -->
   {#if showModal}
-    <div class="modal-overlay" onclick={handleFormCancel}>
-      <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+    <div
+      class="modal-overlay"
+      role="button"
+      tabindex="0"
+      onclick={handleFormCancel}
+      onkeydown={(e) => e.key === 'Escape' && handleFormCancel()}
+      aria-label="Close modal"
+    >
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+      >
         <SectionForm
           section={selectedSection}
           onSuccess={handleFormSuccess}

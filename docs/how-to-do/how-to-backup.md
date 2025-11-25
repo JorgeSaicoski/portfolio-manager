@@ -18,6 +18,10 @@ Learn how to create backups and restore from them safely.
 
 ---
 
+**Note**: All `docker compose` commands below work with `podman compose` as well. Podman is pre-installed on RHEL-based distros (Rocky Linux, AlmaLinux, Fedora).
+
+---
+
 ## 📝 Quick Backup (5 minutes)
 
 ```bash
@@ -42,11 +46,9 @@ make db-backup
 ssh deploy@your-server-ip
 mkdir -p /opt/backups/portfolio-manager
 
-# Backup database
+# Backup database (docker or podman)
 cd /opt/portfolio-manager
-docker compose exec -T portfolio-postgres pg_dump \
-  -U portfolio_user portfolio_db \
-  | gzip > /opt/backups/portfolio-manager/db_backup_$(date +%Y%m%d_%H%M%S).sql.gz
+docker compose exec -T portfolio-postgres pg_dump -U portfolio_user portfolio_db | gzip > /opt/backups/portfolio-manager/db_backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
 # Verify backup exists
 ls -lh /opt/backups/portfolio-manager/
@@ -55,9 +57,8 @@ ls -lh /opt/backups/portfolio-manager/
 ### Uploaded Files Backup
 
 ```bash
-# Backup uploads directory
-docker compose exec -T portfolio-backend tar czf - /app/uploads \
-  > /opt/backups/portfolio-manager/uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz
+# Backup uploads directory (docker or podman)
+docker compose exec -T portfolio-backend tar czf - /app/uploads > /opt/backups/portfolio-manager/uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz
 
 # Verify
 ls -lh /opt/backups/portfolio-manager/
@@ -68,6 +69,7 @@ ls -lh /opt/backups/portfolio-manager/
 ```bash
 #!/bin/bash
 # Save as: ~/backup.sh
+# Works with both docker and podman
 
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/opt/backups/portfolio-manager"
@@ -78,14 +80,11 @@ echo "🔄 Starting backup..."
 # Database
 echo "📦 Backing up database..."
 cd $APP_DIR
-docker compose exec -T portfolio-postgres pg_dump \
-  -U portfolio_user portfolio_db \
-  | gzip > $BACKUP_DIR/db_backup_$DATE.sql.gz
+docker compose exec -T portfolio-postgres pg_dump -U portfolio_user portfolio_db | gzip > $BACKUP_DIR/db_backup_$DATE.sql.gz
 
 # Uploads
 echo "📦 Backing up uploads..."
-docker compose exec -T portfolio-backend tar czf - /app/uploads \
-  > $BACKUP_DIR/uploads_backup_$DATE.tar.gz
+docker compose exec -T portfolio-backend tar czf - /app/uploads > $BACKUP_DIR/uploads_backup_$DATE.tar.gz
 
 # Configuration
 echo "📦 Backing up configuration..."
@@ -152,20 +151,17 @@ ls -lh /opt/backups/portfolio-manager/db_backup_*.sql.gz
 # Choose a backup file
 BACKUP_FILE="/opt/backups/portfolio-manager/db_backup_20250125_020000.sql.gz"
 
-# Stop application (important!)
+# Stop application (important!) - works with docker or podman
 cd /opt/portfolio-manager
 docker compose stop backend frontend
 
 # Drop existing database and recreate
-docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c \
-  "DROP DATABASE portfolio_db;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c "DROP DATABASE portfolio_db;"
 
-docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c \
-  "CREATE DATABASE portfolio_db OWNER portfolio_user;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_db OWNER portfolio_user;"
 
 # Restore from backup
-gunzip -c $BACKUP_FILE | \
-  docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
+gunzip -c $BACKUP_FILE | docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
 
 # Restart application
 docker compose up -d backend frontend
@@ -180,9 +176,8 @@ curl http://localhost:8000/health
 # Choose backup
 BACKUP_FILE="/opt/backups/portfolio-manager/uploads_backup_20250125_020000.tar.gz"
 
-# Restore
-cat $BACKUP_FILE | \
-  docker compose exec -T portfolio-backend tar xzf - -C /
+# Restore (docker or podman)
+cat $BACKUP_FILE | docker compose exec -T portfolio-backend tar xzf - -C /
 
 # Verify
 docker compose exec portfolio-backend ls -la /app/uploads/
@@ -191,22 +186,18 @@ docker compose exec portfolio-backend ls -la /app/uploads/
 ### Test Restore (Recommended Before Production)
 
 ```bash
-# Create test database
-docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c \
-  "CREATE DATABASE portfolio_db_test;"
+# Create test database (docker or podman)
+docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_db_test;"
 
 # Restore to test database
-gunzip -c $BACKUP_FILE | \
-  docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db_test
+gunzip -c $BACKUP_FILE | docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db_test
 
 # Verify data
-docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db_test -c \
-  "SELECT COUNT(*) FROM portfolios;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db_test -c "SELECT COUNT(*) FROM portfolios;"
 
 # If looks good, proceed with real restore
 # Drop test database
-docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c \
-  "DROP DATABASE portfolio_db_test;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d postgres -c "DROP DATABASE portfolio_db_test;"
 ```
 
 ---
@@ -274,8 +265,9 @@ df -h
 cd /opt/backups/portfolio-manager
 rm -f *202501[01-15]*  # Delete Jan 1-15
 
-# Clean Docker images
+# Clean Docker/Podman images
 docker system prune -af
+# Or: podman system prune -af
 ```
 
 ### Restore Fails - Permission Denied

@@ -18,6 +18,10 @@ Debug errors, read logs, and find the root cause of problems.
 
 ---
 
+**Note**: All `docker compose` commands below work with `podman compose` as well. Podman is pre-installed on RHEL-based distros (Rocky Linux, AlmaLinux, Fedora).
+
+---
+
 ## 📝 Investigation Process
 
 ### 1. Gather Information (5 min)
@@ -58,7 +62,7 @@ docker compose up -d SERVICE_NAME
 ### 3. Check Backend Logs (10 min)
 
 ```bash
-# Real-time logs
+# Real-time logs (docker or podman)
 docker compose logs -f backend
 
 # Last 100 lines
@@ -99,7 +103,7 @@ sudo tail -f /var/log/nginx/error.log
 ### 5. Check Database (10 min)
 
 ```bash
-# Access database
+# Access database (docker or podman)
 docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db
 
 # Check connections
@@ -170,15 +174,14 @@ cat .env | grep AUTHENTIK_CLIENT_SECRET
 
 **Check resource usage:**
 ```bash
-# CPU and memory
+# CPU and memory (docker or podman)
 docker stats
 
 # Disk I/O
 iotop  # or: docker stats
 
 # Database connections
-docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c \
-  "SELECT count(*) FROM pg_stat_activity;"
+docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c "SELECT count(*) FROM pg_stat_activity;"
 
 # Slow queries
 docker compose logs portfolio-postgres | grep "duration:"

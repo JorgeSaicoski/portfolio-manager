@@ -18,6 +18,10 @@ Emergency procedures to quickly rollback when something goes wrong.
 
 ---
 
+**Note**: All `docker compose` commands below work with `podman compose` as well. Podman is pre-installed on RHEL-based distros (Rocky Linux, AlmaLinux, Fedora).
+
+---
+
 ## 🚨 Quick Rollback (5 minutes)
 
 ### Step 1: Identify Previous Version
@@ -50,7 +54,7 @@ git describe --tags
 ### Step 3: Rollback Services
 
 ```bash
-# Restart with previous version
+# Restart with previous version (docker or podman)
 docker compose down
 docker compose up -d
 
@@ -128,10 +132,8 @@ docker compose exec portfolio-postgres psql -U portfolio_user -d portfolio_db -c
 ### Step 2: Backup Database First!
 
 ```bash
-# ALWAYS backup before migration rollback
-docker compose exec -T portfolio-postgres pg_dump \
-  -U portfolio_user portfolio_db \
-  | gzip > /opt/backups/portfolio-manager/pre_rollback_$(date +%Y%m%d_%H%M%S).sql.gz
+# ALWAYS backup before migration rollback (docker or podman)
+docker compose exec -T portfolio-postgres pg_dump -U portfolio_user portfolio_db | gzip > /opt/backups/portfolio-manager/pre_rollback_$(date +%Y%m%d_%H%M%S).sql.gz
 ```
 
 ### Step 3: Rollback Migration
@@ -155,9 +157,8 @@ DROP TABLE IF EXISTS new_table CASCADE;
 
 **If migration changed data:**
 ```bash
-# Restore from backup taken before problematic deployment
-gunzip -c /opt/backups/portfolio-manager/db_backup_BEFORE_DEPLOY.sql.gz | \
-  docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
+# Restore from backup taken before problematic deployment (docker or podman)
+gunzip -c /opt/backups/portfolio-manager/db_backup_BEFORE_DEPLOY.sql.gz | docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
 ```
 
 ### Step 4: Rollback Code
@@ -215,7 +216,7 @@ After rollback:
 ### Rollback Fails - Services Won't Start
 
 ```bash
-# Check logs
+# Check logs (docker or podman)
 docker compose logs backend
 docker compose logs frontend
 
@@ -250,9 +251,8 @@ gunzip -t /opt/backups/portfolio-manager/db_backup_*.sql.gz
 # If corrupted, use older backup
 ls -lt /opt/backups/portfolio-manager/
 
-# Restore from older backup
-gunzip -c /opt/backups/portfolio-manager/db_backup_OLDER.sql.gz | \
-  docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
+# Restore from older backup (docker or podman)
+gunzip -c /opt/backups/portfolio-manager/db_backup_OLDER.sql.gz | docker compose exec -T portfolio-postgres psql -U portfolio_user -d portfolio_db
 ```
 
 ---

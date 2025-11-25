@@ -71,10 +71,12 @@ This guide walks you through setting up a complete CI/CD pipeline for Portfolio 
 ### Vultr Account
 
 - 1-2 Vultr instances (staging + production)
-- Ubuntu 22.04 LTS or newer
+- **OS Options**: Ubuntu 22.04 LTS OR Rocky Linux 9, AlmaLinux 9, Fedora Server (RHEL-based with Podman)
 - Minimum specs:
   - **Staging**: 2 vCPU, 4GB RAM, 80GB SSD
   - **Production**: 4 vCPU, 8GB RAM, 160GB SSD
+
+**Note**: All deployment commands work with both Docker and Podman. Podman comes pre-installed on RHEL-based distributions.
 
 ### Gitea Requirements
 
@@ -406,8 +408,21 @@ git push origin v1.0.0
 
 ### Add Secrets to Gitea
 
-1. Go to Repository → Settings → Secrets → Actions
-2. Add the following secrets:
+**Text-based navigation to find secrets in Gitea:**
+1. Navigate to your repository page (e.g., `https://gitea.yourdomain.com/username/portfolio-manager`)
+2. Click on the **"Settings"** link in the top navigation bar (between "Code" and "Issues")
+3. In the left sidebar menu, scroll down to find the **"Secrets"** section
+4. Under "Secrets", click on **"Actions"**
+5. You'll see a page titled "Actions Secrets" with an **"Add Secret"** button
+6. Click **"Add Secret"** to create a new secret
+
+**Steps to add each secret:**
+1. Enter the secret name (e.g., `STAGING_HOST`)
+2. Enter the secret value in the text area
+3. Click the **"Add Secret"** button at the bottom
+4. Repeat for all required secrets listed below
+
+### Required Secrets to Add
 
 #### Required Secrets
 
