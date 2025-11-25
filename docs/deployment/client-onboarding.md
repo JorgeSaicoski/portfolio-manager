@@ -329,7 +329,7 @@ podman compose restart loyalty-service
 
 If self-registration is enabled:
 
-1. Open enrollment flow: `http://localhost:9000/if/flow/default-enrollment-flow/`
+1. Open enrollment flow: `http://localhost:9000/if/flow/portfolio-enrollment/`
 2. Register test customer
 3. Verify user in `nextdoor-customers` group
 4. Verify user can login to loyalty system

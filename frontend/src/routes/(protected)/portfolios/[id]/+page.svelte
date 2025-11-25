@@ -6,8 +6,6 @@
 
  // Get data from load function
  export let data: { id: number };
- // Debug incoming route data
- console.log('[+page.svelte] file: /routes/(protected)/portfolios/[id]/+page.svelte - route data:', data);
 
  // Page parameters
  $: portfolioId = data.id;
@@ -31,69 +29,112 @@
 
  // Load portfolio on mount
  onMount(async () => {
-   console.log('[+page.svelte] onMount - portfolioId:', portfolioId);
    await loadPortfolio();
  });
 
  async function loadPortfolio() {
    loading = true;
    error = null;
-   console.log('[+page.svelte] loadPortfolio START - portfolioId:', portfolioId);
+   console.log(portfolioId);
 
    try {
      // Use the new getById function for public access
      await portfolioStore.getById(portfolioId);
      const state = $portfolioStore;
-     console.log('[+page.svelte] after getById - raw store state:', state);
-
      portfolio = state.currentPortfolio;
-     console.log('[+page.svelte] assigned portfolio:', portfolio);
 
-     // Log common nested structures if present
      if (portfolio) {
-       // Print summary of what's displayed
-       logDisplayedPortfolio(portfolio);
-
-       // Example: log sections, projects, items if present
-       if ((portfolio as any).sections) {
-         console.log('[+page.svelte] portfolio.sections:', (portfolio as any).sections);
-       }
-       if ((portfolio as any).projects) {
-         console.log('[+page.svelte] portfolio.projects:', (portfolio as any).projects);
-       }
-
        // Initialize edit form with current data
        editTitle = portfolio.title;
        editDescription = portfolio.description;
      }
    } catch (err) {
-     console.error('[+page.svelte] loadPortfolio ERROR:', err);
      error = err instanceof Error ? err.message : "Failed to load portfolio";
      portfolio = null;
    } finally {
      loading = false;
-     console.log('[+page.svelte] loadPortfolio FINISH - loading:', loading, 'error:', error);
    }
  }
 
- // Reactive logging whenever the portfolio object or loading/error changes
- $: if (true) {
-   // This runs on every reactive cycle; we keep it informational and concise
-   console.debug('[+page.svelte] RENDER state -> loading:', loading, 'error:', error, 'portfolioExists:', !!portfolio);
+ function validateEditForm() {
+   let isValid = true;
+
+   titleError = "";
+   descriptionError = "";
+
+   if (!editTitle.trim()) {
+     titleError = "Portfolio title is required";
+     isValid = false;
+   } else if (editTitle.trim().length < 3) {
+     titleError = "Title must be at least 3 characters";
+     isValid = false;
+   } else if (editTitle.trim().length > 100) {
+     titleError = "Title must be less than 100 characters";
+     isValid = false;
+   }
+
+   if (!editDescription.trim()) {
+     descriptionError = "Portfolio description is required";
+     isValid = false;
+   } else if (editDescription.trim().length < 10) {
+     descriptionError = "Description must be at least 10 characters";
+     isValid = false;
+   } else if (editDescription.trim().length > 500) {
+     descriptionError = "Description must be less than 500 characters";
+     isValid = false;
+   }
+
+   return isValid;
  }
 
- function logDisplayedPortfolio(p: any) {
-   const summary = {
-     ID: p?.ID,
-     title: p?.title,
-     description: p?.description,
-     created: p?.CreatedAt,
-     updated: p?.UpdatedAt,
-     owner: p?.owner_id,
-     sectionsCount: Array.isArray(p?.sections) ? p.sections.length : undefined,
-     projectsCount: Array.isArray(p?.projects) ? p.projects.length : undefined
-   };
-   console.log('[+page.svelte] DISPLAYED portfolio summary:', summary, 'fullObject:', p);
+ function startEdit() {
+   isEditing = true;
+   editTitle = portfolio?.title || "";
+   editDescription = portfolio?.description || "";
+   editError = "";
+   titleError = "";
+   descriptionError = "";
+ }
+
+ function cancelEdit() {
+   isEditing = false;
+   editTitle = portfolio?.title || "";
+   editDescription = portfolio?.description || "";
+   editError = "";
+   titleError = "";
+   descriptionError = "";
+ }
+
+ async function saveEdit() {
+   if (!portfolio || !validateEditForm()) return;
+
+   isSubmitting = true;
+   editError = "";
+
+   try {
+     await portfolioStore.update(portfolio.ID, {
+       title: editTitle.trim(),
+       description: editDescription.trim(),
+     });
+
+     // Reload portfolio to get updated data
+     await loadPortfolio();
+     isEditing = false;
+   } catch (err) {
+     editError =
+       err instanceof Error ? err.message : "Failed to update portfolio";
+   } finally {
+     isSubmitting = false;
+   }
+ }
+
+ function openDeleteModal() {
+   showDeleteModal = true;
+ }
+
+ async function handleDeletePortfolio() {
+   await portfolioStore.delete(data.id);
+   goto("/portfolios");
  }
 
  // Navigation functions
@@ -107,21 +148,13 @@
 
  // Format date helper
  function formatDate(dateString: string) {
-   try {
-     const formatted = new Date(dateString).toLocaleDateString("en-US", {
-       year: "numeric",
-       month: "long",
-       day: "numeric",
-       hour: "2-digit",
-       minute: "2-digit",
-     });
-     // Debug each formatting call
-     console.debug('[+page.svelte] formatDate input:', dateString, 'output:', formatted);
-     return formatted;
-   } catch (err) {
-     console.warn('[+page.svelte] formatDate failed for:', dateString, err);
-     return dateString;
-   }
+   return new Date(dateString).toLocaleDateString("en-US", {
+     year: "numeric",
+     month: "long",
+     day: "numeric",
+     hour: "2-digit",
+     minute: "2-digit",
+   });
  }
 </script>
 

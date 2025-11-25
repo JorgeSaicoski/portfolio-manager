@@ -58,6 +58,219 @@ User approval requires an administrator to manually approve new user registratio
 
 ---
 
+## Configuration Examples
+
+### Example 1: User Write Stage Configuration for Approval
+
+**Before (immediate access):**
+```
+Name: enrollment-user-write
+Create users as inactive: ❌ Unchecked
+User path template: users
+Groups: [users]
+```
+
+**After (requires approval):**
+```
+Name: enrollment-user-write
+Create users as inactive: ✅ Checked  ← This is the key change!
+User path template: users/pending
+Groups: [pending-users]  ← Assign to pending group instead
+```
+
+### Example 2: Complete Approval Workflow
+
+**Step 1: User Registers**
+```
+User visits: http://localhost:3000
+Clicks: "Register"
+Fills form:
+  Username: sarah_johnson
+  Email: sarah@example.com
+  Name: Sarah Johnson
+  Password: SecurePass123!
+Submits registration
+```
+
+**Step 2: System Response**
+```
+✅ Account created as INACTIVE
+✅ Added to "pending-users" group
+✅ User sees message: "Registration submitted! Awaiting approval..."
+✅ Admin receives email notification
+❌ User CANNOT log in yet
+```
+
+**Step 3: Admin Approval**
+```
+Admin clicks link in email → Goes to Authentik
+Navigates to: Directory → Users
+Finds: sarah_johnson (Is active: ❌)
+Reviews: Email, name, registration date
+Decision: APPROVE
+
+Actions:
+1. Checks "Is active" checkbox
+2. Adds to "portfolio-users" group
+3. Removes from "pending-users" group (optional)
+4. Clicks "Update"
+
+Result: ✅ User can now log in
+```
+
+**Step 4: User Logs In**
+```
+Sarah receives approval email (if configured)
+Goes to: http://localhost:3000
+Clicks: "Login"
+Enters credentials
+✅ Successfully logs in
+✅ Can access Portfolio Manager
+```
+
+### Example 3: Email Notification Template
+
+**Subject:** `New User Registration - Approval Required`
+
+**Body:**
+```
+New user registration requires your approval:
+
+Name: Sarah Johnson
+Email: sarah@example.com
+Username: sarah_johnson
+Registration Date: 2024-01-15 14:30:22
+
+Please review and approve this registration:
+http://localhost:9000/if/admin/#/directory/users
+
+Approval Steps:
+1. Click the link above
+2. Find user: sarah_johnson
+3. Click on the username
+4. Check "Is active" checkbox
+5. Go to Groups tab
+6. Add to "portfolio-users" group
+7. Click "Update"
+
+User will be able to log in immediately after approval.
+
+---
+Automated message from Portfolio Manager
+Do not reply to this email
+```
+
+### Example 4: Pending Approval Message Stage
+
+**Stage Configuration:**
+```
+Name: pending-approval-message
+Stage Type: Message Stage
+
+Title: Registration Submitted Successfully
+
+Message:
+╔════════════════════════════════════════════╗
+║   Your registration has been submitted!    ║
+╚════════════════════════════════════════════╝
+
+✅ Your account has been created
+⏳ Awaiting administrator approval
+
+What happens next?
+1. Our team will review your registration
+2. You'll receive an email once approved
+3. Then you can log in and start using Portfolio Manager
+
+⏱️  This typically takes 1-2 business days
+
+Questions? Contact: admin@portfolio-manager.com
+```
+
+### Example 5: Enrollment Flow with Approval
+
+**Flow: portfolio-enrollment**
+```
+Stage Bindings (in order):
+
+Order 10: enrollment-prompt
+  ├─ Collects: username, email, name, password
+  └─ Purpose: User fills registration form
+
+Order 20: enrollment-user-write
+  ├─ Create users as inactive: ✅ Checked
+  ├─ Groups: [pending-users]
+  └─ Purpose: Creates INACTIVE user
+
+Order 25: notify-admin-new-user
+  ├─ Type: Email Stage
+  ├─ To: admin@example.com
+  └─ Purpose: Notifies admin of new registration
+
+Order 30: pending-approval-message
+  ├─ Type: Message Stage
+  └─ Purpose: Tells user they need approval
+
+Order 40: enrollment-user-login (DISABLED for approval flow)
+  └─ Remove this stage - users can't login until approved
+```
+
+### Example 6: Admin Dashboard Filter for Pending Users
+
+**Finding Pending Users:**
+```
+Navigate to: Directory → Users
+
+Apply filters:
+┌─────────────────────────────┐
+│ Filters                     │
+├─────────────────────────────┤
+│ Is active: ❌ No            │
+│ Groups: pending-users       │
+│ Is superuser: ❌ No         │
+└─────────────────────────────┘
+
+Results show only users awaiting approval:
+┌──────────────────┬─────────────────────┬────────────┐
+│ Username         │ Email               │ Joined     │
+├──────────────────┼─────────────────────┼────────────┤
+│ sarah_johnson    │ sarah@example.com   │ 2 days ago │
+│ mike_chen        │ mike@company.com    │ 1 day ago  │
+│ alice_wong       │ alice@startup.io    │ 3 hours ago│
+└──────────────────┴─────────────────────┴────────────┘
+```
+
+### Example 7: Approval Decision Matrix
+
+**When to Approve:**
+```
+✅ Email from company domain (@company.com)
+✅ Name looks legitimate (not "Test User" or "asdf")
+✅ No existing user with same email
+✅ Registration form filled completely
+✅ No suspicious patterns (multiple registrations)
+```
+
+**When to Deny:**
+```
+❌ Email from disposable email service
+❌ Fake name or invalid information
+❌ Duplicate email address
+❌ Registration violates terms of service
+❌ Suspicious activity pattern
+```
+
+**When to Investigate:**
+```
+⚠️ Personal email (gmail, yahoo) for B2B app
+⚠️ International email domain (requires verification)
+⚠️ Unusual registration time (3 AM on weekend)
+⚠️ Multiple registrations from same IP
+⚠️ Name/email mismatch
+```
+
+---
+
 ## Step 1: Create Pending Users Group
 
 ### Create the Group
@@ -78,7 +291,7 @@ User approval requires an administrator to manually approve new user registratio
 ### Find the Enrollment Flow
 
 1. Go to **Flows & Stages** → **Flows**
-2. Find your enrollment flow (usually named `default-enrollment-flow` or similar)
+2. Find your enrollment flow (named `portfolio-enrollment`)
 3. Click on the flow name
 
 ### Modify User Write Stage

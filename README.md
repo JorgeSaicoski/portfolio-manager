@@ -96,6 +96,95 @@ podman compose up -d
 
 **Next steps:** Follow the complete [Setup Guide](SETUP.md) to configure authentication and create your first user.
 
+## 🔐 Custom User Enrollment with Admin Approval
+
+Portfolio Manager supports **self-service user registration with administrator approval** - allowing users to create their own accounts while giving you control over who gains access.
+
+### Why Use Custom Enrollment?
+
+**Perfect for:**
+- 🏢 B2B applications requiring account verification
+- 🔒 Controlled access environments
+- ✅ Compliance requirements for user vetting
+- 🛡️ Preventing spam registrations
+- 👥 Professional onboarding workflows
+
+### How It Works
+
+```
+User registers → Account created (INACTIVE) → Admin reviews → Approval → User gains access ✅
+```
+
+**User Experience:**
+1. User visits your app and clicks "Sign Up"
+2. Fills registration form (username, email, password)
+3. Sees confirmation: "Registration submitted! Awaiting approval..."
+4. Receives email when approved
+5. Can login immediately after approval
+
+**Admin Experience:**
+1. Receives email notification for each new registration
+2. Reviews user details in Authentik admin panel
+3. One-click approval: Check "Is active" + Add to group
+4. User gains access instantly
+
+### Quick Setup (20 minutes)
+
+Follow our step-by-step guide with practical examples:
+
+**📖 [Custom Enrollment Quickstart Guide](docs/authentication/custom-enrollment-quickstart.md)**
+
+The guide includes:
+- ✅ Complete configuration examples
+- ✅ Real workflow scenarios
+- ✅ Email templates ready to use
+- ✅ Approval decision guidelines
+- ✅ Troubleshooting tips
+
+**Also see:**
+- **[Enrollment Setup](docs/authentication/enrollment-setup.md)** - Detailed enrollment configuration
+- **[User Approval Setup](docs/authentication/user-management/user-approval-setup.md)** - Advanced approval workflows
+- **[User Management](docs/authentication/user-management/)** - Complete user lifecycle management
+
+### Key Features
+
+**For Users:**
+- ✅ Self-registration (no waiting for admin to create account)
+- ✅ Simple registration form
+- ✅ Clear status communication
+- ✅ Fast approval process
+
+**For Admins:**
+- ✅ Email notifications for new registrations
+- ✅ Review user details before approval
+- ✅ One-click approval process
+- ✅ Reject suspicious registrations
+- ✅ Track pending users easily
+
+**Security:**
+- ✅ Users start INACTIVE (can't login until approved)
+- ✅ Admin reviews before granting access
+- ✅ Email verification (optional)
+- ✅ Strong password policies (optional)
+
+### Configuration Example
+
+Your enrollment flow will look like this:
+
+| Stage | Purpose | User Sees |
+|-------|---------|-----------|
+| 1. Prompt | Collect info | Registration form |
+| 2. User Write | Create inactive user | - |
+| 3. Email Admin | Notify admin | - |
+| 4. Message | Confirm submission | "Awaiting approval..." |
+
+**Environment Variable:**
+```env
+ENROLLMENT_FLOW=portfolio-enrollment
+```
+
+The frontend automatically uses this flow when users click "Sign Up".
+
 ## 📚 Documentation
 
 | Guide | Description |

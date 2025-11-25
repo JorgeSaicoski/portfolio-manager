@@ -343,7 +343,7 @@ make open-authentik
 **Summary:**
 1. Create enrollment flow with username field
 2. System → Brands → Set Enrollment flow
-3. Test at `http://localhost:9000/if/flow/default-enrollment-flow/`
+3. Test at `http://localhost:9000/if/flow/portfolio-enrollment/`
 
 ### Step 5.5: Update Environment & Restart
 
@@ -629,10 +629,10 @@ This will check your setup and identify the problem. Common issues:
 - OR: Nothing happens after clicking registration button
 - Authentik logs show NO registration activity (only health checks)
 
-**Cause:** Enrollment flow `default-enrollment-flow` doesn't exist yet.
+**Cause:** Enrollment flow `portfolio-enrollment` doesn't exist yet.
 
 **Quick Check:**
-1. Test URL directly: `http://localhost:9000/if/flow/default-enrollment-flow/`
+1. Test URL directly: `http://localhost:9000/if/flow/portfolio-enrollment/`
    - 404 = Flow doesn't exist (need to create it)
    - Registration form = Flow exists (different issue)
 

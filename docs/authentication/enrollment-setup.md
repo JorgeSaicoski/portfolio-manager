@@ -57,6 +57,98 @@ By default, Authentik requires administrators to manually create user accounts. 
 - You have created user groups (optional but recommended)
   - If not, see [user-groups-permissions.md](./user-groups-permissions.md)
 
+## Configuration Examples
+
+### Example 1: Basic Enrollment Flow Configuration
+
+Here's what a properly configured enrollment flow looks like in Authentik:
+
+**Flow Settings** (`portfolio-enrollment`):
+```
+Name: portfolio-enrollment
+Title: Create your Portfolio Manager account
+Slug: portfolio-enrollment
+Designation: Enrollment
+Compatibility mode: ❌ (unchecked)
+Layout: stacked
+```
+
+**Stage Bindings** (in order):
+| Order | Stage | Type | Purpose |
+|-------|-------|------|---------|
+| 10 | enrollment-prompt | Prompt | Collect username, email, name, password |
+| 20 | enrollment-user-write | User Write | Create user in database |
+| 30 | enrollment-user-login | User Login | Auto-login after registration |
+
+### Example 2: Username Prompt Configuration
+
+**Creating the username prompt:**
+```
+Field Key: username  (MUST be exactly this!)
+Label: Username
+Type: Text
+Required: ✅ Checked
+Placeholder: Choose a username
+Order: 0
+Help Text: 3-50 characters, letters and numbers only
+Initial value: (empty)
+```
+
+### Example 3: User Write Stage Configuration
+
+**Basic configuration (immediate activation):**
+```
+Name: enrollment-user-write
+Create users as inactive: ❌ Unchecked
+User path template: users
+Groups: [users]  (auto-assign to "users" group)
+```
+
+**With email verification (users start inactive):**
+```
+Name: enrollment-user-write
+Create users as inactive: ✅ Checked
+User path template: users
+Groups: [pending-users]
+```
+
+### Example 4: Complete User Registration Flow
+
+**User Journey Example:**
+
+1. **User visits**: `http://localhost:3000` (Portfolio Manager homepage)
+2. **Clicks**: "Register" or "Sign Up" button
+3. **Redirected to**: `http://localhost:9000/if/flow/portfolio-enrollment/`
+4. **Sees registration form**:
+   ```
+   Username: [          ]  ← User enters: "john_doe"
+   Email:    [          ]  ← User enters: "john@example.com"
+   Name:     [          ]  ← User enters: "John Doe"
+   Password: [          ]  ← User enters: "SecurePass123!"
+   Confirm:  [          ]  ← User enters: "SecurePass123!"
+
+   [Create Account]
+   ```
+5. **After submission**:
+   - ✅ User created in Authentik database
+   - ✅ Auto-assigned to `users` group
+   - ✅ Automatically logged in
+   - ✅ Redirected back to Portfolio Manager
+   - ✅ Can immediately access the application
+
+### Example 5: Brand Configuration for Enrollment
+
+**System → Brands → authentik (or your brand):**
+```
+Flow settings:
+├── Authentication flow: default-authentication-flow
+├── Enrollment flow: portfolio-enrollment  ← This enables self-registration!
+├── Recovery flow: default-recovery-flow
+└── Unenrollment flow: (none)
+
+Result: "Sign up" link automatically appears on login page
+```
+
 ## Step 1: Review Default Enrollment Flow
 
 Authentik comes with a default enrollment flow that's already configured. Let's review it:
@@ -65,7 +157,7 @@ Authentik comes with a default enrollment flow that's already configured. Let's 
 
 2. Navigate to **Flows & Stages** → **Flows**
 
-3. Look for a flow named `default-enrollment-flow` or `Welcome to authentik!`
+3. Look for a flow named `portfolio-enrollment` (or create it if it doesn't exist)
    - If it exists, click on it to review
    - If it doesn't exist, proceed to "Creating a Custom Enrollment Flow" below
 
@@ -83,7 +175,7 @@ Authentik comes with a default enrollment flow that's already configured. Let's 
 3. Scroll to the **Flow settings** section
 
 4. Configure the following:
-   - **Enrollment flow**: Select `default-enrollment-flow` from the dropdown
+   - **Enrollment flow**: Select `portfolio-enrollment` from the dropdown
    - **Recovery flow**: (Optional) Select `default-recovery-flow` for password reset
    - **Unenrollment flow**: (Optional) Select `default-unenrollment-flow` to allow users to delete accounts
 
@@ -146,7 +238,7 @@ This means users who arrive at the Authentik login page will see:
    - Click **Update**
 
 5. **Verify the stage binding:**
-   - Go to **Flows & Stages** → **Flows** → `default-enrollment-flow`
+   - Go to **Flows & Stages** → **Flows** → `portfolio-enrollment`
    - Click **Stage Bindings** tab
    - Ensure `enrollment-prompt` is bound with **Order 10** (before User Write stage)
 
@@ -274,7 +366,7 @@ Now configure the User Write stage to automatically add new users to groups:
 
 ### 5.4 Verify Configuration
 
-1. Go to **Flows & Stages** → **Flows** → `default-enrollment-flow`
+1. Go to **Flows & Stages** → **Flows** → `portfolio-enrollment`
 2. Click **Stage Bindings** tab
 3. Click on the User Write stage
 4. Verify **Groups** section shows `users` (or your group)
@@ -290,7 +382,7 @@ Now let's test the complete enrollment process to verify everything works.
 1. **Logout** from Authentik admin (or open an incognito window)
 
 2. **Access the enrollment URL**:
-   - Direct: `http://localhost:9000/if/flow/default-enrollment-flow/`
+   - Direct: `http://localhost:9000/if/flow/portfolio-enrollment/`
    - Or via Portfolio Manager: `http://localhost:3000` → Click "Register"
 
 ### 6.2 Fill Registration Form
@@ -379,7 +471,7 @@ To show a "Create account" link on the login page:
 
 6. In **Flow settings**, verify:
    - **Authentication flow**: `default-authentication-flow`
-   - **Enrollment flow**: `default-enrollment-flow`
+   - **Enrollment flow**: `portfolio-enrollment`
 
 7. Now when users visit the login page, they should see a "Create account" or "Sign up" link
 
@@ -416,7 +508,7 @@ Email verification ensures users provide valid email addresses and helps prevent
 
 ### Apply Password Policy to Enrollment Flow
 
-1. Navigate to **Flows & Stages** → **Flows** → `default-enrollment-flow`
+1. Navigate to **Flows & Stages** → **Flows** → `portfolio-enrollment`
 
 2. Click **Policies** tab
 
@@ -512,7 +604,7 @@ If you want more control, create a custom enrollment flow:
 The Portfolio Manager frontend already supports enrollment! When users click "Register" they'll be redirected to:
 
 ```
-http://localhost:9000/if/flow/default-enrollment-flow/
+http://localhost:9000/if/flow/portfolio-enrollment/
 ```
 
 After successful registration, they can:
@@ -555,9 +647,9 @@ After successful registration, they can:
 
 ### Enrollment URL shows 404
 
-- **Check flow exists**: Navigate to Flows & Stages → Flows and verify `default-enrollment-flow` exists
+- **Check flow exists**: Navigate to Flows & Stages → Flows and verify `portfolio-enrollment` exists
 - **Check designation**: Make sure the flow's designation is set to "Enrollment"
-- **Check slug**: The URL uses the flow's slug, verify it's `default-enrollment-flow`
+- **Check slug**: The URL uses the flow's slug, verify it's `portfolio-enrollment`
 
 ### Users can't see "Sign up" link on Authentik login page
 
@@ -571,12 +663,12 @@ After successful registration, they can:
    - Navigate to: **System** → **Brands**
    - Click on your brand (usually "authentik" or "default")
    - Scroll to **Flow settings** section
-   - Verify **Enrollment flow** is set to: `default-enrollment-flow`
+   - Verify **Enrollment flow** is set to: `portfolio-enrollment`
    - Click **Update** if you made changes
 
 2. **Verify Flow Designation:**
    - Navigate to: **Flows & Stages** → **Flows**
-   - Find `default-enrollment-flow`
+   - Find `portfolio-enrollment`
    - Click on it to edit
    - Verify **Designation** is set to: `Enrollment`
    - Click **Update** if needed
@@ -592,7 +684,7 @@ Even if the automatic link doesn't appear, users can still register via the **Si
 
 **Alternative - Direct URL:**
 
-You can also share the enrollment URL directly: `http://localhost:9000/if/flow/default-enrollment-flow/`
+You can also share the enrollment URL directly: `http://localhost:9000/if/flow/portfolio-enrollment/`
 
 ### Email verification not working
 
@@ -618,7 +710,7 @@ You can also share the enrollment URL directly: `http://localhost:9000/if/flow/d
 Use this checklist to verify your enrollment setup:
 
 ### Basic Enrollment
-- [ ] Can access enrollment URL: `http://localhost:9000/if/flow/default-enrollment-flow/`
+- [ ] Can access enrollment URL: `http://localhost:9000/if/flow/portfolio-enrollment/`
 - [ ] Registration form shows all required fields:
   - [ ] Username field (CRITICAL!)
   - [ ] Email field

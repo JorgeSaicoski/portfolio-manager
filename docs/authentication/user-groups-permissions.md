@@ -184,7 +184,7 @@ When users self-register via the enrollment flow, you can automatically add them
 Now we'll apply this policy to the enrollment flow.
 
 1. Navigate to **Flows & Stages** → **Flows**
-2. Find and click on `default-enrollment-flow` (or your custom enrollment flow)
+2. Find and click on `portfolio-enrollment` (or your custom enrollment flow)
 3. Click the **Stage Bindings** tab
 4. Find the **User Write** stage in the list (e.g., `user-write`, `enrollment-user-write`)
 5. Click on the stage name to edit it
@@ -208,7 +208,7 @@ For more control, you can add a dedicated stage:
 ### 3.4 Test Auto-Assignment
 
 1. Logout from Authentik (or use incognito mode)
-2. Go to enrollment URL: `http://localhost:9000/if/flow/default-enrollment-flow/`
+2. Go to enrollment URL: `http://localhost:9000/if/flow/portfolio-enrollment/`
 3. Register a new test user
 4. After registration, login to Authentik admin
 5. Go to **Directory** → **Users** → Find the test user
@@ -452,7 +452,7 @@ The user is directly in `frontend-team`, but also gets `engineering` and `compan
 **Cause:** User Write stage not configured with default groups.
 
 **Solution:**
-1. Navigate to Flows & Stages → Flows → `default-enrollment-flow`
+1. Navigate to Flows & Stages → Flows → `portfolio-enrollment`
 2. Click Stage Bindings tab
 3. Find User Write stage, click to edit
 4. Scroll to **Groups** section

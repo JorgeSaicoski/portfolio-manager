@@ -3,7 +3,7 @@
 # Uses Podman as the container runtime (Podman v4.0+)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start stop restart status logs clean complete-start complete-stop complete-restart complete-update complete-down
+.PHONY: help setup start stop restart status logs clean complete-start complete-stop complete-restart complete-update complete-down clean-images
 
 # Colors for terminal output
 BOLD := \033[1m
@@ -587,10 +587,10 @@ authentik-guide: ## Print Authentik configuration guide
 	@echo ""
 	@echo "$(BOLD)Step 6: Create or Edit Enrollment Flow$(RESET)"
 	@echo "  1. Go to: Flows & Stages → Flows"
-	@echo "  2. Find 'default-enrollment-flow' or create new flow:"
-	@echo "     • Name: default-enrollment-flow"
-	@echo "     • Title: Sign Up"
-	@echo "     • Slug: default-enrollment-flow"
+	@echo "  2. Find 'portfolio-enrollment' or create new flow:"
+	@echo "     • Name: portfolio-enrollment"
+	@echo "     • Title: Create your Portfolio Manager account"
+	@echo "     • Slug: portfolio-enrollment"
 	@echo "     • Designation: Enrollment"
 	@echo "  3. Click on the flow to open it"
 	@echo ""
@@ -622,7 +622,7 @@ authentik-guide: ## Print Authentik configuration guide
 	@echo "$(BOLD)Step 8: Connect Flow to Brand$(RESET)"
 	@echo "  1. Go to: System → Brands"
 	@echo "  2. Select your brand (usually 'authentik Default')"
-	@echo "  3. Set 'Enrollment flow' to: default-enrollment-flow"
+	@echo "  3. Set 'Enrollment flow' to: portfolio-enrollment"
 	@echo "  4. Save changes"
 	@echo ""
 	@echo "  $(GREEN)✓ Automatic Feature:$(RESET) When enrollment flow is configured,"
@@ -747,6 +747,10 @@ clean-logs: ## Clear all container logs
 		podman logs --tail 0 $$container 2>/dev/null || true; \
 	done
 	@echo "$(GREEN)✓ Logs cleared$(RESET)"
+
+clean-images: ## Remove orphaned uploaded images
+	@echo "$(BLUE)Cleaning up orphaned images...$(RESET)"
+	@./scripts/cleanup-images.sh
 
 ##@ Information
 

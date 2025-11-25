@@ -134,7 +134,7 @@ Now we need to add this stage to the enrollment flow.
 ### 3.1 Navigate to Enrollment Flow
 
 1. Navigate to **Flows & Stages** → **Flows**
-2. Find your enrollment flow (usually `default-enrollment-flow`)
+2. Find your enrollment flow (usually `portfolio-enrollment`)
 3. Click on the flow name
 
 ### 3.2 View Current Stage Bindings
@@ -224,7 +224,7 @@ If using Option B (verify after user creation):
 The flow should now look like this:
 
 ```
-default-enrollment-flow
+portfolio-enrollment
 ├── [10] prompt-stage-enrollment
 │   └── Collect: username, email, password
 ├── [15] enrollment-email-verification ← NEW
@@ -246,7 +246,7 @@ Now let's test the complete flow.
 1. **Logout** from Authentik (or open incognito window)
 
 2. **Navigate to enrollment:**
-   - Direct URL: `http://localhost:9000/if/flow/default-enrollment-flow/`
+   - Direct URL: `http://localhost:9000/if/flow/portfolio-enrollment/`
    - Or from Portfolio Manager: `http://localhost:3000` → Click "Register"
 
 ### 4.2 Fill Registration Form
@@ -504,7 +504,7 @@ podman compose logs portfolio-authentik-server | grep -i email
    ```
 
 2. **Verify URL format:**
-   - Should be: `http://localhost:9000/if/flow/default-enrollment-flow/?token=...`
+   - Should be: `http://localhost:9000/if/flow/portfolio-enrollment/?token=...`
 
 3. **Check flow still exists:**
    - Flows & Stages → Flows
