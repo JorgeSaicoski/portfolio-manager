@@ -195,30 +195,7 @@
 {/if}
 
 <style>
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-4);
-  }
-
-  .modal-content {
-    background-color: var(--color-white);
-    border-radius: var(--radius-xl);
-    max-width: 900px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: var(--space-6);
-  }
-
+  /* Page-specific styles - modal styles are global */
   .section-header {
     display: flex;
     justify-content: space-between;
@@ -250,10 +227,6 @@
       flex-direction: column;
       align-items: flex-start;
       gap: var(--space-3);
-    }
-
-    .modal-content {
-      padding: var(--space-4);
     }
   }
 </style>
