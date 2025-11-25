@@ -138,7 +138,7 @@
     <button
       type="button"
       class="btn-secondary btn-sm"
-      on:click={() => showMetadataEditor = !showMetadataEditor}
+      onclick={() => showMetadataEditor = !showMetadataEditor}
     >
       {showMetadataEditor ? 'Hide' : 'Show'} Metadata Editor
     </button>
@@ -166,10 +166,10 @@
   {/if}
 
   <div class="action-buttons">
-    <button type="button" class="btn-primary" on:click={handleSave}>
+    <button type="button" class="btn-primary" onclick={handleSave}>
       {isEditing ? 'Update' : 'Create'} Content
     </button>
-    <button type="button" class="btn-outline" on:click={onCancel}>
+    <button type="button" class="btn-outline" onclick={onCancel}>
       Cancel
     </button>
   </div>

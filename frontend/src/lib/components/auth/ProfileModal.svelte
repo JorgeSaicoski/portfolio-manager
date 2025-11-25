@@ -147,7 +147,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div 
   class="modal-backdrop" 
-  on:click={handleBackdropClick}
+  onclick={handleBackdropClick}
   role="dialog"
   aria-modal="true"
   aria-labelledby="modal-title"
@@ -158,7 +158,7 @@
       <h2 id="modal-title">Edit Profile</h2>
       <button 
         class="btn btn-ghost btn-icon" 
-        on:click={onClose} 
+        onclick={onClose} 
         disabled={loading}
         aria-label="Close profile modal"
       >
@@ -245,7 +245,7 @@
               type="button"
               class="btn btn-outline"
               style="border-color: #ef4444; color: #ef4444;"
-              on:click={() => showDeleteConfirm = true}
+              onclick={() => showDeleteConfirm = true}
               disabled={loading}
             >
               Delete Account
@@ -296,7 +296,7 @@
             <button
               class="btn"
               style="background: #dc2626; color: white;"
-              on:click={handleDelete}
+              onclick={handleDelete}
               disabled={loading || deleteConfirmInput !== user.preferred_username}
             >
               {#if loading}
@@ -309,7 +309,7 @@
 
             <button
               class="btn btn-ghost"
-              on:click={() => { showDeleteConfirm = false; error = ''; deleteConfirmInput = ''; }}
+              onclick={() => { showDeleteConfirm = false; error = ''; deleteConfirmInput = ''; }}
               disabled={loading}
             >
               Cancel

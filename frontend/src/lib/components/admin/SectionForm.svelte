@@ -147,7 +147,7 @@
     </div>
 
     <div class="form-actions">
-      <button type="button" class="btn btn-ghost" on:click={onCancel} disabled={loading}>
+      <button type="button" class="btn btn-ghost" onclick={onCancel} disabled={loading}>
         Cancel
       </button>
       <button type="submit" class="btn btn-primary" disabled={loading}>

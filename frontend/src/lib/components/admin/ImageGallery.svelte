@@ -121,14 +121,14 @@
                   <div class="alt-actions">
                     <button
                       type="button"
-                      on:click={() => saveAlt(image.ID)}
+                      onclick={() => saveAlt(image.ID)}
                       class="save-button"
                     >
                       Save
                     </button>
                     <button
                       type="button"
-                      on:click={() => cancelEditingAlt(image.ID, image.alt)}
+                      onclick={() => cancelEditingAlt(image.ID, image.alt)}
                       class="cancel-button"
                     >
                       Cancel
@@ -142,7 +142,7 @@
                   </p>
                   <button
                     type="button"
-                    on:click={() => startEditingAlt(image.ID)}
+                    onclick={() => startEditingAlt(image.ID)}
                     class="edit-alt-button"
                     title="Edit alt text"
                   >
@@ -177,7 +177,7 @@
               {#if !image.is_main}
                 <button
                   type="button"
-                  on:click={() => handleSetMain(image.ID)}
+                  onclick={() => handleSetMain(image.ID)}
                   class="action-button main-button"
                 >
                   Set as Main
@@ -185,7 +185,7 @@
               {/if}
               <button
                 type="button"
-                on:click={() => handleDelete(image.ID, image.file_name)}
+                onclick={() => handleDelete(image.ID, image.file_name)}
                 class="action-button delete-button"
               >
                 Delete

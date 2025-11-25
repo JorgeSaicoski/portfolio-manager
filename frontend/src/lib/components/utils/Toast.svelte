@@ -58,7 +58,7 @@
     <button
       type="button"
       class="toast-close"
-      on:click={close}
+      onclick={close}
       aria-label="Close notification"
     >
       ×

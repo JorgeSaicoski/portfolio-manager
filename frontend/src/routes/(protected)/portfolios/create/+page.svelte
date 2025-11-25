@@ -88,12 +88,12 @@
         <h1 class="navbar-title">Portfolio Manager</h1>
         <div class="breadcrumb">
           <div class="breadcrumb-item">
-            <button on:click={() => goto("/dashboard")} class="btn btn-ghost btn-sm">
+            <button onclick={() => goto("/dashboard")} class="btn btn-ghost btn-sm">
               Dashboard
             </button>
           </div>
           <div class="breadcrumb-item">
-            <button on:click={() => goto("/portfolios")} class="btn btn-ghost btn-sm">
+            <button onclick={() => goto("/portfolios")} class="btn btn-ghost btn-sm">
               Portfolios
             </button>
           </div>
@@ -199,7 +199,7 @@
                 <button
                   type="button"
                   class="btn btn-outline"
-                  on:click={handleCancel}
+                  onclick={handleCancel}
                   disabled={isSubmitting}
                 >
                   Cancel

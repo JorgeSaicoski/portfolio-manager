@@ -163,7 +163,7 @@
     on:drop={handleDrop}
     role="button"
     tabindex="0"
-    on:click={openFileDialog}
+    onclick={openFileDialog}
     on:keydown={(e) => e.key === "Enter" && openFileDialog()}
   >
     <svg
@@ -208,7 +208,7 @@
               />
               <button
                 type="button"
-                on:click={() => removePreview(index)}
+                onclick={() => removePreview(index)}
                 class="remove-button"
                 disabled={uploading}
               >
@@ -220,7 +220,7 @@
       </div>
       <button
         type="button"
-        on:click={uploadImages}
+        onclick={uploadImages}
         disabled={uploading}
         class="upload-button"
       >

@@ -21,12 +21,12 @@
       <div class="brand-icon">P</div>
       <h1 class="brand-title">Portfolio Admin</h1>
     </div>
-    <button class="sidebar-toggle-btn" on:click={onToggleCollapse} aria-label="Toggle sidebar">
+    <button class="sidebar-toggle-btn" onclick={onToggleCollapse} aria-label="Toggle sidebar">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
-    <button class="sidebar-close" on:click={onClose} aria-label="Close sidebar">
+    <button class="sidebar-close" onclick={onClose} aria-label="Close sidebar">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -92,5 +92,5 @@
 </div>
 
 {#if isOpen}
-  <div class="sidebar-overlay" class:open={isOpen} on:click={onClose} role="button" tabindex="0" on:keydown={(e) => e.key === 'Escape' && onClose()} aria-label="Close sidebar"></div>
+  <div class="sidebar-overlay" class:open={isOpen} onclick={onClose} role="button" tabindex="0" on:keydown={(e) => e.key === 'Escape' && onClose()} aria-label="Close sidebar"></div>
 {/if}

@@ -70,7 +70,7 @@
         <div class="error-icon">✗</div>
         <h2>Authentication Failed</h2>
         <p class="error-message">{error}</p>
-        <button class="btn" on:click={() => goto('/auth/login')}>
+        <button class="btn" onclick={() => goto('/auth/login')}>
           Try Again
         </button>
       </div>

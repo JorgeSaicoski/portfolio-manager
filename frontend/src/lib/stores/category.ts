@@ -129,6 +129,36 @@ function createCategoryStore() {
       }
     },
 
+    // Get categories by portfolio ID (public)
+    async getByPortfolio(portfolioId: number): Promise<Category[]> {
+      update((state) => ({ ...state, loading: true, error: null }));
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/portfolios/public/${portfolioId}/categories`);
+        const data: ApiResponse<Category[]> = await response.json();
+
+        if (response.ok && data.data) {
+          update((state) => ({
+            ...state,
+            categories: data.data!,
+            loading: false,
+          }));
+          return data.data;
+        } else {
+          throw new Error(data.error || "Failed to fetch portfolio categories");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        update((state) => ({
+          ...state,
+          loading: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+
     // Get category's projects (public)
     async getProjects(id: number): Promise<Project[]> {
       update((state) => ({ ...state, loading: true, error: null }));
@@ -267,6 +297,36 @@ function createCategoryStore() {
           error: errorMessage,
         }));
         throw error;
+      }
+    },
+
+    // Update category position (protected)
+    async updatePosition(id: number, newPosition: number): Promise<Category> {
+      try {
+        const response = await authenticatedFetch(
+          `${CATEGORY_API_URL}/own/${id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ position: newPosition }),
+          }
+        );
+        const data: ApiResponse<Category> = await response.json();
+
+        if (response.ok && data.data) {
+          update((state) => ({
+            ...state,
+            categories: state.categories.map((c) =>
+              c.ID === id ? data.data! : c
+            ),
+          }));
+          return data.data;
+        } else {
+          throw new Error(data.error || "Failed to update position");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        throw new Error(errorMessage);
       }
     },
 

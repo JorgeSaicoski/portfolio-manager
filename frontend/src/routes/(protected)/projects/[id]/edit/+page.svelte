@@ -98,7 +98,7 @@
             </svg>
             <h3>Error Loading Project</h3>
             <p>{error}</p>
-            <button class="btn btn-primary" on:click={() => goto('/projects')}>
+            <button class="btn btn-primary" onclick={() => goto('/projects')}>
               Back to Projects
             </button>
           </div>

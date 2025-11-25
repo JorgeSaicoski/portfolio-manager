@@ -70,7 +70,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div 
     class="modal-backdrop show" 
-    on:click={handleBackdropClick}
+    onclick={handleBackdropClick}
   ></div>
 
   <!-- Modal -->
@@ -130,7 +130,7 @@
       <div class="modal-footer center">
         <button
           class="btn btn-ghost"
-          on:click={handleClose}
+          onclick={handleClose}
           disabled={loading}
         >
           Cancel
@@ -139,7 +139,7 @@
         <button
           class="btn"
           style="background-color: var(--color-error); color: var(--color-white); border-color: var(--color-error);"
-          on:click={handleDelete}
+          onclick={handleDelete}
           disabled={loading || !deleteEnabled}
         >
           {#if loading}
