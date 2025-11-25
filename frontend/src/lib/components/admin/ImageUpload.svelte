@@ -149,7 +149,7 @@
   <input
     type="file"
     bind:this={fileInput}
-    on:change={handleFileSelect}
+    onchange={handleFileSelect}
     accept={ALLOWED_EXTENSIONS.join(",")}
     multiple
     class="hidden"
@@ -200,7 +200,7 @@
               <input
                 type="text"
                 value={preview.alt}
-                on:input={(e) =>
+                oninput={(e) =>
                   updateAlt(index, (e.target as HTMLInputElement).value)}
                 placeholder="Image description (alt text)"
                 class="alt-input"

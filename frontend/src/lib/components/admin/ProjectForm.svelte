@@ -106,7 +106,7 @@
     </p>
   </div>
 
-  <form on:submit={handleSubmit} class="project-form">
+  <form onsubmit={handleSubmit} class="project-form">
     <div class="form-grid">
       <!-- Title -->
       <div class="form-group">

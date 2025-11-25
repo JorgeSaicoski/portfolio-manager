@@ -92,5 +92,5 @@
 </div>
 
 {#if isOpen}
-  <div class="sidebar-overlay" class:open={isOpen} onclick={onClose} role="button" tabindex="0" on:keydown={(e) => e.key === 'Escape' && onClose()} aria-label="Close sidebar"></div>
+  <div class="sidebar-overlay" class:open={isOpen} onclick={onClose} role="button" tabindex="0" onkeydown={(e) => e.key === 'Escape' && onClose()} aria-label="Close sidebar"></div>
 {/if}

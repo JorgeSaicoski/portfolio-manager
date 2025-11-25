@@ -78,7 +78,7 @@
     </p>
   </div>
 
-  <form on:submit={handleSubmit} class="section-form">
+  <form onsubmit={handleSubmit} class="section-form">
     <div class="form-grid">
       <!-- Title -->
       <div class="form-group">

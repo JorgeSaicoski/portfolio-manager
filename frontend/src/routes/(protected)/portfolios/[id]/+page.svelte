@@ -180,7 +180,8 @@
    descriptionError = "";
  }
 
- async function saveEdit() {
+ async function saveEdit(e: Event) {
+   e.preventDefault();
    if (!portfolio || !validateEditForm()) return;
 
    isSubmitting = true;
@@ -362,7 +363,7 @@
                  </div>
                {/if}
 
-               <form on:submit|preventDefault={saveEdit} class="form">
+               <form onsubmit={saveEdit} class="form">
                  <!-- Title field -->
                  <div class="form-group">
                    <label for="edit-title" class="form-label">

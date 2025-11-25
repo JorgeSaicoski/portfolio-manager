@@ -54,7 +54,8 @@
   }
 
   // Handle profile update
-  async function handleUpdate() {
+  async function handleUpdate(e: Event) {
+    e.preventDefault();
     if (!validateForm()) {
       return;
     }
@@ -171,7 +172,7 @@
     <div class="modal-body">
       {#if !showDeleteConfirm}
         <!-- Profile Edit Form -->
-        <form on:submit|preventDefault={handleUpdate} class="form">
+        <form onsubmit={handleUpdate} class="form">
           <!-- Username Field -->
           <div class="form-group">
             <label for="edit-username" class="form-label">Username</label>

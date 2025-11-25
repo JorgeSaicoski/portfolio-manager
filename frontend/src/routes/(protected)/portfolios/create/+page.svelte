@@ -49,9 +49,10 @@
     return isValid;
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
     if (!validateForm()) return;
-    
+
     isSubmitting = true;
     error = null;
 
@@ -135,7 +136,7 @@
               </div>
             {/if}
 
-            <form on:submit|preventDefault={handleSubmit} class="form">
+            <form onsubmit={handleSubmit} class="form">
               <!-- Title field -->
               <div class="form-group">
                 <label for="title" class="form-label">
