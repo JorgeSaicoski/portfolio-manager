@@ -22,7 +22,7 @@
   let error = $state<string | null>(null);
 
   // Get project ID from URL
-  const projectId = $derived(parseInt($page.params.id));
+  const projectId = $derived(parseInt($page.params.id!));
 
   // Load sidebar state and project data
   onMount(async () => {

@@ -329,19 +329,26 @@ audit-logs: ## View all audit logs in real-time (tail -f)
 	@echo "$(BLUE)Tailing all audit logs... (Ctrl+C to exit)$(RESET)"
 	@$(CONTAINER_CMD) exec portfolio-backend sh -c "tail -f /app/audit/create.log /app/audit/update.log /app/audit/delete.log" 2>/dev/null || echo "$(YELLOW)No audit logs found yet$(RESET)"
 
-audit-export: ## Export audit logs to backend/audit-export/
+audit-export: ## Export audit and error logs to backend/audit-export/
 	@if [ -z "$(CONTAINER_CMD)" ]; then \
 		echo "$(RED)Error: Neither docker nor podman found in PATH$(RESET)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)Exporting audit logs...$(RESET)"
+	@echo "$(BLUE)Exporting audit and error logs...$(RESET)"
 	@rm -rf backend/audit-export
-	@$(CONTAINER_CMD) cp portfolio-backend:/app/audit backend/audit-export 2>&1 | grep -v "Error" || true
-	@if [ -d backend/audit-export ]; then \
+	@mkdir -p backend/audit-export/audit backend/audit-export/errors
+	@$(CONTAINER_CMD) cp portfolio-backend:/app/audit/. backend/audit-export/audit/ 2>&1 | grep -v "Error" || true
+	@$(CONTAINER_CMD) cp portfolio-backend:/app/errors/. backend/audit-export/errors/ 2>&1 | grep -v "Error" || true
+	@if [ -d backend/audit-export ] && [ -n "$$(ls -A backend/audit-export)" ]; then \
 		echo "$(GREEN)✓ Logs exported to backend/audit-export/$(RESET)"; \
-		ls -lh backend/audit-export/; \
+		echo ""; \
+		echo "Audit logs:"; \
+		ls -lh backend/audit-export/audit/ 2>/dev/null || echo "  (none)"; \
+		echo ""; \
+		echo "Error logs:"; \
+		ls -lh backend/audit-export/errors/ 2>/dev/null || echo "  (none)"; \
 	else \
-		echo "$(YELLOW)Failed to export audit logs$(RESET)"; \
+		echo "$(YELLOW)Failed to export logs$(RESET)"; \
 	fi
 
 audit-view-create: ## View last 50 create operation logs

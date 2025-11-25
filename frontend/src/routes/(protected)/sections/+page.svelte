@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { auth } from '$lib/stores/auth';
   import { sectionStore } from '$lib/stores/section';
   import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
@@ -11,14 +12,21 @@
   let user = $derived($auth.user);
 
   // UI state
-  let sidebarOpen = false;
-  let sections: Section[] = [];
-  let loading = true;
-  let showModal = false;
-  let selectedSection: Section | null = null;
+  let sidebarOpen = $state(false);
+  let sidebarCollapsed = $state(false);
+  let sections: Section[] = $state([]);
+  let loading = $state(true);
+  let showModal = $state(false);
+  let selectedSection: Section | null = $state(null);
 
   // Load sections
   onMount(async () => {
+    if (browser) {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      if (saved !== null) {
+        sidebarCollapsed = saved === 'true';
+      }
+    }
     await loadSections();
   });
 
@@ -37,6 +45,13 @@
   function handleCreate() {
     selectedSection = null;
     showModal = true;
+  }
+
+  function toggleSidebarCollapse() {
+    sidebarCollapsed = !sidebarCollapsed;
+    if (browser) {
+      localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed));
+    }
   }
 
   function handleEdit(section: Section) {
@@ -78,11 +93,13 @@
     <AdminSidebar
       {user}
       isOpen={sidebarOpen}
+      isCollapsed={sidebarCollapsed}
       onClose={() => sidebarOpen = false}
+      onToggleCollapse={toggleSidebarCollapse}
     />
 
     <!-- Main Content -->
-    <div class="admin-main">
+    <div class="admin-main" class:sidebar-collapsed={sidebarCollapsed}>
       <!-- Top Bar -->
       <AdminTopBar
         {user}
@@ -169,21 +186,12 @@
 
   <!-- Modal for Create/Edit -->
   {#if showModal}
-    <div
-      class="modal-overlay"
-      role="button"
-      tabindex="0"
-      onclick={handleFormCancel}
-      onkeydown={(e) => e.key === 'Escape' && handleFormCancel()}
-      aria-label="Close modal"
-    >
-      <div
-        class="modal-content"
-        role="dialog"
-        aria-modal="true"
-        onclick={(e) => e.stopPropagation()}
-        onkeydown={(e) => e.stopPropagation()}
-      >
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop show"></div>
+
+    <!-- Modal Container -->
+    <div class="modal show">
+      <div class="modal-content">
         <SectionForm
           section={selectedSection}
           onSuccess={handleFormSuccess}
