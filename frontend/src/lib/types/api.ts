@@ -59,12 +59,43 @@ export interface UpdateCategoryRequest {
   description?: string;
 }
 
+// Image Types
+export interface Image {
+  ID: number;
+  url: string;
+  thumbnail_url: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  alt: string;
+  owner_id: string;
+  type: string;
+  entity_id: number;
+  entity_type: string;
+  is_main: boolean;
+  position: number;
+  CreatedAt: string;
+  UpdatedAt: string;
+}
+
+export interface UploadImageRequest {
+  file: File;
+  entity_type: 'project' | 'portfolio' | 'section';
+  entity_id: number;
+  alt?: string;
+}
+
+export interface UpdateImageRequest {
+  alt?: string;
+  is_main?: boolean;
+  position?: number;
+}
+
 // Project Types
 export interface Project {
   ID: number;
   title: string;
-  images?: string[];
-  main_image?: string;
+  Images?: Image[];
   description: string;
   skills?: string[];
   client?: string;
@@ -78,8 +109,6 @@ export interface Project {
 
 export interface CreateProjectRequest {
   title: string;
-  images?: string[];
-  main_image?: string;
   description: string;
   skills?: string[];
   client?: string;
@@ -89,8 +118,6 @@ export interface CreateProjectRequest {
 
 export interface UpdateProjectRequest {
   title?: string;
-  images?: string[];
-  main_image?: string;
   description?: string;
   skills?: string[];
   client?: string;

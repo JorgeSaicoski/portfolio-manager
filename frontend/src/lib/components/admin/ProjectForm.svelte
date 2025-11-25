@@ -1,9 +1,12 @@
 <script lang="ts">
   import { projectStore, type ProjectState } from '$lib/stores/project';
   import { categoryStore } from '$lib/stores/category';
+  import { imageStore } from '$lib/stores/image';
   import { toastStore as toast } from '$lib/stores/toast';
-  import type { Project, CreateProjectRequest, Category } from '$lib/types/api';
+  import type { Project, CreateProjectRequest, Category, Image } from '$lib/types/api';
   import { onMount } from 'svelte';
+  import ImageUpload from './ImageUpload.svelte';
+  import ImageGallery from './ImageGallery.svelte';
 
   // Props
   export let project: Project | null = null; // null for create, object for edit
@@ -17,19 +20,37 @@
   let client = project?.client || '';
   let link = project?.link || '';
   let skills = project?.skills?.join(', ') || '';
-  let mainImage = project?.main_image || '';
   let loading = false;
   let categories: Category[] = [];
+  let projectImages: Image[] = project?.Images || [];
 
-  // Load categories on mount
+  // Load categories and images on mount
   onMount(async () => {
     try {
       categories = await categoryStore.getOwn(1, 100);
+
+      // Load images if editing existing project
+      if (project?.ID) {
+        await loadProjectImages();
+      }
     } catch (error) {
-      console.error('Failed to load categories:', error);
-      toast.error('Failed to load categories');
+      console.error('Failed to load data:', error);
+      toast.error('Failed to load form data');
     }
   });
+
+  // Load project images
+  async function loadProjectImages() {
+    if (!project?.ID) return;
+
+    try {
+      projectImages = await imageStore.getByEntity('project', project.ID);
+    } catch (error) {
+      console.error('Failed to load images:', error);
+      // Don't show error toast - it's expected that new projects have no images
+      projectImages = [];
+    }
+  }
 
   // Handle form submit
   async function handleSubmit(event: Event) {
@@ -50,7 +71,6 @@
         client: client || undefined,
         link: link || undefined,
         skills: skills ? skills.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-        main_image: mainImage || undefined,
       };
 
       if (project) {
@@ -59,8 +79,10 @@
         toast.success('Project updated successfully!');
       } else {
         // Create new project
-        await projectStore.create(projectData);
-        toast.success('Project created successfully!');
+        const newProject = await projectStore.create(projectData);
+        toast.success('Project created successfully! You can now add images.');
+        // Update project reference for image upload
+        project = newProject;
       }
       onSuccess();
     } catch (error) {
@@ -68,6 +90,11 @@
     } finally {
       loading = false;
     }
+  }
+
+  // Handle image upload completion
+  function handleImageUploadComplete() {
+    loadProjectImages();
   }
 </script>
 
@@ -171,20 +198,42 @@
         />
         <p class="form-help">Enter skills separated by commas</p>
       </div>
-
-      <!-- Main Image -->
-      <div class="form-group form-group-full">
-        <label for="mainImage" class="form-label">Main Image URL</label>
-        <input
-          id="mainImage"
-          type="url"
-          class="form-input"
-          placeholder="https://example.com/image.jpg (optional)"
-          bind:value={mainImage}
-          disabled={loading}
-        />
-      </div>
     </div>
+
+    <!-- Image Management Section (only show if project exists) -->
+    {#if project?.ID}
+      <div class="images-section">
+        <h3 class="section-title">Project Images</h3>
+
+        <!-- Existing Images Gallery -->
+        {#if projectImages.length > 0}
+          <div class="images-subsection">
+            <h4 class="subsection-title">Manage Images</h4>
+            <ImageGallery
+              images={projectImages}
+              onUpdate={handleImageUploadComplete}
+            />
+          </div>
+        {/if}
+
+        <!-- Image Upload -->
+        <div class="images-subsection">
+          <h4 class="subsection-title">Add New Images</h4>
+          <ImageUpload
+            entityType="project"
+            entityId={project.ID}
+            onUploadComplete={handleImageUploadComplete}
+          />
+        </div>
+      </div>
+    {:else}
+      <div class="info-box">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p>Save the project first to add images</p>
+      </div>
+    {/if}
 
     <div class="form-actions">
       <button type="button" class="btn btn-ghost" on:click={onCancel} disabled={loading}>
@@ -286,6 +335,58 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  .images-section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-gray-200);
+  }
+
+  .section-title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0 0 var(--space-6) 0;
+  }
+
+  .images-subsection {
+    margin-bottom: var(--space-6);
+  }
+
+  .images-subsection:last-child {
+    margin-bottom: 0;
+  }
+
+  .subsection-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-gray-700);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .info-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background-color: #ebf8ff;
+    border: 1px solid #bee3f8;
+    border-radius: var(--radius-lg);
+    color: #2c5282;
+    margin-top: var(--space-8);
+  }
+
+  .info-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 500;
   }
 
   @media (max-width: 768px) {

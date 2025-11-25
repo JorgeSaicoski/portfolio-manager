@@ -7,9 +7,6 @@
   export let onClose: () => void;
   export let onSuccess: () => void;
 
-  // Log when modal is created / receives props
-  console.log('[PortfolioModal.svelte] open - incoming portfolio prop:', portfolio);
-
   // Form state
   let title = portfolio?.title || '';
   let description = portfolio?.description || '';
@@ -18,27 +15,21 @@
   // Handle form submit
   async function handleSubmit(event: Event) {
     event.preventDefault();
-    console.log('[PortfolioModal.svelte] submit pressed - portfolio:', portfolio, 'title:', title, 'description length:', description?.length);
     loading = true;
 
     try {
       if (portfolio) {
         // Update existing portfolio
-        console.log('[PortfolioModal.svelte] calling portfolioStore.update id:', portfolio.ID);
         await portfolioStore.update(portfolio.ID, { title, description });
         toast.success('Portfolio updated successfully!');
-        console.log('[PortfolioModal.svelte] update succeeded for id:', portfolio.ID);
       } else {
         // Create new portfolio
-        console.log('[PortfolioModal.svelte] calling portfolioStore.create with payload:', { title, description });
         await portfolioStore.create({ title, description });
         toast.success('Portfolio created successfully!');
-        console.log('[PortfolioModal.svelte] create succeeded');
       }
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('[PortfolioModal.svelte] submit ERROR:', error);
       toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       loading = false;
