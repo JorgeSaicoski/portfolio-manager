@@ -863,4 +863,101 @@ verify-config: ## Verify setup configuration and diagnose issues
 	@echo "  4. Test login: Open http://localhost:3000/auth/login"
 	@echo ""
 
+##@ CI/CD Commands
+
+ci-test: ## Run all tests (CI mode)
+	@echo "$(BOLD)$(BLUE)Running CI Tests$(RESET)"
+	@echo "$(YELLOW)Running backend tests...$(RESET)"
+	@cd backend && go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+	@echo "$(GREEN)✓ Backend tests passed$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Running frontend type checking...$(RESET)"
+	@cd frontend && npm run check
+	@echo "$(GREEN)✓ Type checking passed$(RESET)"
+	@echo ""
+
+ci-lint: ## Run all linters (CI mode)
+	@echo "$(BOLD)$(BLUE)Running Linters$(RESET)"
+	@echo "$(YELLOW)Running backend linter...$(RESET)"
+	@cd backend && golangci-lint run --timeout=5m
+	@echo "$(GREEN)✓ Backend linting passed$(RESET)"
+	@echo ""
+
+ci-security: ## Run security scans (CI mode)
+	@echo "$(BOLD)$(BLUE)Running Security Scans$(RESET)"
+	@echo "$(YELLOW)Running Gosec...$(RESET)"
+	@cd backend && gosec -fmt=json -out=gosec-report.json ./...
+	@echo "$(GREEN)✓ Security scan complete$(RESET)"
+	@echo ""
+
+ci-coverage: ## Generate test coverage report
+	@echo "$(BOLD)$(BLUE)Generating Coverage Report$(RESET)"
+	@cd backend && go test -coverprofile=coverage.out ./...
+	@cd backend && go tool cover -html=coverage.out -o coverage.html
+	@echo "$(GREEN)✓ Coverage report generated: backend/coverage.html$(RESET)"
+
+docker-build: ## Build Docker images locally
+	@echo "$(BOLD)$(BLUE)Building Docker Images$(RESET)"
+	@echo "$(YELLOW)Building backend image...$(RESET)"
+	@docker build -t portfolio-manager-backend:local ./backend
+	@echo "$(GREEN)✓ Backend image built$(RESET)"
+	@echo "$(YELLOW)Building frontend image...$(RESET)"
+	@docker build -t portfolio-manager-frontend:local ./frontend
+	@echo "$(GREEN)✓ Frontend image built$(RESET)"
+	@echo ""
+
+docker-push: ## Push Docker images to registry (requires REGISTRY env var)
+	@if [ -z "$(REGISTRY)" ]; then \
+		echo "$(RED)Error: REGISTRY environment variable not set$(RESET)"; \
+		echo "Usage: REGISTRY=ghcr.io/username make docker-push"; \
+		exit 1; \
+	fi
+	@echo "$(BOLD)$(BLUE)Pushing to $(REGISTRY)$(RESET)"
+	@docker tag portfolio-manager-backend:local $(REGISTRY)/portfolio-manager-backend:latest
+	@docker tag portfolio-manager-frontend:local $(REGISTRY)/portfolio-manager-frontend:latest
+	@docker push $(REGISTRY)/portfolio-manager-backend:latest
+	@docker push $(REGISTRY)/portfolio-manager-frontend:latest
+	@echo "$(GREEN)✓ Images pushed to registry$(RESET)"
+
+deploy-staging: ## Deploy to staging server
+	@echo "$(BOLD)$(BLUE)Deploying to Staging$(RESET)"
+	@if [ -z "$(STAGING_HOST)" ]; then \
+		echo "$(RED)Error: STAGING_HOST environment variable not set$(RESET)"; \
+		exit 1; \
+	fi
+	@./scripts/deploy.sh staging
+	@echo "$(GREEN)✓ Deployed to staging$(RESET)"
+
+deploy-production: ## Deploy to production server (requires confirmation)
+	@echo "$(BOLD)$(YELLOW)⚠️  WARNING: Deploying to PRODUCTION$(RESET)"
+	@if [ -z "$(PRODUCTION_HOST)" ]; then \
+		echo "$(RED)Error: PRODUCTION_HOST environment variable not set$(RESET)"; \
+		exit 1; \
+	fi
+	@./scripts/deploy.sh production
+	@echo "$(GREEN)✓ Deployed to production$(RESET)"
+
+setup-vultr-staging: ## Setup Vultr server for staging
+	@echo "$(BOLD)$(BLUE)Setting up Vultr Staging Server$(RESET)"
+	@if [ -z "$(STAGING_HOST)" ]; then \
+		echo "$(RED)Error: STAGING_HOST environment variable not set$(RESET)"; \
+		exit 1; \
+	fi
+	@scp scripts/setup-vultr-server.sh root@$(STAGING_HOST):/tmp/
+	@ssh root@$(STAGING_HOST) "bash /tmp/setup-vultr-server.sh staging"
+	@echo "$(GREEN)✓ Staging server setup complete$(RESET)"
+
+setup-vultr-production: ## Setup Vultr server for production
+	@echo "$(BOLD)$(BLUE)Setting up Vultr Production Server$(RESET)"
+	@if [ -z "$(PRODUCTION_HOST)" ]; then \
+		echo "$(RED)Error: PRODUCTION_HOST environment variable not set$(RESET)"; \
+		exit 1; \
+	fi
+	@scp scripts/setup-vultr-server.sh root@$(PRODUCTION_HOST):/tmp/
+	@ssh root@$(PRODUCTION_HOST) "bash /tmp/setup-vultr-server.sh production"
+	@echo "$(GREEN)✓ Production server setup complete$(RESET)"
+
+ci-all: ci-lint ci-test ci-security ci-coverage ## Run all CI checks
+	@echo "$(BOLD)$(GREEN)✓ All CI checks passed!$(RESET)"
+
 

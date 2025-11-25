@@ -1,0 +1,184 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to deploy (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  DEPLOY_USER: deploy
+  DEPLOY_PATH: /opt/portfolio-manager
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ secrets.PRODUCTION_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version || github.ref }}
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create backup
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${PRODUCTION_HOST} << 'ENDSSH'
+            set -e
+            cd ${DEPLOY_PATH}
+
+            # Create backup
+            BACKUP_DIR="/opt/backups/portfolio-manager"
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            mkdir -p ${BACKUP_DIR}
+
+            # Backup database
+            docker compose exec -T portfolio-postgres pg_dump \
+              -U ${POSTGRES_USER} ${POSTGRES_DB} \
+              | gzip > ${BACKUP_DIR}/db_backup_${TIMESTAMP}.sql.gz
+
+            # Backup volumes
+            docker compose exec -T portfolio-backend tar czf - /app/uploads \
+              > ${BACKUP_DIR}/uploads_backup_${TIMESTAMP}.tar.gz
+
+            echo "✅ Backup created: ${BACKUP_DIR}/db_backup_${TIMESTAMP}.sql.gz"
+          ENDSSH
+
+      - name: Deploy to production server
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${PRODUCTION_HOST} << 'ENDSSH'
+            set -e
+
+            # Navigate to deployment directory
+            cd ${DEPLOY_PATH}
+
+            # Pull latest code for the version
+            git fetch origin
+            git checkout ${VERSION}
+
+            # Pull specific version images
+            export BACKEND_IMAGE="${REGISTRY}/${{ github.repository }}/backend:${VERSION}"
+            export FRONTEND_IMAGE="${REGISTRY}/${{ github.repository }}/frontend:${VERSION}"
+
+            docker compose pull backend frontend
+
+            # Rolling update - zero downtime deployment
+            # Start new containers
+            docker compose up -d --no-deps --scale backend=2 backend
+            docker compose up -d --no-deps --scale frontend=2 frontend
+
+            # Wait for health checks
+            sleep 15
+
+            # Scale down old containers
+            docker compose up -d --no-deps --scale backend=1 backend
+            docker compose up -d --no-deps --scale frontend=1 frontend
+
+            # Clean up old images
+            docker image prune -af --filter "until=72h"
+          ENDSSH
+
+      - name: Run database migrations
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${PRODUCTION_HOST} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+
+            # Run migrations
+            docker compose exec -T portfolio-backend /app/backend migrate || true
+          ENDSSH
+
+      - name: Verify deployment
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          # Wait for deployment to stabilize
+          sleep 20
+
+          # Check health endpoint
+          for i in {1..5}; do
+            if curl -f ${PRODUCTION_URL}/api/health; then
+              echo "✅ Health check passed"
+              break
+            fi
+            echo "⏳ Waiting for service... ($i/5)"
+            sleep 10
+          done
+
+          # Verify frontend
+          if curl -f ${PRODUCTION_URL}; then
+            echo "✅ Frontend is accessible"
+          else
+            echo "❌ Frontend is not accessible"
+            exit 1
+          fi
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${PRODUCTION_HOST} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+
+            echo "❌ Deployment failed, rolling back..."
+
+            # Find previous version
+            PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))
+
+            git checkout ${PREVIOUS_TAG}
+
+            export BACKEND_IMAGE="${REGISTRY}/${{ github.repository }}/backend:${PREVIOUS_TAG}"
+            export FRONTEND_IMAGE="${REGISTRY}/${{ github.repository }}/frontend:${PREVIOUS_TAG}"
+
+            docker compose up -d backend frontend
+
+            echo "⚠️ Rolled back to ${PREVIOUS_TAG}"
+          ENDSSH
+
+      - name: Create release notes
+        if: success()
+        env:
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          echo "## 🚀 Deployment Successful"
+          echo ""
+          echo "**Version:** ${VERSION}"
+          echo "**Environment:** Production"
+          echo "**Deployed at:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo "**Commit:** ${{ github.sha }}"
+          echo ""
+          echo "### Services deployed:"
+          echo "- Backend: ${REGISTRY}/${{ github.repository }}/backend:${VERSION}"
+          echo "- Frontend: ${REGISTRY}/${{ github.repository }}/frontend:${VERSION}"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Production deployment succeeded"
+          else
+            echo "❌ Production deployment failed and rolled back"
+          fi

@@ -1,0 +1,85 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  DEPLOY_USER: deploy
+  DEPLOY_PATH: /opt/portfolio-manager-staging
+
+jobs:
+  deploy:
+    name: Deploy to Staging Server
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging server
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          IMAGE_TAG: develop-${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${STAGING_HOST} << 'ENDSSH'
+            set -e
+
+            # Navigate to deployment directory
+            cd ${DEPLOY_PATH}
+
+            # Pull latest code
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+
+            # Pull latest images
+            docker compose pull backend frontend
+
+            # Update docker-compose to use specific image tag
+            export BACKEND_IMAGE="${REGISTRY}/${{ github.repository }}/backend:${IMAGE_TAG}"
+            export FRONTEND_IMAGE="${REGISTRY}/${{ github.repository }}/frontend:${IMAGE_TAG}"
+
+            # Restart services with new images
+            docker compose up -d backend frontend
+
+            # Wait for services to be healthy
+            sleep 10
+
+            # Run health checks
+            curl -f http://localhost:8000/health || exit 1
+
+            # Clean up old images
+            docker image prune -af --filter "until=48h"
+          ENDSSH
+
+      - name: Verify deployment
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: |
+          # Wait for deployment to stabilize
+          sleep 15
+
+          # Check health endpoint
+          curl -f ${STAGING_URL}/api/health || exit 1
+
+          echo "✅ Staging deployment successful!"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Staging deployment succeeded"
+          else
+            echo "❌ Staging deployment failed"
+          fi
