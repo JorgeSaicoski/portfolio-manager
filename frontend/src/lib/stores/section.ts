@@ -236,7 +236,7 @@ function createSectionStore() {
     async updatePosition(id: number, newPosition: number): Promise<Section> {
       try {
         const response = await authenticatedFetch(
-          `${SECTION_API_URL}/own/${id}`,
+          `${SECTION_API_URL}/own/${id}/position`,
           {
             method: "PUT",
             body: JSON.stringify({ position: newPosition }),
