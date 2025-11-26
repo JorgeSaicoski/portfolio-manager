@@ -106,7 +106,7 @@
 </script>
 
 {#if isOpen}
-  <div class="modal-backdrop" role="button" tabindex="0" onclick={handleBackdropClick} on:keydown={handleBackdropKeydown}>
+  <div class="modal-backdrop" role="button" tabindex="0" onclick={handleBackdropClick} onkeydown={handleBackdropKeydown}>
     <div class="modal-content">
       <div class="modal-header">
         <h2>Manage Section Content: {section.title}</h2>

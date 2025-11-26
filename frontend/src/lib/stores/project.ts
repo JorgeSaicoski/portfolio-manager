@@ -64,6 +64,39 @@ function createProjectStore() {
       }
     },
 
+    // Get user's own project by ID (protected)
+    async getOwnById(id: number): Promise<Project> {
+      update((state) => ({ ...state, loading: true, error: null }));
+
+      try {
+        const response = await authenticatedFetch(
+          `${PROJECT_API_URL}/own/${id}`
+        );
+        const data: ApiResponse<Project> = await response.json();
+
+        if (response.ok && data.data) {
+          update((state) => ({
+            ...state,
+            currentProject: data.data!,
+            loading: false,
+          }));
+          return data.data;
+        } else {
+          throw new Error(data.error || "Failed to fetch project");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        update((state) => ({
+          ...state,
+          loading: false,
+          error: errorMessage,
+          currentProject: null,
+        }));
+        throw error;
+      }
+    },
+
     // Get specific project by ID (public)
     async getById(id: number): Promise<Project> {
       update((state) => ({ ...state, loading: true, error: null }));
