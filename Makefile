@@ -232,7 +232,7 @@ complete-update: ## Rebuild and restart everything with latest code changes
 	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui up -d
 	@echo "$(GREEN)✓ Services started$(RESET)"
 	@echo ""
-	@echo "$(BOLD)$(GREEN)✓ Complete stack updated and running with latest code!$(RESET)"
+	@echo "$(BOLD)$(GREEN)✓ Complete stack updated!$(RESET)"
 	@echo ""
 	@echo "$(BOLD)Access URLs:$(RESET)"
 	@echo "  $(BLUE)Frontend:$(RESET)        http://localhost:3000"
@@ -379,7 +379,7 @@ audit-view-update: ## View last 50 update operation logs
 
 test: test-backend ## Run all tests
 
-test-backend: ## Run backend tests
+test-backend: test-db-migrate ## Run backend tests (ensures test DB migrations applied)
 	@echo "$(BLUE)Running backend tests...$(RESET)"
 	@mkdir -p backend/audit
 	@cd backend && go test ./cmd/test/... -v -race -coverprofile=audit/coverage.out
@@ -426,10 +426,21 @@ db-create-test: ## Create test database (portfolio_test_db)
 	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_test_db OWNER portfolio_user;" 2>/dev/null || echo "$(YELLOW)Database already exists or connection failed$(RESET)"
 	@echo "$(GREEN)✓ Test database ready$(RESET)"
 
+test-db-migrate: db-create-test ## Run GORM migrations on test database
+	@echo "$(BLUE)Running GORM migrations on test database...$(RESET)"
+	@cd backend/cmd/migrate-test-db && go run main.go
+	@echo "$(GREEN)✓ Test database migrated$(RESET)"
+
 db-migrate: ## Run database migrations (automatic on backend start)
 	@echo "$(BLUE)Running database migrations...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) restart portfolio-backend
 	@echo "$(GREEN)✓ Migrations run on backend startup$(RESET)"
+
+migrate-all-db: db-migrate test-db-migrate ## Migrate both production and test databases
+	@echo "$(BLUE)Migrating all databases...$(RESET)"
+	@echo "$(YELLOW)Production database (portfolio_db): migrations via backend restart$(RESET)"
+	@echo "$(YELLOW)Test database (portfolio_test_db): GORM migrations applied$(RESET)"
+	@echo "$(GREEN)✓ All databases migrated$(RESET)"
 
 db-reset: ## Reset database (WARNING: deletes all data)
 	@echo "$(RED)WARNING: This will delete ALL data!$(RESET)"
