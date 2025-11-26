@@ -45,7 +45,7 @@
       <div class="navbar-actions">
         <button
           class="btn btn-ghost"
-          on:click={() => (showProfileModal = true)}
+          onclick={() => (showProfileModal = true)}
           disabled={loading}
         >
           <div class="avatar">
@@ -56,7 +56,7 @@
 
         <button
           class="btn btn-destructive"
-          on:click={handleLogout}
+          onclick={handleLogout}
           disabled={loading}
         >
           {#if loading}
@@ -116,7 +116,7 @@
         <div class="card-body">
           <button
             class="btn btn-outline btn-block"
-            on:click={() => goto("/portfolios")}
+            onclick={() => goto("/portfolios")}
           >
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path

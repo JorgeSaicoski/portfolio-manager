@@ -22,7 +22,7 @@
   let error = $state<string | null>(null);
 
   // Get project ID from URL
-  const projectId = $derived(parseInt($page.params.id));
+  const projectId = $derived(parseInt($page.params.id!));
 
   // Load sidebar state and project data
   onMount(async () => {
@@ -98,7 +98,7 @@
             </svg>
             <h3>Error Loading Project</h3>
             <p>{error}</p>
-            <button class="btn btn-primary" on:click={() => goto('/projects')}>
+            <button class="btn btn-primary" onclick={() => goto('/projects')}>
               Back to Projects
             </button>
           </div>

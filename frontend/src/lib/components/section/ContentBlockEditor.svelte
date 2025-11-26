@@ -81,7 +81,7 @@
     <select
       id="type"
       bind:value={localContent.type}
-      on:change={handleTypeChange}
+      onchange={handleTypeChange}
       class="form-select"
     >
       <option value="text">Text</option>
@@ -95,7 +95,7 @@
       id="order"
       type="number"
       bind:value={localContent.order}
-      on:input={handleOrderChange}
+      oninput={handleOrderChange}
       min="0"
       class="form-input"
       placeholder="Display order (0 = first)"
@@ -110,7 +110,7 @@
       <textarea
         id="content"
         bind:value={localContent.content}
-        on:input={handleContentChange}
+        oninput={handleContentChange}
         class="form-textarea"
         rows="6"
         placeholder="Enter your text content here..."
@@ -121,7 +121,7 @@
         id="content"
         type="url"
         bind:value={localContent.content}
-        on:input={handleContentChange}
+        oninput={handleContentChange}
         class="form-input"
         placeholder="https://example.com/image.jpg"
         required
@@ -138,7 +138,7 @@
     <button
       type="button"
       class="btn-secondary btn-sm"
-      on:click={() => showMetadataEditor = !showMetadataEditor}
+      onclick={() => showMetadataEditor = !showMetadataEditor}
     >
       {showMetadataEditor ? 'Hide' : 'Show'} Metadata Editor
     </button>
@@ -153,7 +153,7 @@
       <textarea
         id="metadata"
         bind:value={metadataString}
-        on:blur={validateMetadata}
+        onblur={validateMetadata}
         class="form-textarea"
         class:error={metadataError}
         rows="4"
@@ -166,10 +166,10 @@
   {/if}
 
   <div class="action-buttons">
-    <button type="button" class="btn-primary" on:click={handleSave}>
+    <button type="button" class="btn-primary" onclick={handleSave}>
       {isEditing ? 'Update' : 'Create'} Content
     </button>
-    <button type="button" class="btn-outline" on:click={onCancel}>
+    <button type="button" class="btn-outline" onclick={onCancel}>
       Cancel
     </button>
   </div>

@@ -35,10 +35,10 @@
 <div class="protected-layout">
   <header>
     <h1>Admin</h1>
-    {#if data.user}
-      <span>Welcome, {data.user.username}!</span>
+    {#if $auth.user}
+      <span>Welcome, {$auth.user.preferred_username}!</span>
     {/if}
-    <button onclick={handleLogout}>Logout</button>
+    <button class="btn btn-secondary" onclick={handleLogout}>Logout</button>
   </header>
   
   <main>

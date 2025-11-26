@@ -49,9 +49,10 @@
     return isValid;
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
     if (!validateForm()) return;
-    
+
     isSubmitting = true;
     error = null;
 
@@ -88,12 +89,12 @@
         <h1 class="navbar-title">Portfolio Manager</h1>
         <div class="breadcrumb">
           <div class="breadcrumb-item">
-            <button on:click={() => goto("/dashboard")} class="btn btn-ghost btn-sm">
+            <button onclick={() => goto("/dashboard")} class="btn btn-ghost btn-sm">
               Dashboard
             </button>
           </div>
           <div class="breadcrumb-item">
-            <button on:click={() => goto("/portfolios")} class="btn btn-ghost btn-sm">
+            <button onclick={() => goto("/portfolios")} class="btn btn-ghost btn-sm">
               Portfolios
             </button>
           </div>
@@ -135,7 +136,7 @@
               </div>
             {/if}
 
-            <form on:submit|preventDefault={handleSubmit} class="form">
+            <form onsubmit={handleSubmit} class="form">
               <!-- Title field -->
               <div class="form-group">
                 <label for="title" class="form-label">
@@ -199,7 +200,7 @@
                 <button
                   type="button"
                   class="btn btn-outline"
-                  on:click={handleCancel}
+                  onclick={handleCancel}
                   disabled={isSubmitting}
                 >
                   Cancel

@@ -232,6 +232,36 @@ function createSectionStore() {
       }
     },
 
+    // Update section position (protected)
+    async updatePosition(id: number, newPosition: number): Promise<Section> {
+      try {
+        const response = await authenticatedFetch(
+          `${SECTION_API_URL}/own/${id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ position: newPosition }),
+          }
+        );
+        const data: ApiResponse<Section> = await response.json();
+
+        if (response.ok && data.data) {
+          update((state) => ({
+            ...state,
+            sections: state.sections.map((s) =>
+              s.ID === id ? data.data! : s
+            ),
+          }));
+          return data.data;
+        } else {
+          throw new Error(data.error || "Failed to update position");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        throw new Error(errorMessage);
+      }
+    },
+
     // Delete section (protected)
     async delete(id: number): Promise<void> {
       update((state) => ({ ...state, loading: true, error: null }));

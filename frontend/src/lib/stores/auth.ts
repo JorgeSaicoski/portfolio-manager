@@ -449,7 +449,7 @@ export async function authenticatedFetch(
     headers: getAuthHeaders()
   });
 
-  if (!auth.ensureAuth()) {
+  if (!(await auth.ensureAuth())) {
     debug.error('Not authenticated - auth check failed');
     throw new Error('Not authenticated');
   }

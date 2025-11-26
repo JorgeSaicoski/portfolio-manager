@@ -46,7 +46,7 @@
         <button
           type="button"
           class="btn btn-primary btn-block"
-          on:click={handleLogin}
+          onclick={handleLogin}
           disabled={loading}
         >
           {#if loading}

@@ -106,11 +106,11 @@
 </script>
 
 {#if isOpen}
-  <div class="modal-backdrop" role="button" tabindex="0" on:click={handleBackdropClick} on:keydown={handleBackdropKeydown}>
+  <div class="modal-backdrop" role="button" tabindex="0" onclick={handleBackdropClick} on:keydown={handleBackdropKeydown}>
     <div class="modal-content">
       <div class="modal-header">
         <h2>Manage Section Content: {section.title}</h2>
-        <button type="button" class="close-button" on:click={handleModalClose} title="Close">
+        <button type="button" class="close-button" onclick={handleModalClose} title="Close">
           ×
         </button>
       </div>
@@ -119,7 +119,7 @@
         {#if error}
           <div class="error-banner">
             <strong>Error:</strong> {error}
-            <button type="button" on:click={() => sectionContentStore.clearError()}>×</button>
+            <button type="button" onclick={() => sectionContentStore.clearError()}>×</button>
           </div>
         {/if}
 
@@ -127,7 +127,7 @@
           <div class="content-list-section">
             <div class="section-header">
               <h3>Content Blocks ({contents.length})</h3>
-              <button type="button" class="btn-primary" on:click={handleAddNew}>
+              <button type="button" class="btn-primary" onclick={handleAddNew}>
                 ➕ Add Content Block
               </button>
             </div>
@@ -159,7 +159,7 @@
 
       {#if !showEditor}
         <div class="modal-footer">
-          <button type="button" class="btn-outline" on:click={handleModalClose}>
+          <button type="button" class="btn-outline" onclick={handleModalClose}>
             Close
           </button>
         </div>

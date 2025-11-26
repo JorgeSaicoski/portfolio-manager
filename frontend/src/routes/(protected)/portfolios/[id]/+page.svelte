@@ -2,6 +2,9 @@
  import { goto } from "$app/navigation";
  import { onMount } from "svelte";
  import { portfolioStore, type Portfolio } from "$lib/stores/portfolio";
+ import { categoryStore } from "$lib/stores/category";
+ import { sectionStore } from "$lib/stores/section";
+ import type { Category, Section } from "$lib/types/api";
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
 
  // Get data from load function
@@ -17,6 +20,12 @@
  let isEditing = false;
  let showDeleteModal = false;
 
+ // Categories and Sections
+ let categories: Category[] = [];
+ let sections: Section[] = [];
+ let loadingCategories = false;
+ let loadingSections = false;
+
  // Edit form state
  let editTitle = "";
  let editDescription = "";
@@ -30,6 +39,8 @@
  // Load portfolio on mount
  onMount(async () => {
    await loadPortfolio();
+   await loadCategories();
+   await loadSections();
  });
 
  async function loadPortfolio() {
@@ -53,6 +64,70 @@
      portfolio = null;
    } finally {
      loading = false;
+   }
+ }
+
+ async function loadCategories() {
+   loadingCategories = true;
+   try {
+     categories = await categoryStore.getByPortfolio(portfolioId);
+   } catch (err) {
+     console.error("Failed to load categories:", err);
+   } finally {
+     loadingCategories = false;
+   }
+ }
+
+ async function loadSections() {
+   loadingSections = true;
+   try {
+     sections = await sectionStore.getByPortfolio(portfolioId);
+   } catch (err) {
+     console.error("Failed to load sections:", err);
+   } finally {
+     loadingSections = false;
+   }
+ }
+
+ async function moveCategory(category: Category, direction: "up" | "down") {
+   const currentIndex = categories.findIndex((c) => c.ID === category.ID);
+   if (currentIndex === -1) return;
+
+   let newPosition: number;
+   if (direction === "up" && currentIndex > 0) {
+     newPosition = categories[currentIndex - 1].position;
+   } else if (direction === "down" && currentIndex < categories.length - 1) {
+     newPosition = categories[currentIndex + 1].position;
+   } else {
+     return; // Can't move further
+   }
+
+   try {
+     await categoryStore.updatePosition(category.ID, newPosition);
+     await loadCategories(); // Reload to get updated positions
+   } catch (err) {
+     console.error("Failed to update category position:", err);
+   }
+ }
+
+ async function moveSection(section: Section, direction: "up" | "down") {
+   const currentIndex = sections.findIndex((s) => s.ID === section.ID);
+   if (currentIndex === -1) return;
+
+   let newPosition: number;
+   if (direction === "up" && currentIndex > 0) {
+     newPosition = sections[currentIndex - 1].position;
+   } else if (direction === "down" && currentIndex < sections.length - 1) {
+     newPosition = sections[currentIndex + 1].position;
+   } else {
+     return; // Can't move further
+   }
+
+   try {
+     await sectionStore.updatePosition(section.ID, newPosition);
+     await loadSections(); // Reload to get updated positions
+   } catch (err) {
+     console.error("Failed to update section position:", err);
    }
  }
 
@@ -105,7 +180,8 @@
    descriptionError = "";
  }
 
- async function saveEdit() {
+ async function saveEdit(e: Event) {
+   e.preventDefault();
    if (!portfolio || !validateEditForm()) return;
 
    isSubmitting = true;
@@ -171,12 +247,12 @@
        <h1 class="navbar-title">Portfolio Manager</h1>
        <div class="breadcrumb">
          <div class="breadcrumb-item">
-           <button on:click={goToDashboard} class="btn btn-ghost btn-sm">
+           <button onclick={goToDashboard} class="btn btn-ghost btn-sm">
              Dashboard
            </button>
          </div>
          <div class="breadcrumb-item">
-           <button on:click={goBack} class="btn btn-ghost btn-sm">
+           <button onclick={goBack} class="btn btn-ghost btn-sm">
              Portfolios
            </button>
          </div>
@@ -188,7 +264,7 @@
 
      <div class="navbar-actions">
        {#if portfolio && !isEditing}
-         <button class="btn btn-outline" on:click={startEdit}>
+         <button class="btn btn-outline" onclick={startEdit}>
            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
              <path
                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
@@ -196,7 +272,7 @@
            </svg>
            Edit
          </button>
-         <button class="btn btn-error" on:click={openDeleteModal}>
+         <button class="btn btn-error" onclick={openDeleteModal}>
            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
              <path
                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
@@ -239,10 +315,10 @@
              <h3 class="text-error">Error</h3>
              <p class="text-muted">{error}</p>
              <div class="form-row">
-               <button class="btn btn-primary" on:click={loadPortfolio}>
+               <button class="btn btn-primary" onclick={loadPortfolio}>
                  Try Again
                </button>
-               <button class="btn btn-outline" on:click={goBack}>
+               <button class="btn btn-outline" onclick={goBack}>
                  Back to Portfolios
                </button>
              </div>
@@ -287,7 +363,7 @@
                  </div>
                {/if}
 
-               <form on:submit|preventDefault={saveEdit} class="form">
+               <form onsubmit={saveEdit} class="form">
                  <!-- Title field -->
                  <div class="form-group">
                    <label for="edit-title" class="form-label">
@@ -368,7 +444,7 @@
                    <button
                      type="button"
                      class="btn btn-outline"
-                     on:click={cancelEdit}
+                     onclick={cancelEdit}
                      disabled={isSubmitting}
                    >
                      Cancel
@@ -452,20 +528,20 @@
            </div>
 
            <!-- Future sections placeholder -->
-           <div class="card" style="margin-top: var(--space-6);">
-             <div class="card-body">
-               <div class="text-center">
-                 <h4>Portfolio Sections</h4>
-                 <p class="text-muted">
-                   Portfolio sections and content management will be available
-                   here.
-                 </p>
-                 <button class="btn btn-outline" disabled>
-                   Manage Sections
-                 </button>
-               </div>
-             </div>
-           </div>
+          <div class="card" style="margin-top: var(--space-6);">
+            <div class="card-body">
+              <div class="text-center">
+                <h4>Portfolio Sections</h4>
+                <p class="text-muted">
+                  Portfolio sections and content management will be available
+                  here.
+                </p>
+                <button class="btn btn-outline" disabled>
+                  Manage Sections
+                </button>
+              </div>
+            </div>
+          </div>
          {/if}
        </div>
      {/if}
