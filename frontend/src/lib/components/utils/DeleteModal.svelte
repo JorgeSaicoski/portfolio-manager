@@ -62,7 +62,7 @@
   $: deleteEnabled = confirmText ? confirmInput === confirmText : true;
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isOpen}
   <!-- Modal Backdrop -->

@@ -36,7 +36,7 @@
     // Load project data
     try {
       loading = true;
-      project = await projectStore.getById(projectId);
+      project = await projectStore.getOwnById(projectId);
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load project';
       console.error('Failed to load project:', err);

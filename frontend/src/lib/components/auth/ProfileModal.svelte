@@ -141,7 +141,7 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 <!-- Modal Backdrop - Fixed A11y issues -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->

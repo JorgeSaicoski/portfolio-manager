@@ -131,6 +131,80 @@
    }
  }
 
+ // Drag and drop for sections
+ let draggedSection: Section | null = null;
+ let draggedOverSectionIndex: number | null = null;
+
+ function handleSectionDragStart(e: DragEvent, section: Section) {
+   draggedSection = section;
+   if (e.dataTransfer) {
+     e.dataTransfer.effectAllowed = 'move';
+   }
+ }
+
+ function handleSectionDragOver(e: DragEvent, index: number) {
+   if (!draggedSection) return;
+   e.preventDefault();
+   draggedOverSectionIndex = index;
+   if (e.dataTransfer) {
+     e.dataTransfer.dropEffect = 'move';
+   }
+ }
+
+ function handleSectionDragLeave() {
+   draggedOverSectionIndex = null;
+ }
+
+ async function handleSectionDrop(e: DragEvent, dropIndex: number) {
+   if (!draggedSection) return;
+   e.preventDefault();
+
+   const draggedIndex = sections.findIndex(s => s.ID === draggedSection!.ID);
+   if (draggedIndex === dropIndex) {
+     draggedSection = null;
+     draggedOverSectionIndex = null;
+     return;
+   }
+
+   // Reorder array optimistically
+   const reorderedSections = [...sections];
+   const [removed] = reorderedSections.splice(draggedIndex, 1);
+   reorderedSections.splice(dropIndex, 0, removed);
+   sections = reorderedSections;
+
+   // Update positions in backend
+   try {
+     // Update the position of the dragged section to match its new position
+     const newPosition = dropIndex;
+     await sectionStore.updatePosition(draggedSection.ID, newPosition);
+     await loadSections(); // Reload to get correct positions from server
+   } catch (err) {
+     console.error('Failed to reorder sections:', err);
+     alert('Failed to reorder sections. Please try again.');
+     await loadSections(); // Reload on error to revert
+   }
+
+   draggedSection = null;
+   draggedOverSectionIndex = null;
+ }
+
+ function handleSectionDragEnd() {
+   draggedSection = null;
+   draggedOverSectionIndex = null;
+ }
+
+ async function handleDeleteSection(section: Section) {
+   if (confirm(`Are you sure you want to delete the section "${section.title}"? This action cannot be undone.`)) {
+     try {
+       await sectionStore.delete(section.ID);
+       sections = sections.filter(s => s.ID !== section.ID);
+     } catch (err) {
+       console.error('Error deleting section:', err);
+       alert('Failed to delete section. Please try again.');
+     }
+   }
+ }
+
  function validateEditForm() {
    let isValid = true;
 
@@ -527,19 +601,96 @@
              </div>
            </div>
 
-           <!-- Future sections placeholder -->
+           <!-- Portfolio Sections -->
           <div class="card" style="margin-top: var(--space-6);">
-            <div class="card-body">
-              <div class="text-center">
-                <h4>Portfolio Sections</h4>
-                <p class="text-muted">
-                  Portfolio sections and content management will be available
-                  here.
-                </p>
-                <button class="btn btn-outline" disabled>
-                  Manage Sections
+            <div class="card-header">
+              <div class="flex" style="justify-content: space-between; align-items: center;">
+                <h3>Portfolio Sections</h3>
+                <button class="btn btn-primary btn-sm" onclick={() => goto('/sections')}>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  New Section
                 </button>
               </div>
+            </div>
+
+            <div class="card-body">
+              {#if loadingSections}
+                <div class="text-center" style="padding: var(--space-8);">
+                  <p class="text-muted">Loading sections...</p>
+                </div>
+              {:else if sections.length === 0}
+                <div class="text-center" style="padding: var(--space-8);">
+                  <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </div>
+                  <h4>No sections yet</h4>
+                  <p class="text-muted">Create your first section for this portfolio</p>
+                  <button class="btn btn-primary" onclick={() => goto('/sections')} style="margin-top: var(--space-4);">
+                    Create Section
+                  </button>
+                </div>
+              {:else}
+                <div class="sections-list">
+                  {#each sections as section, index (section.ID)}
+                    <div
+                      class="section-item"
+                      class:dragging={draggedSection?.ID === section.ID}
+                      class:drag-over={draggedOverSectionIndex === index}
+                      draggable={true}
+                      ondragstart={(e) => handleSectionDragStart(e, section)}
+                      ondragover={(e) => handleSectionDragOver(e, index)}
+                      ondragleave={handleSectionDragLeave}
+                      ondrop={(e) => handleSectionDrop(e, index)}
+                      ondragend={handleSectionDragEnd}
+                    >
+                      <div class="section-header-row">
+                        <div class="drag-handle" title="Drag to reorder">
+                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="9" cy="6" r="1.5"/>
+                            <circle cx="15" cy="6" r="1.5"/>
+                            <circle cx="9" cy="12" r="1.5"/>
+                            <circle cx="15" cy="12" r="1.5"/>
+                            <circle cx="9" cy="18" r="1.5"/>
+                            <circle cx="15" cy="18" r="1.5"/>
+                          </svg>
+                        </div>
+                        <div class="section-info">
+                          <h4 class="section-title">{section.title}</h4>
+                          <p class="section-description">{section.description || 'No description'}</p>
+                        </div>
+                        <div class="section-meta">
+                          <span class="badge">{section.type || 'default'}</span>
+                          <span class="position-badge">Position: {section.position}</span>
+                        </div>
+                        <div class="section-actions">
+                          <button
+                            class="btn-icon"
+                            onclick={() => goto(`/sections/${section.ID}`)}
+                            title="Edit section"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            class="btn-icon delete"
+                            onclick={() => handleDeleteSection(section)}
+                            title="Delete section"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
             </div>
           </div>
          {/if}
@@ -557,3 +708,150 @@
  onClose={() => showDeleteModal = false}
  onConfirm={handleDeletePortfolio}
 />
+
+<style>
+  .sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .section-item {
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    transition: all 0.2s ease;
+    cursor: move;
+  }
+
+  .section-item:hover {
+    border-color: var(--color-primary-300);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .section-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+
+  .section-item.drag-over {
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-50);
+    transform: translateY(-2px);
+  }
+
+  .section-header-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .drag-handle {
+    color: var(--color-gray-400);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    padding: var(--space-1);
+    transition: color 0.2s ease;
+  }
+
+  .drag-handle:hover {
+    color: var(--color-gray-600);
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
+  .section-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .section-description {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .section-meta {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .badge {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .position-badge {
+    color: var(--color-gray-500);
+    font-size: var(--text-xs);
+    font-weight: 500;
+  }
+
+  .section-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    padding: var(--space-2);
+    cursor: pointer;
+    color: var(--color-gray-600);
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-icon:hover {
+    background: var(--color-gray-100);
+    color: var(--color-primary-600);
+  }
+
+  .btn-icon.delete:hover {
+    background: var(--color-red-50);
+    color: var(--color-red-600);
+  }
+
+  .empty-icon {
+    color: var(--color-gray-400);
+  }
+
+  @media (max-width: 768px) {
+    .section-header-row {
+      flex-wrap: wrap;
+    }
+
+    .section-meta {
+      flex-basis: 100%;
+      order: 3;
+      margin-top: var(--space-2);
+    }
+
+    .section-actions {
+      order: 2;
+    }
+  }
+</style>

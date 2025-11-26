@@ -158,13 +158,13 @@
   <div
     class="dropzone"
     class:dragging={isDragging}
-    on:dragover={handleDragOver}
-    on:dragleave={handleDragLeave}
-    on:drop={handleDrop}
+    ondragover={handleDragOver}
+    ondragleave={handleDragLeave}
+    ondrop={handleDrop}
     role="button"
     tabindex="0"
     onclick={openFileDialog}
-    on:keydown={(e) => e.key === "Enter" && openFileDialog()}
+    onkeydown={(e) => e.key === "Enter" && openFileDialog()}
   >
     <svg
       class="upload-icon"
