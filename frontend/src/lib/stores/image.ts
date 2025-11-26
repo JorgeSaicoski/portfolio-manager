@@ -31,7 +31,8 @@ function createImageStore() {
       file: File,
       entityType: "project" | "portfolio" | "section",
       entityId: number,
-      alt?: string
+      alt?: string,
+      imageType?: "photo" | "image" | "icon" | "logo" | "banner" | "avatar" | "background"
     ): Promise<Image> {
       update((state) => ({ ...state, loading: true, error: null, uploadProgress: 0 }));
 
@@ -40,6 +41,7 @@ function createImageStore() {
         formData.append("file", file);
         formData.append("entity_type", entityType);
         formData.append("entity_id", entityId.toString());
+        formData.append("type", imageType || "image"); // Default to "image" if not specified
         if (alt) {
           formData.append("alt", alt);
         }

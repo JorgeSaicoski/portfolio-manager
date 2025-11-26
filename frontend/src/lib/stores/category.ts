@@ -304,7 +304,7 @@ function createCategoryStore() {
     async updatePosition(id: number, newPosition: number): Promise<Category> {
       try {
         const response = await authenticatedFetch(
-          `${CATEGORY_API_URL}/own/${id}`,
+          `${CATEGORY_API_URL}/own/${id}/position`,
           {
             method: "PUT",
             body: JSON.stringify({ position: newPosition }),
