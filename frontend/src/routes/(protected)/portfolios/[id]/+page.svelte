@@ -874,6 +874,7 @@
 
 {#if showCategoryModal}
   <CategoryModal
+    portfolio_id={portfolioId}
     onClose={() => showCategoryModal = false}
     onSuccess={async () => {
       showCategoryModal = false;
