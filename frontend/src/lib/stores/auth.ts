@@ -454,10 +454,19 @@ export async function authenticatedFetch(
     throw new Error('Not authenticated');
   }
 
-  const headers = {
-    ...getAuthHeaders(),
-    ...options.headers
-  };
+  // Build headers conditionally based on body type
+  const baseHeaders = getAuthHeaders();
+  const headers = options.body instanceof FormData
+    ? {
+        // For FormData, only add Authorization (let browser set Content-Type)
+        'Authorization': baseHeaders['Authorization'],
+        ...options.headers
+      }
+    : {
+        // For other requests, include all default headers (including Content-Type)
+        ...baseHeaders,
+        ...options.headers
+      };
 
   const response = await fetch(url, {
     ...options,
