@@ -173,7 +173,7 @@
                   <tr>
                     <td>{section.title}</td>
                     <td>{section.description || 'No description'}</td>
-                    <td>{section.type || '-'}</td>
+                    <td>{section.type || 'text'}</td>
                     <td>{section.position || '-'}</td>
                     <td>
                       <div class="table-actions">
