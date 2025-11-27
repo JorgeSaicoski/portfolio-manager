@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { sectionStore } from "$lib/stores/section";
+  import SectionContentModal from "$lib/components/section/SectionContentModal.svelte";
   import type { Section } from "$lib/types/api";
 
   // Get data from load function
@@ -14,6 +15,7 @@
   let section: Section | null = $state(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
+  let showContentModal = $state(false);
 
   // Load section on mount
   onMount(async () => {
@@ -36,7 +38,11 @@
 
   // Navigation functions
   function goBack() {
-    goto("/sections");
+    if (section?.portfolio_id) {
+      goto(`/portfolios/${section.portfolio_id}`);
+    } else {
+      goto("/portfolios");
+    }
   }
 
   function goToDashboard() {
@@ -95,10 +101,16 @@
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
             </svg>
-            Back to Sections
+            Back to Portfolio
+          </button>
+          <button class="btn btn-primary" onclick={() => showContentModal = true}>
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+            Manage Contents
           </button>
           {#if section.portfolio_id}
-            <button class="btn btn-primary" onclick={goToPortfolio}>
+            <button class="btn btn-outline" onclick={goToPortfolio}>
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l-5.5 9h11z M12 22l5.5-9h-11z M5.5 11L12 2 18.5 11z" />
               </svg>
@@ -231,6 +243,14 @@
     </div>
   </main>
 </div>
+
+{#if showContentModal && section}
+  <SectionContentModal
+    {section}
+    isOpen={showContentModal}
+    onClose={() => showContentModal = false}
+  />
+{/if}
 
 <style>
   .metadata-grid {

@@ -6,6 +6,8 @@
  import { sectionStore } from "$lib/stores/section";
  import type { Category, Section } from "$lib/types/api";
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
+ import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
+ import SectionForm from "$lib/components/admin/SectionForm.svelte";
 
  // Get data from load function
  export let data: { id: number };
@@ -19,6 +21,8 @@
  let error: string | null = null;
  let isEditing = false;
  let showDeleteModal = false;
+ let showCategoryModal = false;
+ let showSectionModal = false;
 
  // Categories and Sections
  let categories: Category[] = [];
@@ -128,6 +132,81 @@
      await loadSections(); // Reload to get updated positions
    } catch (err) {
      console.error("Failed to update section position:", err);
+   }
+ }
+
+ // Drag and drop for categories
+ let draggedCategory: Category | null = null;
+ let draggedOverCategoryIndex: number | null = null;
+
+ function handleCategoryDragStart(e: DragEvent, category: Category) {
+   draggedCategory = category;
+   if (e.dataTransfer) {
+     e.dataTransfer.effectAllowed = 'move';
+   }
+ }
+
+ function handleCategoryDragOver(e: DragEvent, index: number) {
+   if (!draggedCategory) return;
+   e.preventDefault();
+   draggedOverCategoryIndex = index;
+   if (e.dataTransfer) {
+     e.dataTransfer.dropEffect = 'move';
+   }
+ }
+
+ function handleCategoryDragLeave() {
+   draggedOverCategoryIndex = null;
+ }
+
+ async function handleCategoryDrop(e: DragEvent, dropIndex: number) {
+   if (!draggedCategory) return;
+   e.preventDefault();
+
+   const draggedIndex = categories.findIndex(c => c.ID === draggedCategory!.ID);
+   if (draggedIndex === dropIndex) {
+     draggedCategory = null;
+     draggedOverCategoryIndex = null;
+     return;
+   }
+
+   // Reorder array optimistically
+   const reorderedCategories = [...categories];
+   const [removed] = reorderedCategories.splice(draggedIndex, 1);
+   reorderedCategories.splice(dropIndex, 0, removed);
+   categories = reorderedCategories;
+
+   // Update positions in backend
+   try {
+     // Update the position of the dragged category to match its new position
+     // Note: Position is 1-based, dropIndex is 0-based
+     const newPosition = dropIndex + 1;
+     await categoryStore.updatePosition(draggedCategory.ID, newPosition);
+     await loadCategories(); // Reload to get correct positions from server
+   } catch (err) {
+     console.error('Failed to reorder categories:', err);
+     alert('Failed to reorder categories. Please try again.');
+     await loadCategories(); // Reload on error to revert
+   }
+
+   draggedCategory = null;
+   draggedOverCategoryIndex = null;
+ }
+
+ function handleCategoryDragEnd() {
+   draggedCategory = null;
+   draggedOverCategoryIndex = null;
+ }
+
+ async function handleDeleteCategory(category: Category) {
+   if (confirm(`Are you sure you want to delete the category "${category.title}"? This action cannot be undone.`)) {
+     try {
+       await categoryStore.delete(category.ID);
+       categories = categories.filter(c => c.ID !== category.ID);
+     } catch (err) {
+       console.error('Error deleting category:', err);
+       alert('Failed to delete category. Please try again.');
+     }
    }
  }
 
@@ -607,7 +686,7 @@
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
                 <h3>Portfolio Categories</h3>
-                <button class="btn btn-primary btn-sm" onclick={() => goto('/categories')}>
+                <button class="btn btn-primary btn-sm" onclick={() => showCategoryModal = true}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -630,15 +709,35 @@
                   </div>
                   <h4>No categories yet</h4>
                   <p class="text-muted">Create your first category for this portfolio</p>
-                  <button class="btn btn-primary" onclick={() => goto('/categories')} style="margin-top: var(--space-4);">
+                  <button class="btn btn-primary" onclick={() => showCategoryModal = true} style="margin-top: var(--space-4);">
                     Create Category
                   </button>
                 </div>
               {:else}
                 <div class="categories-list">
-                  {#each categories as category (category.ID)}
-                    <div class="category-item">
+                  {#each categories as category, index (category.ID)}
+                    <div
+                      class="category-item"
+                      class:dragging={draggedCategory?.ID === category.ID}
+                      class:drag-over={draggedOverCategoryIndex === index}
+                      draggable={true}
+                      ondragstart={(e) => handleCategoryDragStart(e, category)}
+                      ondragover={(e) => handleCategoryDragOver(e, index)}
+                      ondragleave={handleCategoryDragLeave}
+                      ondrop={(e) => handleCategoryDrop(e, index)}
+                      ondragend={handleCategoryDragEnd}
+                    >
                       <div class="category-header-row">
+                        <div class="drag-handle" title="Drag to reorder">
+                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="9" cy="6" r="1.5"/>
+                            <circle cx="15" cy="6" r="1.5"/>
+                            <circle cx="9" cy="12" r="1.5"/>
+                            <circle cx="15" cy="12" r="1.5"/>
+                            <circle cx="9" cy="18" r="1.5"/>
+                            <circle cx="15" cy="18" r="1.5"/>
+                          </svg>
+                        </div>
                         <div class="category-info">
                           <h4 class="category-title">{category.title}</h4>
                           <p class="category-description">{category.description || 'No description'}</p>
@@ -649,32 +748,20 @@
                         <div class="category-actions">
                           <button
                             class="btn-icon"
-                            onclick={() => moveCategory(category, 'up')}
-                            disabled={categories.findIndex(c => c.ID === category.ID) === 0}
-                            title="Move up"
-                          >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon"
-                            onclick={() => moveCategory(category, 'down')}
-                            disabled={categories.findIndex(c => c.ID === category.ID) === categories.length - 1}
-                            title="Move down"
-                          >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon"
                             onclick={() => goto(`/categories/${category.ID}`)}
                             title="View category"
                           >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            class="btn-icon delete"
+                            onclick={() => handleDeleteCategory(category)}
+                            title="Delete category"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
                         </div>
@@ -691,7 +778,7 @@
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
                 <h3>Portfolio Sections</h3>
-                <button class="btn btn-primary btn-sm" onclick={() => goto('/sections')}>
+                <button class="btn btn-primary btn-sm" onclick={() => showSectionModal = true}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -714,7 +801,7 @@
                   </div>
                   <h4>No sections yet</h4>
                   <p class="text-muted">Create your first section for this portfolio</p>
-                  <button class="btn btn-primary" onclick={() => goto('/sections')} style="margin-top: var(--space-4);">
+                  <button class="btn btn-primary" onclick={() => showSectionModal = true} style="margin-top: var(--space-4);">
                     Create Section
                   </button>
                 </div>
@@ -785,6 +872,35 @@
  </main>
 </div>
 
+{#if showCategoryModal}
+  <CategoryModal
+    onClose={() => showCategoryModal = false}
+    onSuccess={async () => {
+      showCategoryModal = false;
+      await loadCategories();
+    }}
+  />
+{/if}
+
+{#if showSectionModal}
+  <div class="modal-overlay" onclick={() => showSectionModal = false}>
+    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+      <div class="modal-header">
+        <h2>Create New Section</h2>
+        <button class="modal-close" onclick={() => showSectionModal = false}>×</button>
+      </div>
+      <SectionForm
+        section={null}
+        onSuccess={async () => {
+          showSectionModal = false;
+          await loadSections();
+        }}
+        onCancel={() => showSectionModal = false}
+      />
+    </div>
+  </div>
+{/if}
+
 <DeleteModal
  bind:isOpen={showDeleteModal}
  itemName={portfolio?.title}
@@ -795,6 +911,75 @@
 />
 
 <style>
+  .categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .category-item {
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    transition: all 0.2s ease;
+    cursor: move;
+  }
+
+  .category-item:hover {
+    border-color: var(--color-primary-300);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .category-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+
+  .category-item.drag-over {
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-50);
+    transform: translateY(-2px);
+  }
+
+  .category-header-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .category-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .category-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .category-description {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .category-meta {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .category-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
   .sections-list {
     display: flex;
     flex-direction: column;
@@ -924,17 +1109,81 @@
     color: var(--color-gray-400);
   }
 
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-4);
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--color-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--color-gray-900);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-gray-400);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+  }
+
+  .modal-close:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+  }
+
   @media (max-width: 768px) {
+    .category-header-row,
     .section-header-row {
       flex-wrap: wrap;
     }
 
+    .category-meta,
     .section-meta {
       flex-basis: 100%;
       order: 3;
       margin-top: var(--space-2);
     }
 
+    .category-actions,
     .section-actions {
       order: 2;
     }
