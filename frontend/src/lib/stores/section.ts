@@ -262,6 +262,37 @@ function createSectionStore() {
       }
     },
 
+    // Bulk reorder sections (protected)
+    async bulkReorder(updates: Array<{id: number, position: number}>): Promise<void> {
+      try {
+        const response = await authenticatedFetch(
+          `${SECTION_API_URL}/own/reorder`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ items: updates }),
+          }
+        );
+
+        if (!response.ok) {
+          const data: ApiResponse<null> = await response.json();
+          throw new Error(data.error || "Failed to reorder sections");
+        }
+
+        // Update store with new positions
+        update((state) => ({
+          ...state,
+          sections: state.sections.map(sec => {
+            const updated = updates.find(u => u.id === sec.ID);
+            return updated ? { ...sec, position: updated.position } : sec;
+          })
+        }));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        throw new Error(errorMessage);
+      }
+    },
+
     // Delete section (protected)
     async delete(id: number): Promise<void> {
       update((state) => ({ ...state, loading: true, error: null }));

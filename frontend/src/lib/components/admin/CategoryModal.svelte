@@ -126,8 +126,6 @@
                     {#if portfolioError}
                         <p class="form-error">Please select a portfolio</p>
                     {/if}
-                    {#if category}
-                    {/if}
                     <p class="form-hint">Portfolio cannot be changed after creation</p>
                 </div>
 

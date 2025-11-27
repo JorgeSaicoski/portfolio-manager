@@ -139,6 +139,12 @@
  let draggedCategory: Category | null = null;
  let draggedOverCategoryIndex: number | null = null;
 
+ // Debounce timers for position updates
+ let categoryDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+ let sectionDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+ let savingCategories = $state(false);
+ let savingSections = $state(false);
+
  function handleCategoryDragStart(e: DragEvent, category: Category) {
    draggedCategory = category;
    if (e.dataTransfer) {
@@ -174,20 +180,12 @@
    const reorderedCategories = [...categories];
    const [removed] = reorderedCategories.splice(draggedIndex, 1);
    reorderedCategories.splice(dropIndex, 0, removed);
+
+   // Update local state immediately
    categories = reorderedCategories;
 
-   // Update positions in backend
-   try {
-     // Update the position of the dragged category to match its new position
-     // Note: Position is 1-based, dropIndex is 0-based
-     const newPosition = dropIndex + 1;
-     await categoryStore.updatePosition(draggedCategory.ID, newPosition);
-     await loadCategories(); // Reload to get correct positions from server
-   } catch (err) {
-     console.error('Failed to reorder categories:', err);
-     alert('Failed to reorder categories. Please try again.');
-     await loadCategories(); // Reload on error to revert
-   }
+   // Trigger debounced save
+   debouncedReorderCategories(reorderedCategories);
 
    draggedCategory = null;
    draggedOverCategoryIndex = null;
@@ -196,6 +194,40 @@
  function handleCategoryDragEnd() {
    draggedCategory = null;
    draggedOverCategoryIndex = null;
+ }
+
+ async function debouncedReorderCategories(reorderedList: Category[]) {
+   // Clear existing timer
+   if (categoryDebounceTimer) {
+     clearTimeout(categoryDebounceTimer);
+   }
+
+   // Set saving state
+   savingCategories = true;
+
+   // Start new 2.5 second timer
+   categoryDebounceTimer = setTimeout(async () => {
+     try {
+       // Prepare bulk update payload
+       const updates = reorderedList.map((cat, index) => ({
+         id: cat.ID,
+         position: index + 1
+       }));
+
+       // Call new bulk reorder endpoint
+       await categoryStore.bulkReorder(updates);
+
+       // Reload to sync with server
+       await loadCategories();
+
+       savingCategories = false;
+     } catch (err) {
+       console.error('Failed to reorder categories:', err);
+       alert('Failed to save category order. Please try again.');
+       await loadCategories(); // Revert on error
+       savingCategories = false;
+     }
+   }, 2500); // 2.5 seconds
  }
 
  async function handleDeleteCategory(category: Category) {
@@ -249,20 +281,12 @@
    const reorderedSections = [...sections];
    const [removed] = reorderedSections.splice(draggedIndex, 1);
    reorderedSections.splice(dropIndex, 0, removed);
+
+   // Update local state immediately
    sections = reorderedSections;
 
-   // Update positions in backend
-   try {
-     // Update the position of the dragged section to match its new position
-     // Note: Position is 1-based, dropIndex is 0-based
-     const newPosition = dropIndex + 1;
-     await sectionStore.updatePosition(draggedSection.ID, newPosition);
-     await loadSections(); // Reload to get correct positions from server
-   } catch (err) {
-     console.error('Failed to reorder sections:', err);
-     alert('Failed to reorder sections. Please try again.');
-     await loadSections(); // Reload on error to revert
-   }
+   // Trigger debounced save
+   debouncedReorderSections(reorderedSections);
 
    draggedSection = null;
    draggedOverSectionIndex = null;
@@ -271,6 +295,40 @@
  function handleSectionDragEnd() {
    draggedSection = null;
    draggedOverSectionIndex = null;
+ }
+
+ async function debouncedReorderSections(reorderedList: Section[]) {
+   // Clear existing timer
+   if (sectionDebounceTimer) {
+     clearTimeout(sectionDebounceTimer);
+   }
+
+   // Set saving state
+   savingSections = true;
+
+   // Start new 2.5 second timer
+   sectionDebounceTimer = setTimeout(async () => {
+     try {
+       // Prepare bulk update payload
+       const updates = reorderedList.map((sec, index) => ({
+         id: sec.ID,
+         position: index + 1
+       }));
+
+       // Call new bulk reorder endpoint
+       await sectionStore.bulkReorder(updates);
+
+       // Reload to sync with server
+       await loadSections();
+
+       savingSections = false;
+     } catch (err) {
+       console.error('Failed to reorder sections:', err);
+       alert('Failed to save section order. Please try again.');
+       await loadSections(); // Revert on error
+       savingSections = false;
+     }
+   }, 2500); // 2.5 seconds
  }
 
  async function handleDeleteSection(section: Section) {
@@ -685,7 +743,12 @@
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
-                <h3>Portfolio Categories</h3>
+                <div class="flex" style="align-items: center; gap: var(--space-3);">
+                  <h3>Portfolio Categories</h3>
+                  {#if savingCategories}
+                    <span class="saving-indicator">Saving...</span>
+                  {/if}
+                </div>
                 <button class="btn btn-primary btn-sm" onclick={() => showCategoryModal = true}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -777,7 +840,12 @@
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
-                <h3>Portfolio Sections</h3>
+                <div class="flex" style="align-items: center; gap: var(--space-3);">
+                  <h3>Portfolio Sections</h3>
+                  {#if savingSections}
+                    <span class="saving-indicator">Saving...</span>
+                  {/if}
+                </div>
                 <button class="btn btn-primary btn-sm" onclick={() => showSectionModal = true}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -1169,6 +1237,18 @@
   .modal-close:hover {
     background: var(--color-gray-100);
     color: var(--color-gray-600);
+  }
+
+  .saving-indicator {
+    font-size: var(--text-sm);
+    color: var(--color-primary-600);
+    font-weight: 500;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 
   @media (max-width: 768px) {
