@@ -35,6 +35,16 @@ Set up Prometheus and Grafana for metrics and monitoring.
 - Alerting rules
 - Performance monitoring
 
+## Operations & Maintenance
+
+### [Operations Documentation](../operations/)
+Daily operations, audit logging, and maintenance procedures.
+
+**Key Topics:**
+- [Audit Logging](../operations/audit-logging.md) - Track all system operations and enable emergency recovery
+- [Backup & Restore](../operations/backup-restore.md) - Database backup and restore procedures
+- [How-To Guides](../how-to-do/) - Step-by-step operational tasks
+
 ### [Database UI](database-ui.md)
 Manage databases with Adminer web interface.
 

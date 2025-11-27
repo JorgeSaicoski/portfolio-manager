@@ -11,6 +11,13 @@ Welcome to the Portfolio Manager documentation! This guide will help you find th
 - Automates 61% of manual setup steps
 - Reduces setup time from 15-20 minutes to 5-10 minutes
 
+### 🔧 [Operations](operations/)
+Daily operations, maintenance, and troubleshooting for running Portfolio Manager.
+
+- **[Audit Logging](operations/audit-logging.md)** - Complete audit logging system with emergency DB recovery
+- **[Backup & Restore](operations/backup-restore.md)** - Database backup and restore procedures
+- **[How-To Guides](how-to-do/)** - Step-by-step operational tasks
+
 ### 🔐 [Authentication](authentication/)
 Everything related to user authentication, OAuth2, and Authentik setup.
 

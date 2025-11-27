@@ -24,6 +24,17 @@ Results from security audits and penetration testing.
 - Security improvements
 - Testing methodology
 
+### [Audit Logging](../operations/audit-logging.md)
+Complete operational audit logging system (see Operations documentation).
+
+**Covers:**
+- System audit logs for all CRUD operations
+- Log structure and querying
+- Emergency database recovery from logs
+- Troubleshooting and compliance
+
+**Note:** This is different from security audits - it covers the operational audit logging system that tracks all user actions and system events.
+
 ### [Vulnerabilities](vulnerabilities.md)
 Known security issues and mitigations.
 
