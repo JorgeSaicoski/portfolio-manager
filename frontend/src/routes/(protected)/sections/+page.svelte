@@ -6,6 +6,7 @@
   import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
   import AdminTopBar from '$lib/components/admin/AdminTopBar.svelte';
   import SectionForm from '$lib/components/admin/SectionForm.svelte';
+  import SectionContentModal from '$lib/components/section/SectionContentModal.svelte';
   import type { Section } from '$lib/types/api';
 
   // Auth state
@@ -18,6 +19,10 @@
   let loading = $state(true);
   let showModal = $state(false);
   let selectedSection: Section | null = $state(null);
+
+  // Section content modal state
+  let showContentModal = $state(false);
+  let selectedSectionForContent: Section | null = $state(null);
 
   // Load sections
   onMount(async () => {
@@ -79,6 +84,16 @@
         console.error('Error deleting section:', error);
       }
     }
+  }
+
+  function handleManageContents(section: Section) {
+    selectedSectionForContent = section;
+    showContentModal = true;
+  }
+
+  function handleContentModalClose() {
+    showContentModal = false;
+    selectedSectionForContent = null;
   }
 </script>
 
@@ -162,6 +177,11 @@
                     <td>{section.position || '-'}</td>
                     <td>
                       <div class="table-actions">
+                        <button class="btn-icon content" onclick={() => handleManageContents(section)} aria-label="Manage contents" title="Manage Contents">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                          </svg>
+                        </button>
                         <button class="btn-icon edit" onclick={() => handleEdit(section)} aria-label="Edit section">
                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -200,6 +220,15 @@
       </div>
     </div>
   {/if}
+
+  <!-- Section Content Modal -->
+  {#if showContentModal && selectedSectionForContent}
+    <SectionContentModal
+      section={selectedSectionForContent}
+      isOpen={showContentModal}
+      onClose={handleContentModalClose}
+    />
+  {/if}
 {/if}
 
 <style>
@@ -225,6 +254,16 @@
   }
 
   /* Note: .btn-icon styles removed - using global styles from _tables.scss for proper colors */
+
+  /* Content button specific color */
+  .btn-icon.content {
+    color: var(--color-blue-600);
+  }
+
+  .btn-icon.content:hover {
+    background: var(--color-blue-50);
+    color: var(--color-blue-700);
+  }
 
   @media (max-width: 768px) {
     .section-header {
