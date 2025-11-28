@@ -517,7 +517,13 @@ db-ui-restart: ## Restart Adminer
 
 ##@ Monitoring
 
-monitoring-start: ## Start Prometheus and Grafana
+fix-monitoring-permissions: ## Fix Prometheus alert rules file permissions
+	@echo "$(BLUE)Fixing monitoring file permissions...$(RESET)"
+	@chmod -R 644 monitoring/prometheus/rules/*.yml 2>/dev/null || true
+	@chmod -R 644 monitoring/prometheus/*.yml 2>/dev/null || true
+	@echo "$(GREEN)✓ Permissions fixed$(RESET)"
+
+monitoring-start: fix-monitoring-permissions ## Start Prometheus and Grafana
 	@echo "$(BLUE)Starting monitoring services...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) --profile monitoring up -d
 	@echo "$(GREEN)✓ Monitoring started$(RESET)"

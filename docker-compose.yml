@@ -192,10 +192,11 @@ services:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro,Z
       - prometheus_data:/prometheus
     networks:
       - portfolio-network
-    user: "65534:65534"  # nobody user
+    # user: "65534:65534"  # Removed to allow reading mounted config files
 
   # PostgreSQL Exporter - Monitoring Profile
   postgres-exporter:
