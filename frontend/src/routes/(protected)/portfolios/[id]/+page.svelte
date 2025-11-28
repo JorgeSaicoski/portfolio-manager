@@ -7,38 +7,38 @@
  import type { Category, Section } from "$lib/types/api";
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
  import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
- import SectionForm from "$lib/components/admin/SectionForm.svelte";
+ import SectionModal from "$lib/components/admin/SectionModal.svelte";
 
  // Get data from load function
- export let data: { id: number };
+ const { data } = $props() as { data: { id: number } };
 
  // Page parameters
- $: portfolioId = data.id;
+ const portfolioId: number = data.id;
 
  // Component state
- let portfolio: Portfolio | null = null;
- let loading = true;
- let error: string | null = null;
- let isEditing = false;
- let showDeleteModal = false;
- let showCategoryModal = false;
- let showSectionModal = false;
+ let portfolio = $state<Portfolio | null>(null);
+ let loading = $state(true);
+ let error = $state<string | null>(null);
+ let isEditing = $state(false);
+ let showDeleteModal = $state(false);
+ let showCategoryModal = $state(false);
+ let showSectionModal = $state(false);
 
  // Categories and Sections
- let categories: Category[] = [];
- let sections: Section[] = [];
- let loadingCategories = false;
- let loadingSections = false;
+ let categories = $state<Category[]>([]);
+ let sections = $state<Section[]>([]);
+ let loadingCategories = $state(false);
+ let loadingSections = $state(false);
 
  // Edit form state
- let editTitle = "";
- let editDescription = "";
- let editError = "";
- let isSubmitting = false;
+ let editTitle = $state("");
+ let editDescription = $state("");
+ let editError = $state("");
+ let isSubmitting = $state(false);
 
  // Form validation
- let titleError = "";
- let descriptionError = "";
+ let titleError = $state("");
+ let descriptionError = $state("");
 
  // Load portfolio on mount
  onMount(async () => {
@@ -136,8 +136,8 @@
  }
 
  // Drag and drop for categories
- let draggedCategory: Category | null = null;
- let draggedOverCategoryIndex: number | null = null;
+ let draggedCategory = $state<Category | null>(null);
+ let draggedOverCategoryIndex = $state<number | null>(null);
 
  // Debounce timers for position updates
  let categoryDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -243,8 +243,8 @@
  }
 
  // Drag and drop for sections
- let draggedSection: Section | null = null;
- let draggedOverSectionIndex: number | null = null;
+ let draggedSection = $state<Section | null>(null);
+ let draggedOverSectionIndex = $state<number | null>(null);
 
  function handleSectionDragStart(e: DragEvent, section: Section) {
    draggedSection = section;
@@ -780,6 +780,7 @@
                 <div class="categories-list">
                   {#each categories as category, index (category.ID)}
                     <div
+                      role="listitem"
                       class="category-item"
                       class:dragging={draggedCategory?.ID === category.ID}
                       class:drag-over={draggedOverCategoryIndex === index}
@@ -813,6 +814,7 @@
                             class="btn-icon"
                             onclick={() => goto(`/categories/${category.ID}`)}
                             title="View category"
+                            aria-label="View category"
                           >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -822,6 +824,7 @@
                             class="btn-icon delete"
                             onclick={() => handleDeleteCategory(category)}
                             title="Delete category"
+                            aria-label="Delete category"
                           >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -877,6 +880,7 @@
                 <div class="sections-list">
                   {#each sections as section, index (section.ID)}
                     <div
+                      role="listitem"
                       class="section-item"
                       class:dragging={draggedSection?.ID === section.ID}
                       class:drag-over={draggedOverSectionIndex === index}
@@ -911,6 +915,7 @@
                             class="btn-icon"
                             onclick={() => goto(`/sections/${section.ID}`)}
                             title="Edit section"
+                            aria-label="Edit section"
                           >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -920,6 +925,7 @@
                             class="btn-icon delete"
                             onclick={() => handleDeleteSection(section)}
                             title="Delete section"
+                            aria-label="Delete section"
                           >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -952,23 +958,15 @@
 {/if}
 
 {#if showSectionModal}
-  <div class="modal-overlay" onclick={() => showSectionModal = false}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-      <div class="modal-header">
-        <h2>Create New Section</h2>
-        <button class="modal-close" onclick={() => showSectionModal = false}>×</button>
-      </div>
-      <SectionForm
-        section={null}
-        portfolio_id={portfolioId}
-        onSuccess={async () => {
-          showSectionModal = false;
-          await loadSections();
-        }}
-        onCancel={() => showSectionModal = false}
-      />
-    </div>
-  </div>
+  <SectionModal
+    section={null}
+    portfolio_id={portfolioId}
+    onClose={() => showSectionModal = false}
+    onSuccess={async () => {
+      showSectionModal = false;
+      await loadSections();
+    }}
+  />
 {/if}
 
 <DeleteModal
@@ -979,295 +977,3 @@
  onClose={() => showDeleteModal = false}
  onConfirm={handleDeletePortfolio}
 />
-
-<style>
-  .categories-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .category-item {
-    background: var(--color-gray-50);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    transition: all 0.2s ease;
-    cursor: move;
-  }
-
-  .category-item:hover {
-    border-color: var(--color-primary-300);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .category-item.dragging {
-    opacity: 0.5;
-    transform: scale(0.98);
-  }
-
-  .category-item.drag-over {
-    border-color: var(--color-primary-500);
-    background: var(--color-primary-50);
-    transform: translateY(-2px);
-  }
-
-  .category-header-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .category-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .category-title {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-gray-900);
-    margin: 0 0 var(--space-1) 0;
-  }
-
-  .category-description {
-    font-size: var(--text-sm);
-    color: var(--color-gray-600);
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .category-meta {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .category-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .sections-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .section-item {
-    background: var(--color-gray-50);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    transition: all 0.2s ease;
-    cursor: move;
-  }
-
-  .section-item:hover {
-    border-color: var(--color-primary-300);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .section-item.dragging {
-    opacity: 0.5;
-    transform: scale(0.98);
-  }
-
-  .section-item.drag-over {
-    border-color: var(--color-primary-500);
-    background: var(--color-primary-50);
-    transform: translateY(-2px);
-  }
-
-  .section-header-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .drag-handle {
-    color: var(--color-gray-400);
-    cursor: grab;
-    display: flex;
-    align-items: center;
-    padding: var(--space-1);
-    transition: color 0.2s ease;
-  }
-
-  .drag-handle:hover {
-    color: var(--color-gray-600);
-  }
-
-  .drag-handle:active {
-    cursor: grabbing;
-  }
-
-  .section-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .section-title {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-gray-900);
-    margin: 0 0 var(--space-1) 0;
-  }
-
-  .section-description {
-    font-size: var(--text-sm);
-    color: var(--color-gray-600);
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .section-meta {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .badge {
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .position-badge {
-    color: var(--color-gray-500);
-    font-size: var(--text-xs);
-    font-weight: 500;
-  }
-
-  .section-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .btn-icon {
-    background: none;
-    border: none;
-    padding: var(--space-2);
-    cursor: pointer;
-    color: var(--color-gray-600);
-    transition: all 0.2s ease;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-icon:hover {
-    background: var(--color-gray-100);
-    color: var(--color-primary-600);
-  }
-
-  .btn-icon.delete:hover {
-    background: var(--color-red-50);
-    color: var(--color-red-600);
-  }
-
-  .empty-icon {
-    color: var(--color-gray-400);
-  }
-
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-4);
-  }
-
-  .modal-content {
-    background: white;
-    border-radius: var(--radius-lg);
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  }
-
-  .modal-header {
-    padding: var(--space-6);
-    border-bottom: 1px solid var(--color-gray-200);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .modal-header h2 {
-    margin: 0;
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    line-height: 1;
-    cursor: pointer;
-    color: var(--color-gray-400);
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
-    transition: all 0.2s ease;
-  }
-
-  .modal-close:hover {
-    background: var(--color-gray-100);
-    color: var(--color-gray-600);
-  }
-
-  .saving-indicator {
-    font-size: var(--text-sm);
-    color: var(--color-primary-600);
-    font-weight: 500;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  @media (max-width: 768px) {
-    .category-header-row,
-    .section-header-row {
-      flex-wrap: wrap;
-    }
-
-    .category-meta,
-    .section-meta {
-      flex-basis: 100%;
-      order: 3;
-      margin-top: var(--space-2);
-    }
-
-    .category-actions,
-    .section-actions {
-      order: 2;
-    }
-  }
-</style>
