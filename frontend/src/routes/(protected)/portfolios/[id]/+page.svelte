@@ -175,7 +175,8 @@
    // Update positions in backend
    try {
      // Update the position of the dragged section to match its new position
-     const newPosition = dropIndex;
+     // Note: Position is 1-based, dropIndex is 0-based
+     const newPosition = dropIndex + 1;
      await sectionStore.updatePosition(draggedSection.ID, newPosition);
      await loadSections(); // Reload to get correct positions from server
    } catch (err) {
@@ -600,6 +601,90 @@
                </div>
              </div>
            </div>
+
+           <!-- Portfolio Categories -->
+          <div class="card" style="margin-top: var(--space-6);">
+            <div class="card-header">
+              <div class="flex" style="justify-content: space-between; align-items: center;">
+                <h3>Portfolio Categories</h3>
+                <button class="btn btn-primary btn-sm" onclick={() => goto('/categories')}>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  New Category
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              {#if loadingCategories}
+                <div class="text-center" style="padding: var(--space-8);">
+                  <p class="text-muted">Loading categories...</p>
+                </div>
+              {:else if categories.length === 0}
+                <div class="text-center" style="padding: var(--space-8);">
+                  <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <h4>No categories yet</h4>
+                  <p class="text-muted">Create your first category for this portfolio</p>
+                  <button class="btn btn-primary" onclick={() => goto('/categories')} style="margin-top: var(--space-4);">
+                    Create Category
+                  </button>
+                </div>
+              {:else}
+                <div class="categories-list">
+                  {#each categories as category (category.ID)}
+                    <div class="category-item">
+                      <div class="category-header-row">
+                        <div class="category-info">
+                          <h4 class="category-title">{category.title}</h4>
+                          <p class="category-description">{category.description || 'No description'}</p>
+                        </div>
+                        <div class="category-meta">
+                          <span class="position-badge">Position: {category.position}</span>
+                        </div>
+                        <div class="category-actions">
+                          <button
+                            class="btn-icon"
+                            onclick={() => moveCategory(category, 'up')}
+                            disabled={categories.findIndex(c => c.ID === category.ID) === 0}
+                            title="Move up"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            class="btn-icon"
+                            onclick={() => moveCategory(category, 'down')}
+                            disabled={categories.findIndex(c => c.ID === category.ID) === categories.length - 1}
+                            title="Move down"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          <button
+                            class="btn-icon"
+                            onclick={() => goto(`/categories/${category.ID}`)}
+                            title="View category"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </div>
 
            <!-- Portfolio Sections -->
           <div class="card" style="margin-top: var(--space-6);">

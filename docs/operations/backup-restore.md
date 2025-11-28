@@ -383,6 +383,79 @@ podman exec -i portfolio-postgres pg_restore \
 
 **Warning**: Manual recovery requires PostgreSQL knowledge and can cause data conflicts.
 
+### Audit Logs as Backup Alternative
+
+**Portfolio Manager's audit logging system provides an alternative recovery method** when backups are unavailable or corrupted.
+
+#### When to Use Audit Logs for Recovery
+
+✅ **Use audit log recovery when:**
+- Backup files are corrupted or inaccessible
+- Backups are outdated but recent audit logs exist
+- Need to prove exact data state at a specific timestamp
+- Partial data recovery needed (specific tables only)
+- Combining with older backup for incremental recovery
+
+❌ **Limitations:**
+- Time-consuming (2-8 hours vs 5-10 min for backup restore)
+- Requires complete audit logs from beginning or checkpoint
+- Cannot recover read operations (GET requests)
+- Requires manual verification
+
+#### Comparison: Backup vs Audit Recovery
+
+| Aspect | Traditional Backup | Audit Log Recovery | Combined Approach |
+|--------|-------------------|-------------------|-------------------|
+| **Speed** | 5-10 minutes | 2-8 hours | 30-60 minutes |
+| **Complexity** | Simple | Complex | Moderate |
+| **Data completeness** | Full snapshot | CREATE/UPDATE/DELETE only | Full + recent changes |
+| **When to use** | Regular recovery | Backup failure | Backup exists but is old |
+| **Prerequisites** | Backup files | Complete audit logs | Both |
+
+#### Combined Approach (Recommended for Critical Recovery)
+
+The most reliable recovery strategy combines both methods:
+
+1. **Restore from last good backup** (even if days/weeks old)
+2. **Replay recent audit logs** to catch up to current state
+
+**Example scenario:**
+- Last backup: 5 days ago
+- Database corrupted: today
+- Solution: Restore 5-day-old backup + replay last 5 days of audit logs
+
+**Benefits:**
+- Faster than full audit log recovery
+- More complete than backup alone
+- Minimizes data loss window
+
+#### How to Use Audit Logs for Recovery
+
+For complete audit log recovery procedures, see:
+
+**[Emergency Database Recovery](audit-logging.md#emergency-database-recovery)** - Complete guide including:
+- Step-by-step recovery procedures
+- Scripts for extracting and replaying operations
+- Verification procedures
+- Best practices for recovery-ready logging
+
+#### Protecting Audit Logs
+
+To ensure audit logs are available for recovery:
+
+1. **Separate storage** - Store logs on different disk/volume from database
+2. **Remote replication** - Copy logs to remote server or cloud storage
+3. **Retention policy** - Keep logs for at least 90 days (longer for compliance)
+4. **Monitoring** - Alert on log write failures
+
+**Example: Sync audit logs to S3:**
+
+```bash
+# Add to cron for hourly sync
+aws s3 sync /app/audit/ s3://your-bucket/audit-logs/ \
+  --exclude "*.log.lock"
+```
+
 ### Off-Site Backup Storage
 
 **Critical for production**: Store backups off-site in case of hardware failure or disasters.

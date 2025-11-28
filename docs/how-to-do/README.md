@@ -43,6 +43,7 @@ Each guide is designed to be followed from start to finish without prior knowled
 
 **Need to check security?**
 - [How to Audit](./how-to-audit.md) - Review logs and actions
+- [Audit Logging System](../operations/audit-logging.md) - Complete audit logging reference
 
 ## 💡 Guide Format
 
@@ -77,6 +78,7 @@ Found an issue or want to improve a guide?
 - **[Architecture](../development/architecture.md)** - System design and structure
 - **[API Documentation](../api/)** - API endpoints and usage
 - **[CI/CD Setup](../deployment/cicd-setup.md)** - Continuous integration and deployment
+- **[Operations](../operations/)** - Daily operations, audit logging, backups
 - **[Security](../security/)** - Security features and best practices
 
 ---

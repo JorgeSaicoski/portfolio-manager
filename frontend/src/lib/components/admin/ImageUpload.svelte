@@ -94,7 +94,8 @@
           preview.file,
           entityType,
           entityId,
-          preview.alt
+          preview.alt,
+          "image"  // Default image type for uploaded images
         );
       }
 

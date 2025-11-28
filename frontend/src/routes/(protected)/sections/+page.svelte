@@ -224,11 +224,7 @@
     margin: 0;
   }
 
-  .btn-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: var(--space-2);
-  }
+  /* Note: .btn-icon styles removed - using global styles from _tables.scss for proper colors */
 
   @media (max-width: 768px) {
     .section-header {

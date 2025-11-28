@@ -40,6 +40,13 @@
   - Input sanitization
   - Secure password policies
 
+- **📊 Comprehensive Audit Logging** - Complete operational transparency
+  - Every CREATE, UPDATE, DELETE operation logged
+  - Structured JSON logs with full context
+  - User tracking and change history
+  - Emergency database recovery capability
+  - Compliance-ready audit trails
+
 ## 🚀 Quick Start
 
 ### Using Makefile (Recommended - 5-10 minutes)
@@ -195,6 +202,7 @@ The frontend automatically uses this flow when users click "Sign Up".
 | **[Authentication](docs/authentication/)** | Authentik setup, OAuth2, user registration |
 | **[API Reference](docs/api/)** | Complete REST API documentation |
 | **[Deployment](docs/deployment/)** | Podman, production deployment, monitoring |
+| **[Operations](docs/operations/)** | Daily operations, audit logging, backup & restore |
 | **[Development](docs/development/)** | Development environment, testing, architecture |
 | **[Security](docs/security/)** | Security best practices, audit reports |
 
