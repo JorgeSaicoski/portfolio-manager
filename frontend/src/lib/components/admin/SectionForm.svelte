@@ -2,11 +2,12 @@
   import { sectionStore } from '$lib/stores/section';
   import { portfolioStore } from '$lib/stores/portfolio';
   import { toastStore as toast } from '$lib/stores/toast';
-  import type { Section, CreateSectionRequest, Portfolio } from '$lib/types/api';
+  import type { Section, CreateSectionRequest } from '$lib/types/api';
   import { onMount } from 'svelte';
 
   // Props
   export let section: Section | null = null; // null for create, object for edit
+  export let portfolio_id: number;
   export let onSuccess: () => void;
   export let onCancel: () => void;
 
@@ -14,17 +15,34 @@
   let title = section?.title || '';
   let description = section?.description || '';
   let type = section?.type || '';
-  let portfolioId = section?.portfolio_id || 0;
   let loading = false;
-  let portfolios: Portfolio[] = [];
+  let portfolioError = false;
+  let portfolioName = ''; // will hold the portfolio name
 
-  // Load portfolios on mount
+  // Load portfolio name on mount
   onMount(async () => {
     try {
-      portfolios = await portfolioStore.getOwn(1, 100);
-    } catch (error) {
-      console.error('Failed to load portfolios:', error);
-      toast.error('Failed to load portfolios');
+      // Use the store's getById method if available
+      if (typeof (portfolioStore as any).getById === 'function') {
+        const res = await (portfolioStore as any).getById(portfolio_id);
+        // The store method may return { data: portfolio } or the portfolio directly
+        const p = res?.data ?? res;
+        portfolioName = p?.title ?? `Portfolio ${portfolio_id}`;
+      } else if (typeof (portfolioStore as any).subscribe === 'function') {
+        // Fallback: subscribe and look for currentPortfolio or an array entry
+        const unsubscribe = (portfolioStore as any).subscribe((state: any) => {
+          const p = state?.currentPortfolio ?? (Array.isArray(state) ? state.find((x: any) => x.ID === portfolio_id || x.id === portfolio_id) : null);
+          if (p) {
+            portfolioName = p.title ?? `Portfolio ${portfolio_id}`;
+            unsubscribe();
+          }
+        });
+      } else {
+        portfolioName = `Portfolio ${portfolio_id}`;
+      }
+    } catch (err) {
+      console.error('Error fetching portfolio name', err);
+      portfolioName = `Portfolio ${portfolio_id}`;
     }
   });
 
@@ -32,10 +50,7 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
-    if (portfolioId === 0) {
-      toast.error('Please select a portfolio');
-      return;
-    }
+    portfolioError = false;
 
     if (!type.trim()) {
       toast.error('Please enter a section type');
@@ -45,24 +60,35 @@
     loading = true;
 
     try {
-      const sectionData: CreateSectionRequest = {
-        title,
-        description: description || undefined,
-        type,
-        portfolio_id: portfolioId,
-      };
-
       if (section) {
-        // Update existing section
-        await sectionStore.update(section.ID, sectionData);
+        // Update existing section (portfolio cannot be changed)
+        console.log('SectionForm: Updating section', {
+          sectionID: section.ID,
+          data: { title, description, type }
+        });
+        await sectionStore.update(section.ID, { title, description, type });
+        console.log('SectionForm: Section updated successfully');
         toast.success('Section updated successfully!');
       } else {
         // Create new section
-        await sectionStore.create(sectionData);
+        const requestData: CreateSectionRequest = {
+          title,
+          description: description || undefined,
+          type,
+          portfolio_id,
+        };
+        console.log('SectionForm: Creating section with data:', requestData);
+        await sectionStore.create(requestData);
+        console.log('SectionForm: Section created successfully');
         toast.success('Section created successfully!');
       }
       onSuccess();
     } catch (error) {
+      console.error('SectionForm: Error during section operation', {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        isEdit: !!section
+      });
       toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       loading = false;
@@ -101,18 +127,14 @@
         <label for="portfolio" class="form-label">
           Portfolio <span class="required">*</span>
         </label>
-        <select
-          id="portfolio"
-          class="form-input"
-          bind:value={portfolioId}
-          required
-          disabled={loading}
-        >
-          <option value={0} disabled>Select a portfolio</option>
-          {#each portfolios as portfolio}
-            <option value={portfolio.ID}>{portfolio.title}</option>
-          {/each}
-        </select>
+
+        <p>Portfolio: {portfolioName || `Portfolio ${portfolio_id}`}</p>
+        <input type="hidden" id="portfolio" value={portfolio_id} />
+
+        {#if portfolioError}
+          <p class="form-error">Please select a portfolio</p>
+        {/if}
+        <p class="form-help">Portfolio cannot be changed after creation</p>
       </div>
 
       <!-- Type -->
@@ -221,6 +243,12 @@
     font-size: var(--text-xs);
     color: var(--color-gray-500);
     margin: var(--space-1) 0 0 0;
+  }
+
+  .form-error {
+    color: var(--color-error, #ef4444);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
   }
 
   .form-actions {

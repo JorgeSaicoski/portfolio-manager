@@ -960,6 +960,7 @@
       </div>
       <SectionForm
         section={null}
+        portfolio_id={portfolioId}
         onSuccess={async () => {
           showSectionModal = false;
           await loadSections();
