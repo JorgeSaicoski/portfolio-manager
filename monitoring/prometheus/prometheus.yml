@@ -18,7 +18,8 @@ scrape_configs:
       username: 'admin'
       password: 'changeme-secure-password'
 
-  # PostgreSQL Exporter (optional - can add later)
-  # - job_name: 'postgres'
-  #   static_configs:
-  #     - targets: ['postgres-exporter:9187']
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['portfolio-postgres-exporter:9187']
+    scrape_interval: 15s

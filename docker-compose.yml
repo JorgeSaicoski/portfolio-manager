@@ -197,6 +197,25 @@ services:
       - portfolio-network
     user: "65534:65534"  # nobody user
 
+  # PostgreSQL Exporter - Monitoring Profile
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: portfolio-postgres-exporter
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD:-portfolio_pass}@portfolio-postgres:5432/${POSTGRES_DB:-portfolio_db}?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres-exporter/queries.yaml"
+    ports:
+      - "9187:9187"
+    volumes:
+      - ./monitoring/postgres-exporter/queries.yaml:/etc/postgres-exporter/queries.yaml:ro,Z
+    networks:
+      - portfolio-network
+    depends_on:
+      - portfolio-postgres
+
   # Grafana - Monitoring Profile
   grafana:
     image: grafana/grafana:11.3.0
