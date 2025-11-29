@@ -168,157 +168,26 @@
   </div>
 {/if}
 
-<style lang="scss">
-  .modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+<style>
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--color-gray-600);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    padding: var(--space-4);
-    overflow-y: auto;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
   }
 
-  .modal-content {
-    background: var(--color-bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: 900px;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    animation: slideIn 0.3s ease-out;
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-4) var(--space-6);
-    border-bottom: 1px solid var(--color-border);
-
-    h2 {
-      margin: 0;
-      font-size: var(--font-size-2xl);
-      color: var(--color-text-primary);
-    }
-
-    .close-button {
-      background: none;
-      border: none;
-      font-size: 2rem;
-      line-height: 1;
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
-
-      &:hover {
-        background: var(--color-bg-secondary);
-        color: var(--color-text-primary);
-      }
-    }
-  }
-
-  .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-6);
-  }
-
-  .error-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    margin-bottom: var(--space-4);
-    background: var(--color-error-alpha);
-    border: 1px solid var(--color-error);
-    border-radius: var(--radius-md);
-    color: var(--color-error);
-
-    button {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--color-error);
-      cursor: pointer;
-      padding: 0 var(--space-2);
-    }
-  }
-
-  .content-list-section {
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-4);
-
-      h3 {
-        margin: 0;
-        font-size: var(--font-size-xl);
-        color: var(--color-text-primary);
-      }
-    }
-  }
-
-  .loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-8);
-    color: var(--color-text-secondary);
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--color-border);
-      border-top-color: var(--color-primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: var(--space-3);
-    }
-
-    p {
-      margin: 0;
-    }
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .modal-footer {
-    padding: var(--space-4) var(--space-6);
-    border-top: 1px solid var(--color-border);
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-3);
+  .close-button:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
   }
 </style>

@@ -2,8 +2,10 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { sectionStore } from "$lib/stores/section";
-  import SectionContentModal from "$lib/components/section/SectionContentModal.svelte";
-  import type { Section } from "$lib/types/api";
+  import { sectionContentStore } from "$lib/stores/sectionContent";
+  import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
+  import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
+  import type { Section, SectionContent } from "$lib/types/api";
 
   // Get data from load function
   let { data }: { data: { id: number } } = $props();
@@ -15,11 +17,17 @@
   let section: Section | null = $state(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
-  let showContentModal = $state(false);
+
+  // Content block state
+  let contents: SectionContent[] = $state([]);
+  let showContentEditor = $state(false);
+  let editingContent: SectionContent | null = $state(null);
+  let contentLoading = $state(false);
 
   // Load section on mount
   onMount(async () => {
     await loadSection();
+    await loadContents();
   });
 
   async function loadSection() {
@@ -34,6 +42,68 @@
     } finally {
       loading = false;
     }
+  }
+
+  // Load section contents
+  async function loadContents() {
+    if (!sectionId) return;
+    contentLoading = true;
+    try {
+      const loadedContents = await sectionContentStore.getBySectionId(sectionId);
+      contents = loadedContents;
+    } catch (err) {
+      console.error('Failed to load contents:', err);
+    } finally {
+      contentLoading = false;
+    }
+  }
+
+  // Content management functions
+  function handleAddContent() {
+    editingContent = null;
+    showContentEditor = true;
+  }
+
+  function handleEditContent(content: SectionContent) {
+    editingContent = content;
+    showContentEditor = true;
+  }
+
+  async function handleSaveContent(contentData: Partial<SectionContent>) {
+    try {
+      if (editingContent) {
+        await sectionContentStore.update(editingContent.ID, contentData);
+      } else {
+        await sectionContentStore.create({
+          ...contentData,
+          section_id: sectionId,
+          type: contentData.type!,
+          content: contentData.content!,
+          order: contentData.order ?? contents.length
+        });
+      }
+      await loadContents();
+      showContentEditor = false;
+      editingContent = null;
+    } catch (err) {
+      console.error('Failed to save content:', err);
+      alert('Failed to save content. Please try again.');
+    }
+  }
+
+  async function handleDeleteContent(id: number) {
+    try {
+      await sectionContentStore.delete(id);
+      await loadContents();
+    } catch (err) {
+      console.error('Failed to delete content:', err);
+      alert('Failed to delete content. Please try again.');
+    }
+  }
+
+  function handleCancelEdit() {
+    showContentEditor = false;
+    editingContent = null;
   }
 
   // Navigation functions
@@ -102,12 +172,6 @@
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
             </svg>
             Back to Portfolio
-          </button>
-          <button class="btn btn-primary" onclick={() => showContentModal = true}>
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>
-            Manage Contents
           </button>
           {#if section.portfolio_id}
             <button class="btn btn-outline" onclick={goToPortfolio}>
@@ -238,19 +302,57 @@
               </button>
             </div>
           </div>
+
+          <!-- Section Content Blocks -->
+          <div class="card content-section" style="margin-top: var(--space-6);">
+            <div class="card-header">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                  <h3 style="margin: 0;">Section Content</h3>
+                  <p class="text-muted" style="margin: var(--space-2) 0 0 0;">
+                    Manage content blocks for this section
+                  </p>
+                </div>
+                {#if !showContentEditor}
+                  <button class="btn btn-primary" onclick={handleAddContent}>
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                    </svg>
+                    Add Content Block
+                  </button>
+                {/if}
+              </div>
+            </div>
+
+            <div class="card-body">
+              {#if showContentEditor}
+                <ContentBlockEditor
+                  content={editingContent || { type: 'text', content: '', order: contents.length }}
+                  onSave={handleSaveContent}
+                  onCancel={handleCancelEdit}
+                  isEditing={!!editingContent}
+                />
+              {:else if contentLoading}
+                <div class="loading-state">
+                  <div class="spinner"></div>
+                  <p class="text-muted">Loading content blocks...</p>
+                </div>
+              {:else}
+                <ContentBlockList
+                  sectionId={sectionId}
+                  {contents}
+                  onEdit={handleEditContent}
+                  onDelete={handleDeleteContent}
+                  editable={true}
+                />
+              {/if}
+            </div>
+          </div>
         </div>
       {/if}
     </div>
   </main>
 </div>
-
-{#if showContentModal && section}
-  <SectionContentModal
-    {section}
-    isOpen={showContentModal}
-    onClose={() => showContentModal = false}
-  />
-{/if}
 
 <style>
   .metadata-grid {
