@@ -1,4 +1,4 @@
-<script lang="ts" runes>
+<script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { sectionStore } from "$lib/stores/section";
@@ -358,11 +358,11 @@
             <div class="card-body">
               {#if showContentEditor}
                 <ContentBlockEditor
-                  content={editingContent || { type: 'text', content: '', order: contents.length }}
-                  onSave={handleSaveContent}
-                  onCancel={handleCancelEdit}
-                  isEditing={!!editingContent}
-                  {sectionId}
+                  content={(editingContent || { type: 'text', content: '', order: contents.length }) as any}
+                  onSave={handleSaveContent as any}
+                  onCancel={handleCancelEdit as any}
+                  isEditing={(!!editingContent) as any}
+                  sectionId={sectionId as any}
                 />
               {:else if contentLoading}
                 <div class="loading-state">
@@ -378,7 +378,7 @@
                   editable={true}
                 />
               {:else}
-                <ContentImageGallery {contents} />
+                <ContentImageGallery contents={contents as any} />
               {/if}
             </div>
           </div>

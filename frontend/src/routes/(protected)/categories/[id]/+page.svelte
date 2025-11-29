@@ -1,4 +1,4 @@
-<script lang="ts" runes>
+<script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { categoryStore } from "$lib/stores/category";

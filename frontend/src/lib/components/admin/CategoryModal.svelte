@@ -6,19 +6,23 @@
     import type { Category } from '$lib/types/api';
 
     // Props
-    let { category = null, portfolio_id, onClose, onSuccess }: {
-        category?: Category | null;
-        portfolio_id: number;
-        onClose: () => void;
-        onSuccess: () => void;
-    } = $props();
+    export let category: Category | null = null;
+    export let portfolio_id: number;
+    export let onClose: () => void;
+    export let onSuccess: () => void;
 
     // Form state
-    let title = $state(category?.title || '');
-    let description = $state(category?.description || '');
-    let loading = $state(false);
-    let portfolioError = $state(false);
-    let portfolioName = $state(''); // will hold the portfolio name
+    let title = category?.title || '';
+    let description = category?.description || '';
+    let loading = false;
+    let portfolioError = false;
+    let portfolioName = ''; // will hold the portfolio name
+
+    // Keep local form values in sync if `category` prop changes
+    $: if (category) {
+        title = category.title ?? title;
+        description = category.description ?? description;
+    }
 
     // Load portfolio name on mount
     onMount(async () => {

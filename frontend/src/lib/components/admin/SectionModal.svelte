@@ -5,21 +5,26 @@
     import { onMount } from 'svelte';
     import type { Section } from '$lib/types/api';
 
-    // Props
-    let { section = null, portfolio_id, onClose, onSuccess }: {
-        section?: Section | null;
-        portfolio_id: number;
-        onClose: () => void;
-        onSuccess: () => void;
-    } = $props();
+    // Props (convert from runes $props usage to export lets)
+    export let section: Section | null = null;
+    export let portfolio_id: number;
+    export let onClose: () => void;
+    export let onSuccess: () => void;
 
-    // Form state
-    let title = $state(section?.title || '');
-    let description = $state(section?.description || '');
-    let type = $state(section?.type || '');
-    let loading = $state(false);
-    let portfolioError = $state(false);
-    let portfolioName = $state(''); // will hold the portfolio name
+    // Form state (normal Svelte state)
+    let title = section?.title || '';
+    let description = section?.description || '';
+    let type = section?.type || '';
+    let loading = false;
+    let portfolioError = false;
+    let portfolioName = ''; // will hold the portfolio name
+
+    // Keep local form values in sync if `section` prop changes
+    $: if (section) {
+        title = section.title ?? title;
+        description = section.description ?? description;
+        type = section.type ?? type;
+    }
 
     // Load portfolio name on mount
     onMount(async () => {

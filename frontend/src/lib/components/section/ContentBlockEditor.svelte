@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { SectionContent } from "$lib/types/api";
-  import ImageUpload from "$lib/components/admin/ImageUpload.svelte";
+  // import ImageUpload from "$lib/components/admin/ImageUpload.svelte"; // no longer used
   import { imageStore } from "$lib/stores/image";
 
   export let content: Partial<SectionContent> = {
@@ -19,29 +19,34 @@
   let metadataError = '';
   let showMetadataEditor = false;
 
-  // Image mode state
-  let imageInputMode: 'upload' | 'url' = $state('upload');
-  let uploadedImageUrl: string | null = $state(null);
-  let uploadedImageId: number | null = $state(null);
-  let uploading = $state(false);
+  // Image mode state (normal Svelte state)
+  let imageInputMode: 'upload' | 'url' = 'upload';
+  let uploadedImageUrl: string | null = null;
+  let uploadedImageId: number | null = null;
+  let uploading = false;
 
-  // Detect if editing an uploaded image
-  $effect(() => {
-    if (isEditing && localContent.metadata) {
-      try {
-        const meta = JSON.parse(localContent.metadata as string);
-        if (meta.source === 'uploaded' && meta.image_id) {
-          imageInputMode = 'upload';
-          uploadedImageUrl = localContent.content || null;
-          uploadedImageId = meta.image_id;
-        } else {
-          imageInputMode = 'url';
-        }
-      } catch (e) {
+  // Keep localContent in sync when the parent `content` prop changes (edit mode)
+  $: if (content) {
+    // shallow copy to avoid mutating the prop directly
+    localContent = { ...content };
+    metadataString = content.metadata || '';
+  }
+
+  // Reactive replacement for the previous $effect: initialize image inputs when editing
+  $: if (isEditing && localContent?.metadata) {
+    try {
+      const meta = JSON.parse(localContent.metadata as string);
+      if (meta.source === 'uploaded' && meta.image_id) {
+        imageInputMode = 'upload';
+        uploadedImageUrl = localContent.content || null;
+        uploadedImageId = meta.image_id;
+      } else {
         imageInputMode = 'url';
       }
+    } catch (e) {
+      imageInputMode = 'url';
     }
-  });
+  }
 
   // Validate JSON metadata
   function validateMetadata() {
@@ -99,27 +104,35 @@
     localContent.order = parseInt(target.value) || 0;
   }
 
-  // Handle image upload
-  async function handleImageUpload(event: CustomEvent<File[]>) {
-    const files = event.detail;
+  // Handle image upload - accept either a CustomEvent (previous integration) or a DOM Event from input[type=file]
+  async function handleImageUpload(event: CustomEvent<File[]> | Event) {
+    let files: File[] = [];
+
+    if ((event as CustomEvent).detail && Array.isArray((event as CustomEvent).detail)) {
+      files = (event as CustomEvent).detail as File[];
+    } else {
+      const input = (event.target as HTMLInputElement) || null;
+      const fileList = input?.files || null;
+      if (!fileList || fileList.length === 0) return;
+      files = Array.from(fileList);
+    }
+
     if (files.length === 0) return;
 
     uploading = true;
     try {
-      // Upload to Image model with entity_type="section"
       const uploadedImage = await imageStore.upload(
         files[0],
         'section',
         sectionId,
-        '', // alt text
-        'image' // image type
+        '',
+        'image'
       );
 
       uploadedImageUrl = uploadedImage.url;
       uploadedImageId = uploadedImage.ID;
       localContent.content = uploadedImage.url;
 
-      // Update metadata to track this is an uploaded image
       const metadata = {
         image_id: uploadedImage.ID,
         source: 'uploaded',
@@ -192,7 +205,7 @@
         rows="6"
         placeholder="Enter your text content here..."
         required
-      />
+      ></textarea>
     {:else if localContent.type === 'image'}
       <!-- Image Mode Toggle -->
       <div class="image-mode-toggle">
@@ -215,9 +228,8 @@
       </div>
 
       {#if imageInputMode === 'upload'}
-        <!-- File Upload Mode -->
+        <!-- File Upload Mode: simple input that uses the local handler -->
         {#if uploadedImageUrl}
-          <!-- Show uploaded image with replace option -->
           <div class="uploaded-image-preview">
             <img src={uploadedImageUrl} alt="Uploaded content" />
             <div class="image-actions">
@@ -227,11 +239,11 @@
             </div>
           </div>
         {:else}
-          <!-- Image upload component -->
-          <ImageUpload
-            on:upload={handleImageUpload}
-            maxFiles={1}
+          <input
+            type="file"
             accept="image/jpeg,image/png,image/webp"
+            on:change={handleImageUpload}
+            disabled={uploading}
           />
 
           {#if uploading}
@@ -301,3 +313,7 @@
     </button>
   </div>
 </div>
+
+<style>
+  /* ...existing styles... */
+</style>

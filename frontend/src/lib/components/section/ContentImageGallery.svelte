@@ -6,8 +6,8 @@
   // Filter to only image contents
   $: imageContents = contents.filter(c => c.type === 'image');
 
-  let selectedImage: SectionContent | null = $state(null);
-  let currentIndex = $state(0);
+  let selectedImage: SectionContent | null = null;
+  let currentIndex = 0;
 
   function openGallery(content: SectionContent, index: number) {
     selectedImage = content;
@@ -45,8 +45,8 @@
   }
 
   // Parse metadata to get image info
-  function getImageMetadata(content: SectionContent): { source: string; thumbnailUrl?: string; imageId?: number } | null {
-    if (!content.metadata) return null;
+  function getImageMetadata(content: SectionContent | null): { source: string; thumbnailUrl?: string; imageId?: number } | null {
+    if (!content?.metadata) return null;
     try {
       const meta = JSON.parse(content.metadata);
       return {
@@ -58,9 +58,12 @@
       return null;
     }
   }
+
+  // helper to get metadata inline in template
+  const metaFor = (c: SectionContent | null) => getImageMetadata(c);
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="image-gallery">
   {#if imageContents.length === 0}
@@ -70,27 +73,27 @@
   {:else}
     <div class="gallery-grid">
       {#each imageContents as content, index (content.ID)}
-        {@const imageMeta = getImageMetadata(content)}
+        {#let imageMeta = metaFor(content)}
         <button
           type="button"
           class="gallery-item"
           onclick={() => openGallery(content, index)}
         >
-          <div class="gallery-image-container">
+          <span class="gallery-image-container">
             {#if imageMeta?.thumbnailUrl}
-              <img src={imageMeta.thumbnailUrl} alt="Gallery thumbnail {index + 1}" />
+              <img src={imageMeta.thumbnailUrl} alt={`Gallery thumbnail ${index + 1}`} />
             {:else}
-              <img src={content.content} alt="Gallery image {index + 1}" />
+              <img src={content.content} alt={`Gallery image ${index + 1}`} />
             {/if}
             {#if imageMeta}
               <span class="source-badge" class:uploaded={imageMeta.source === 'uploaded'} class:external={imageMeta.source === 'external'}>
                 {imageMeta.source === 'uploaded' ? '📤' : '🔗'}
               </span>
             {/if}
-          </div>
-          <div class="gallery-item-info">
+          </span>
+          <span class="gallery-item-info">
             <small>#{content.order}</small>
-          </div>
+          </span>
         </button>
       {/each}
     </div>
@@ -99,6 +102,7 @@
 
 <!-- Lightbox Modal -->
 {#if selectedImage}
+  {#let imageMeta = metaFor(selectedImage)}
   <div class="lightbox-overlay" onclick={closeGallery}>
     <div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
       <button class="lightbox-close" onclick={closeGallery} title="Close (Esc)">
@@ -110,7 +114,6 @@
       </div>
 
       <div class="lightbox-info">
-        {@const imageMeta = getImageMetadata(selectedImage)}
         <div class="lightbox-meta">
           <span>Image {currentIndex + 1} of {imageContents.length}</span>
           {#if imageMeta}
