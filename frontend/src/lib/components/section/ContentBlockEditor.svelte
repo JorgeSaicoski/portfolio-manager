@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { SectionContent } from "$lib/types/api";
+  import ImageUpload from "$lib/components/admin/ImageUpload.svelte";
+  import { imageStore } from "$lib/stores/image";
 
   export let content: Partial<SectionContent> = {
     type: 'text',
@@ -10,11 +12,36 @@
   export let onSave: (content: Partial<SectionContent>) => void;
   export let onCancel: () => void;
   export let isEditing = false;
+  export let sectionId: number; // Required for image uploads
 
   let localContent = { ...content };
   let metadataString = content.metadata || '';
   let metadataError = '';
   let showMetadataEditor = false;
+
+  // Image mode state
+  let imageInputMode: 'upload' | 'url' = $state('upload');
+  let uploadedImageUrl: string | null = $state(null);
+  let uploadedImageId: number | null = $state(null);
+  let uploading = $state(false);
+
+  // Detect if editing an uploaded image
+  $effect(() => {
+    if (isEditing && localContent.metadata) {
+      try {
+        const meta = JSON.parse(localContent.metadata as string);
+        if (meta.source === 'uploaded' && meta.image_id) {
+          imageInputMode = 'upload';
+          uploadedImageUrl = localContent.content || null;
+          uploadedImageId = meta.image_id;
+        } else {
+          imageInputMode = 'url';
+        }
+      } catch (e) {
+        imageInputMode = 'url';
+      }
+    }
+  });
 
   // Validate JSON metadata
   function validateMetadata() {
@@ -71,6 +98,56 @@
     const target = e.target as HTMLInputElement;
     localContent.order = parseInt(target.value) || 0;
   }
+
+  // Handle image upload
+  async function handleImageUpload(event: CustomEvent<File[]>) {
+    const files = event.detail;
+    if (files.length === 0) return;
+
+    uploading = true;
+    try {
+      // Upload to Image model with entity_type="section"
+      const uploadedImage = await imageStore.upload(
+        files[0],
+        'section',
+        sectionId,
+        '', // alt text
+        'image' // image type
+      );
+
+      uploadedImageUrl = uploadedImage.url;
+      uploadedImageId = uploadedImage.ID;
+      localContent.content = uploadedImage.url;
+
+      // Update metadata to track this is an uploaded image
+      const metadata = {
+        image_id: uploadedImage.ID,
+        source: 'uploaded',
+        thumbnail_url: uploadedImage.thumbnail_url
+      };
+      localContent.metadata = JSON.stringify(metadata);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      uploading = false;
+    }
+  }
+
+  // Handle image deletion (when replacing/removing)
+  async function handleRemoveImage() {
+    if (uploadedImageId) {
+      try {
+        await imageStore.delete(uploadedImageId);
+        uploadedImageUrl = null;
+        uploadedImageId = null;
+        localContent.content = '';
+        localContent.metadata = null;
+      } catch (error) {
+        console.error('Failed to delete image:', error);
+      }
+    }
+  }
 </script>
 
 <div class="content-block-editor">
@@ -104,7 +181,7 @@
 
   <div class="form-group">
     <label for="content">
-      {localContent.type === 'image' ? 'Image URL' : 'Content'}
+      {localContent.type === 'image' ? 'Image' : 'Content'}
     </label>
     {#if localContent.type === 'text'}
       <textarea
@@ -116,20 +193,70 @@
         placeholder="Enter your text content here..."
         required
       />
-    {:else}
-      <input
-        id="content"
-        type="url"
-        bind:value={localContent.content}
-        oninput={handleContentChange}
-        class="form-input"
-        placeholder="https://example.com/image.jpg"
-        required
-      />
-      {#if localContent.content && isValidUrl(localContent.content)}
-        <div class="image-preview">
-          <img src={localContent.content} alt="Preview" />
-        </div>
+    {:else if localContent.type === 'image'}
+      <!-- Image Mode Toggle -->
+      <div class="image-mode-toggle">
+        <button
+          type="button"
+          class="toggle-btn"
+          class:active={imageInputMode === 'upload'}
+          onclick={() => imageInputMode = 'upload'}
+        >
+          📤 Upload Image
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          class:active={imageInputMode === 'url'}
+          onclick={() => imageInputMode = 'url'}
+        >
+          🔗 Use External URL
+        </button>
+      </div>
+
+      {#if imageInputMode === 'upload'}
+        <!-- File Upload Mode -->
+        {#if uploadedImageUrl}
+          <!-- Show uploaded image with replace option -->
+          <div class="uploaded-image-preview">
+            <img src={uploadedImageUrl} alt="Uploaded content" />
+            <div class="image-actions">
+              <button type="button" class="btn-sm btn-outline" onclick={handleRemoveImage}>
+                🗑️ Remove & Re-upload
+              </button>
+            </div>
+          </div>
+        {:else}
+          <!-- Image upload component -->
+          <ImageUpload
+            on:upload={handleImageUpload}
+            maxFiles={1}
+            accept="image/jpeg,image/png,image/webp"
+          />
+
+          {#if uploading}
+            <div class="upload-progress">
+              <div class="spinner"></div>
+              <p>Uploading image...</p>
+            </div>
+          {/if}
+        {/if}
+      {:else}
+        <!-- URL Input Mode -->
+        <input
+          id="content"
+          type="url"
+          bind:value={localContent.content}
+          oninput={handleContentChange}
+          class="form-input"
+          placeholder="https://example.com/image.jpg"
+          required
+        />
+        {#if localContent.content && isValidUrl(localContent.content)}
+          <div class="image-preview">
+            <img src={localContent.content} alt="Preview" />
+          </div>
+        {/if}
       {/if}
     {/if}
   </div>

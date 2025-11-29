@@ -5,6 +5,7 @@
   import { sectionContentStore } from "$lib/stores/sectionContent";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
+  import ContentImageGallery from "$lib/components/section/ContentImageGallery.svelte";
   import type { Section, SectionContent } from "$lib/types/api";
 
   // Get data from load function
@@ -23,6 +24,7 @@
   let showContentEditor = $state(false);
   let editingContent: SectionContent | null = $state(null);
   let contentLoading = $state(false);
+  let viewMode: 'list' | 'gallery' = $state('list');
 
   // Load section on mount
   onMount(async () => {
@@ -314,12 +316,41 @@
                   </p>
                 </div>
                 {#if !showContentEditor}
-                  <button class="btn btn-primary" onclick={handleAddContent}>
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                    </svg>
-                    Add Content Block
-                  </button>
+                  <div style="display: flex; gap: var(--space-2); align-items: center;">
+                    <!-- View Mode Toggle -->
+                    <div style="display: flex; gap: var(--space-1); background: var(--color-gray-100); border-radius: var(--radius-md); padding: var(--space-1);">
+                      <button
+                        class="btn btn-sm"
+                        class:btn-primary={viewMode === 'list'}
+                        class:btn-ghost={viewMode !== 'list'}
+                        onclick={() => viewMode = 'list'}
+                        title="List view"
+                      >
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" />
+                        </svg>
+                        List
+                      </button>
+                      <button
+                        class="btn btn-sm"
+                        class:btn-primary={viewMode === 'gallery'}
+                        class:btn-ghost={viewMode !== 'gallery'}
+                        onclick={() => viewMode = 'gallery'}
+                        title="Gallery view (images only)"
+                      >
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+                        </svg>
+                        Gallery
+                      </button>
+                    </div>
+                    <button class="btn btn-primary" onclick={handleAddContent}>
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                      </svg>
+                      Add Content Block
+                    </button>
+                  </div>
                 {/if}
               </div>
             </div>
@@ -331,13 +362,14 @@
                   onSave={handleSaveContent}
                   onCancel={handleCancelEdit}
                   isEditing={!!editingContent}
+                  {sectionId}
                 />
               {:else if contentLoading}
                 <div class="loading-state">
                   <div class="spinner"></div>
                   <p class="text-muted">Loading content blocks...</p>
                 </div>
-              {:else}
+              {:else if viewMode === 'list'}
                 <ContentBlockList
                   sectionId={sectionId}
                   {contents}
@@ -345,6 +377,8 @@
                   onDelete={handleDeleteContent}
                   editable={true}
                 />
+              {:else}
+                <ContentImageGallery {contents} />
               {/if}
             </div>
           </div>

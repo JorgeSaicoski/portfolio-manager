@@ -88,6 +88,21 @@
     const fallback = img.parentElement?.querySelector<HTMLElement>('.image-error');
     if (fallback) fallback.style.display = 'block';
   }
+
+  // Parse metadata to get image info
+  function getImageMetadata(content: SectionContent): { source: string; thumbnailUrl?: string; imageId?: number } | null {
+    if (!content.metadata) return null;
+    try {
+      const meta = JSON.parse(content.metadata);
+      return {
+        source: meta.source || 'external',
+        thumbnailUrl: meta.thumbnail_url,
+        imageId: meta.image_id
+      };
+    } catch {
+      return null;
+    }
+  }
 </script>
 
 <div class="content-block-list">
@@ -128,18 +143,33 @@
             {#if content.type === 'text'}
               <p class="text-content">{truncate(content.content)}</p>
             {:else}
+              {@const imageMeta = getImageMetadata(content)}
               <div class="image-container">
-                <img src={content.content} alt="Content preview" onerror={handleImageError} />
+                {#if imageMeta?.thumbnailUrl}
+                  <img src={imageMeta.thumbnailUrl} alt="Content thumbnail" class="thumbnail" onerror={handleImageError} />
+                {:else}
+                  <img src={content.content} alt="Content preview" onerror={handleImageError} />
+                {/if}
                 <div class="image-error" style="display: none;">
                   ❌ Failed to load image
                   <br />
                   <small>{truncate(content.content, 50)}</small>
                 </div>
               </div>
+              {#if imageMeta}
+                <div class="image-meta">
+                  <span class="source-badge" class:uploaded={imageMeta.source === 'uploaded'} class:external={imageMeta.source === 'external'}>
+                    {imageMeta.source === 'uploaded' ? '📤 Uploaded' : '🔗 External URL'}
+                  </span>
+                  {#if imageMeta.imageId}
+                    <small class="text-muted">Image ID: {imageMeta.imageId}</small>
+                  {/if}
+                </div>
+              {/if}
             {/if}
           </div>
 
-          {#if content.metadata}
+          {#if content.metadata && content.type === 'text'}
             <div class="metadata-indicator" title={content.metadata}>
               📋 Has metadata
             </div>
