@@ -156,11 +156,14 @@ portfolio-manager/
 ### Backend Development
 
 ```bash
-# Run backend tests
+# Run backend tests (116 comprehensive tests)
 make test-backend
 
+# See complete backend test documentation
+# /backend/cmd/test/README.md
+
 # Run specific test
-cd backend && go test ./internal/application/handler -run TestCreatePortfolio
+cd backend && go test ./cmd/test -run TestCreatePortfolio
 
 # Add new dependency
 cd backend && go get github.com/some/package
