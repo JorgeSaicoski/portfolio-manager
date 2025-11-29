@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" runes>
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
   import { projectStore } from '$lib/stores/project';

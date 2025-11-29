@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" runes>
   import { page } from '$app/stores';
   import { auth } from '$lib/stores/auth';
   import { browser } from '$app/environment';
