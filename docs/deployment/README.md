@@ -4,16 +4,6 @@ Guides for deploying Portfolio Manager in various environments.
 
 ## Available Guides
 
-### [Podman Setup](podman.md)
-Installation and configuration of Podman container runtime.
-
-**Topics:**
-- Installing Podman on Linux, macOS, Windows
-- Basic commands and usage
-- Podman Compose
-- Rootless containers
-- Networking and volumes
-
 ### [Production Deployment](production.md)
 Deploy Portfolio Manager to production.
 
@@ -25,15 +15,16 @@ Deploy Portfolio Manager to production.
 - Security hardening
 - Monitoring setup
 
-### [Monitoring](monitoring.md)
+### [Monitoring](monitoring/)
 Set up Prometheus and Grafana for metrics and monitoring.
 
 **Includes:**
-- Prometheus configuration
-- Grafana dashboards
-- Metrics collection
-- Alerting rules
-- Performance monitoring
+- [Prometheus & Grafana Setup](monitoring/prometheus-grafana.md) - Complete monitoring stack
+- [Grafana SSO](monitoring/grafana-sso.md) - OAuth2/OIDC authentication for Grafana
+- [Grafana SSO Quick Start](monitoring/grafana-sso-quickstart.md) - 5-minute reference
+- [Alerts Configuration](monitoring/alerts.md) - Alert rules and notifications
+
+See [Monitoring Documentation](monitoring/) for complete guides.
 
 ## Operations & Maintenance
 

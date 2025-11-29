@@ -13,8 +13,8 @@ Set up your development environment.
 - Running services locally
 - Development workflow
 
-### [Frontend Development](frontend.md)
-SvelteKit/TypeScript development guide.
+### [Frontend Guide](frontend-guide.md)
+Complete SvelteKit/TypeScript development guide.
 
 **Topics:**
 - Project structure
@@ -22,26 +22,9 @@ SvelteKit/TypeScript development guide.
 - State management
 - Styling guidelines
 - Testing
+- API integration
 
-### [Backend Development](backend.md)
-Go/Gin API development guide.
-
-**Covers:**
-- Project structure
-- Adding new endpoints
-- Database migrations
-- Error handling
-- Testing
-
-### [Testing Guide](testing.md)
-Writing and running tests.
-
-**Includes:**
-- Unit testing
-- Integration testing
-- E2E testing
-- Test coverage
-- CI/CD integration
+**Note**: This guide covers frontend development in detail. For backend-specific development, see backend source code and [Architecture](architecture.md).
 
 ### [Architecture](architecture.md)
 System architecture and ecosystem design.

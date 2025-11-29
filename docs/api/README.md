@@ -20,11 +20,23 @@ Complete reference of all available endpoints with request/response examples.
 - Category operations
 - User profile endpoints
 
-### [Authentication](authentication.md) *(Coming Soon)*
+### [Authentication](authentication.md)
 API authentication flows and token management.
 
-### [Examples](examples.md) *(Coming Soon)*
+**Covers:**
+- OAuth2/OIDC authentication flow
+- Getting and refreshing access tokens
+- Using Bearer tokens in requests
+- Handling authentication errors
+
+### [Examples](examples.md)
 Common use cases with curl and Bruno examples.
+
+**Covers:**
+- Portfolio, category, and project operations
+- Image upload and management
+- Section and content operations
+- Complete workflow examples
 
 ## Quick Start
 
