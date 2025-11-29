@@ -79,8 +79,8 @@
           </div>
           <div class="header-actions">
             <button class="btn btn-primary" onclick={() => goto('/projects/new')}>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <svg class="icon-stroke" viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h8m-8 4h6" />
               </svg>
               New Project
             </button>

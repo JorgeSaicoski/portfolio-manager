@@ -113,7 +113,7 @@
           </div>
         {:else if error}
           <div class="error-state">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+            <svg class="icon-stroke" viewBox="0 0 24 24" width="48" height="48">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h3>Error Loading Project</h3>
@@ -134,13 +134,13 @@
               <h1>{project.title}</h1>
               <div class="header-actions">
                 <button class="btn btn-outline" onclick={handleBack}>
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                     <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                   </svg>
                   Back
                 </button>
                 <button class="btn btn-primary" onclick={handleEdit}>
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                     <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                   </svg>
                   Edit Project
@@ -190,7 +190,7 @@
               </div>
             {:else}
               <div class="no-images">
-                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="icon-stroke" width="48" height="48" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <p>No images available</p>
@@ -204,13 +204,13 @@
               <div class="detail-grid">
                 <!-- Description -->
                 <div class="detail-item full-width">
-                  <label>Description</label>
+                  <span class="form-label">Description</span>
                   <p class="detail-value">{project.description}</p>
                 </div>
 
                 <!-- Skills -->
                 <div class="detail-item full-width">
-                  <label>Skills</label>
+                  <span class="form-label">Skills</span>
                   {#if project.skills && project.skills.length > 0}
                     <div class="skills-container">
                       {#each project.skills as skill}
@@ -224,17 +224,17 @@
 
                 <!-- Client -->
                 <div class="detail-item">
-                  <label>Client</label>
+                  <span class="form-label">Client</span>
                   <p class="detail-value">{project.client || "-"}</p>
                 </div>
 
                 <!-- Link -->
                 <div class="detail-item">
-                  <label>Project Link</label>
+                  <span class="form-label">Project Link</span>
                   {#if project.link}
                     <a href={project.link} target="_blank" rel="noopener noreferrer" class="external-link">
                       {project.link}
-                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                      <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                         <path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
                       </svg>
                     </a>
@@ -245,13 +245,13 @@
 
                 <!-- Position -->
                 <div class="detail-item">
-                  <label>Display Position</label>
+                  <span class="form-label">Display Position</span>
                   <p class="detail-value">{project.position}</p>
                 </div>
 
                 <!-- Category ID -->
                 <div class="detail-item">
-                  <label>Category ID</label>
+                  <span class="form-label">Category ID</span>
                   <p class="detail-value">{project.category_id}</p>
                 </div>
               </div>
@@ -262,15 +262,15 @@
               <h3>Metadata</h3>
               <div class="metadata-grid">
                 <div class="metadata-item">
-                  <label>Project ID</label>
+                  <span class="form-label">Project ID</span>
                   <p class="detail-value">{project.ID}</p>
                 </div>
                 <div class="metadata-item">
-                  <label>Created</label>
+                  <span class="form-label">Created</span>
                   <p class="detail-value">{formatDate(project.CreatedAt)}</p>
                 </div>
                 <div class="metadata-item">
-                  <label>Last Updated</label>
+                  <span class="form-label">Last Updated</span>
                   <p class="detail-value">{formatDate(project.UpdatedAt)}</p>
                 </div>
               </div>

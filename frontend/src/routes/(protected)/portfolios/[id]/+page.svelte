@@ -55,8 +55,7 @@
    try {
      // Use the new getById function for public access
      await portfolioStore.getById(portfolioId);
-     const state = $portfolioStore;
-     portfolio = state.currentPortfolio;
+     portfolio = $portfolioStore.currentPortfolio;
 
      if (portfolio) {
        // Initialize edit form with current data
@@ -90,48 +89,6 @@
      console.error("Failed to load sections:", err);
    } finally {
      loadingSections = false;
-   }
- }
-
- async function moveCategory(category: Category, direction: "up" | "down") {
-   const currentIndex = categories.findIndex((c) => c.ID === category.ID);
-   if (currentIndex === -1) return;
-
-   let newPosition: number;
-   if (direction === "up" && currentIndex > 0) {
-     newPosition = categories[currentIndex - 1].position;
-   } else if (direction === "down" && currentIndex < categories.length - 1) {
-     newPosition = categories[currentIndex + 1].position;
-   } else {
-     return; // Can't move further
-   }
-
-   try {
-     await categoryStore.updatePosition(category.ID, newPosition);
-     await loadCategories(); // Reload to get updated positions
-   } catch (err) {
-     console.error("Failed to update category position:", err);
-   }
- }
-
- async function moveSection(section: Section, direction: "up" | "down") {
-   const currentIndex = sections.findIndex((s) => s.ID === section.ID);
-   if (currentIndex === -1) return;
-
-   let newPosition: number;
-   if (direction === "up" && currentIndex > 0) {
-     newPosition = sections[currentIndex - 1].position;
-   } else if (direction === "down" && currentIndex < sections.length - 1) {
-     newPosition = sections[currentIndex + 1].position;
-   } else {
-     return; // Can't move further
-   }
-
-   try {
-     await sectionStore.updatePosition(section.ID, newPosition);
-     await loadSections(); // Reload to get updated positions
-   } catch (err) {
-     console.error("Failed to update section position:", err);
    }
  }
 
@@ -477,20 +434,20 @@
      <div class="navbar-actions">
        {#if portfolio && !isEditing}
          <button class="btn btn-outline" onclick={startEdit}>
-           <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-             <path
-               d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-             />
-           </svg>
-           Edit
+           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              />
+            </svg>
+            Edit
          </button>
          <button class="btn btn-error" onclick={openDeleteModal}>
-           <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-             <path
-               d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-             />
-           </svg>
-           Delete
+           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+            Delete
          </button>
        {/if}
      </div>
@@ -514,11 +471,10 @@
          <div class="card-body">
            <div class="text-center">
              <svg
+               class="icon-fill text-error"
                width="48"
                height="48"
-               fill="currentColor"
                viewBox="0 0 24 24"
-               class="text-error"
              >
                <path
                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
@@ -560,9 +516,9 @@
                    <div class="card-body">
                      <div class="flex">
                        <svg
+                         class="icon-fill"
                          width="20"
                          height="20"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -598,7 +554,6 @@
                          class="icon"
                          width="16"
                          height="16"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -636,7 +591,6 @@
                          class="icon"
                          width="16"
                          height="16"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -692,9 +646,9 @@
                  </div>
                  <div class="feature-icon">
                    <svg
+                     class="icon-fill"
                      width="24"
                      height="24"
-                     fill="currentColor"
                      viewBox="0 0 24 24"
                    >
                      <path
@@ -750,7 +704,7 @@
                   {/if}
                 </div>
                 <button class="btn btn-primary btn-sm" onclick={() => showCategoryModal = true}>
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                  <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   New Category
@@ -766,7 +720,7 @@
               {:else if categories.length === 0}
                 <div class="text-center" style="padding: var(--space-8);">
                   <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
@@ -793,14 +747,14 @@
                     >
                       <div class="category-header-row">
                         <div class="drag-handle" title="Drag to reorder">
-                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="9" cy="6" r="1.5"/>
-                            <circle cx="15" cy="6" r="1.5"/>
-                            <circle cx="9" cy="12" r="1.5"/>
-                            <circle cx="15" cy="12" r="1.5"/>
-                            <circle cx="9" cy="18" r="1.5"/>
-                            <circle cx="15" cy="18" r="1.5"/>
-                          </svg>
+                          <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+                             <circle cx="9" cy="6" r="1.5"/>
+                             <circle cx="15" cy="6" r="1.5"/>
+                             <circle cx="9" cy="12" r="1.5"/>
+                             <circle cx="15" cy="12" r="1.5"/>
+                             <circle cx="9" cy="18" r="1.5"/>
+                             <circle cx="15" cy="18" r="1.5"/>
+                           </svg>
                         </div>
                         <div class="category-info">
                           <h4 class="category-title">{category.title}</h4>
@@ -816,7 +770,7 @@
                             title="View category"
                             aria-label="View category"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
@@ -826,7 +780,7 @@
                             title="Delete category"
                             aria-label="Delete category"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -850,7 +804,7 @@
                   {/if}
                 </div>
                 <button class="btn btn-primary btn-sm" onclick={() => showSectionModal = true}>
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                  <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   New Section
@@ -866,8 +820,8 @@
               {:else if sections.length === 0}
                 <div class="text-center" style="padding: var(--space-8);">
                   <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 002-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 002-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                   </div>
                   <h4>No sections yet</h4>
@@ -893,7 +847,7 @@
                     >
                       <div class="section-header-row">
                         <div class="drag-handle" title="Drag to reorder">
-                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                             <circle cx="9" cy="6" r="1.5"/>
                             <circle cx="15" cy="6" r="1.5"/>
                             <circle cx="9" cy="12" r="1.5"/>
@@ -917,7 +871,7 @@
                             title="Edit section"
                             aria-label="Edit section"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
@@ -927,7 +881,7 @@
                             title="Delete section"
                             aria-label="Delete section"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>

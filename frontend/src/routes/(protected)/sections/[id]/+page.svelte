@@ -51,8 +51,7 @@
     if (!sectionId) return;
     contentLoading = true;
     try {
-      const loadedContents = await sectionContentStore.getBySectionId(sectionId);
-      contents = loadedContents;
+      contents = await sectionContentStore.getBySectionId(sectionId);
     } catch (err) {
       console.error('Failed to load contents:', err);
     } finally {
@@ -170,14 +169,14 @@
       <div class="navbar-actions">
         {#if section}
           <button class="btn btn-outline" onclick={goBack}>
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
             </svg>
             Back to Portfolio
           </button>
           {#if section.portfolio_id}
             <button class="btn btn-outline" onclick={goToPortfolio}>
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                 <path d="M12 2l-5.5 9h11z M12 22l5.5-9h-11z M5.5 11L12 2 18.5 11z" />
               </svg>
               View Portfolio
@@ -205,11 +204,10 @@
           <div class="card-body">
             <div class="text-center">
               <svg
+                class="icon-fill text-error"
                 width="48"
                 height="48"
-                fill="currentColor"
                 viewBox="0 0 24 24"
-                class="text-error"
               >
                 <path
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
@@ -242,7 +240,7 @@
             <div class="card-body">
               <!-- Description -->
               <div class="form-group">
-                <label class="form-label">Description</label>
+                <span class="form-label">Description</span>
                 <p class="text-base">
                   {section.description || "No description provided"}
                 </p>
@@ -250,7 +248,7 @@
 
               <!-- Type -->
               <div class="form-group">
-                <label class="form-label">Type</label>
+                <span class="form-label">Type</span>
                 <p class="text-base">
                   <span class="badge">{section.type || "text"}</span>
                 </p>
@@ -258,13 +256,13 @@
 
               <!-- Position -->
               <div class="form-group">
-                <label class="form-label">Position</label>
+                <span class="form-label">Position</span>
                 <p class="text-base">{section.position}</p>
               </div>
 
               <!-- Portfolio -->
               <div class="form-group">
-                <label class="form-label">Portfolio</label>
+                <span class="form-label">Portfolio</span>
                 <p class="text-base">
                   <button
                     class="btn btn-sm btn-outline"
@@ -277,7 +275,7 @@
 
               <!-- Metadata -->
               <div class="form-group">
-                <label class="form-label">Metadata</label>
+                <span class="form-label">Metadata</span>
                 <div class="metadata-grid">
                   <div>
                     <span class="text-muted">Created:</span>
@@ -297,7 +295,7 @@
 
             <div class="card-footer">
               <button class="btn btn-outline" onclick={goBack}>
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                   <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                 </svg>
                 Back to Sections
@@ -326,7 +324,7 @@
                         onclick={() => viewMode = 'list'}
                         title="List view"
                       >
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                           <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" />
                         </svg>
                         List
@@ -338,14 +336,14 @@
                         onclick={() => viewMode = 'gallery'}
                         title="Gallery view (images only)"
                       >
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                           <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
                         </svg>
                         Gallery
                       </button>
                     </div>
                     <button class="btn btn-primary" onclick={handleAddContent}>
-                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                      <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                       </svg>
                       Add Content Block
