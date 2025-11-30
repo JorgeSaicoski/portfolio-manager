@@ -51,6 +51,14 @@ jobs:
         working-directory: backend
         run: go mod download
 
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U test_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
       - name: Run tests
         working-directory: backend
         env:
@@ -68,7 +76,7 @@ jobs:
           LOG_LEVEL: error
           PORT: 8888
           JWT_SECRET: test-jwt-secret-for-ci
-        run: go test ./cmd/test/... -v -race -coverprofile=coverage.out
+        run: go test ./cmd/test/... -v -race -coverprofile=coverage.out -timeout=10m
 
       - name: Generate coverage report
         working-directory: backend
@@ -76,6 +84,19 @@ jobs:
           go tool cover -html=coverage.out -o coverage.html
           go tool cover -func=coverage.out > coverage.txt
           cat coverage.txt
+
+      - name: Check coverage threshold
+        working-directory: backend
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: $COVERAGE%"
+
+          # Fail if below threshold (85%)
+          if (( $(echo "$COVERAGE < 85.0" | bc -l) )); then
+            echo "ERROR: Coverage $COVERAGE% is below threshold of 85%"
+            exit 1
+          fi
+          echo "✓ Coverage threshold met: $COVERAGE%"
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
