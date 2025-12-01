@@ -426,6 +426,12 @@ db-create-test: ## Create test database (portfolio_test_db)
 	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_test_db OWNER portfolio_user;" 2>/dev/null || echo "$(YELLOW)Database already exists or connection failed$(RESET)"
 	@echo "$(GREEN)✓ Test database ready$(RESET)"
 
+db-reset-test: ## Drop and recreate test database (fixes CASCADE constraints)
+	@echo "$(BLUE)Resetting test database...$(RESET)"
+	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "DROP DATABASE IF EXISTS portfolio_test_db;" 2>/dev/null || true
+	@podman exec portfolio-postgres psql -U portfolio_user -d postgres -c "CREATE DATABASE portfolio_test_db OWNER portfolio_user;" 2>/dev/null || true
+	@echo "$(GREEN)✓ Test database reset - will be migrated on next test run$(RESET)"
+
 test-db-migrate: db-create-test ## Run GORM migrations on test database
 	@echo "$(BLUE)Running GORM migrations on test database...$(RESET)"
 	@cd backend/cmd/migrate-test-db && go run main.go
