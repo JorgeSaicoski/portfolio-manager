@@ -44,6 +44,20 @@
     }
   }
 
+  // Allow overlay activation via keyboard (Enter/Space)
+  function handleOverlayKeydown(e: KeyboardEvent) {
+    const key = e.key;
+    if (key === 'Enter' || key === ' ') {
+      e.preventDefault();
+      closeGallery();
+    }
+  }
+
+  // Prevent key events inside the content pane from bubbling to the overlay
+  function handleContentKeydown(e: KeyboardEvent) {
+    e.stopPropagation();
+  }
+
   // Parse metadata to get image info
   function getImageMetadata(content: SectionContent | null): { source: string; thumbnailUrl?: string; imageId?: number } | null {
     if (!content?.metadata) return null;
@@ -73,7 +87,7 @@
   {:else}
     <div class="gallery-grid">
       {#each imageContents as content, index (content.ID)}
-        {#let imageMeta = metaFor(content)}
+        {@const imageMeta = metaFor(content)}
         <button
           type="button"
           class="gallery-item"
@@ -102,15 +116,15 @@
 
 <!-- Lightbox Modal -->
 {#if selectedImage}
-  {#let imageMeta = metaFor(selectedImage)}
-  <div class="lightbox-overlay" onclick={closeGallery}>
-    <div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
+  {@const imageMeta = metaFor(selectedImage)}
+  <div class="lightbox-overlay" onclick={closeGallery} role="button" tabindex="0" onkeydown={handleOverlayKeydown}>
+    <div class="lightbox-content" onclick={(e) => e.stopPropagation()} onkeydown={handleContentKeydown} role="dialog" aria-modal="true" tabindex="0">
       <button class="lightbox-close" onclick={closeGallery} title="Close (Esc)">
         ✕
       </button>
 
       <div class="lightbox-image">
-        <img src={selectedImage.content} alt="Full size image" />
+        <img src={selectedImage.content} alt={`Image ${currentIndex + 1} of ${imageContents.length}`} />
       </div>
 
       <div class="lightbox-info">

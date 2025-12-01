@@ -5,7 +5,7 @@
   import { sectionContentStore } from "$lib/stores/sectionContent";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
-  import ContentImageGallery from "$lib/components/section/ContentImageGallery.svelte";
+  // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
   // Get data from load function
@@ -356,11 +356,11 @@
             <div class="card-body">
               {#if showContentEditor}
                 <ContentBlockEditor
-                  content={(editingContent || { type: 'text', content: '', order: contents.length }) as any}
-                  onSave={handleSaveContent as any}
-                  onCancel={handleCancelEdit as any}
-                  isEditing={(!!editingContent) as any}
-                  sectionId={sectionId as any}
+                  content={editingContent || { type: 'text', content: '', order: contents.length }}
+                  onSave={handleSaveContent}
+                  onCancel={handleCancelEdit}
+                  isEditing={!!editingContent}
+                  sectionId={sectionId}
                 />
               {:else if contentLoading}
                 <div class="loading-state">
@@ -376,7 +376,11 @@
                   editable={true}
                 />
               {:else}
-                <ContentImageGallery contents={contents as any} />
+                {#await import('$lib/components/section/ContentImageGallery.svelte') then Module}
+                  <svelte:component this={Module.default} contents={contents} />
+                {:catch err}
+                  <div class="text-error">Failed to load gallery</div>
+                {/await}
               {/if}
             </div>
           </div>

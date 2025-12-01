@@ -70,8 +70,15 @@
     }
   }
 
-  function goToProject(projectId: number) {
-    goto(`/projects/${projectId}`);
+  // Keyboard handler for project cards moved here to avoid inline casting issues
+  function handleProjectKeydown(e: KeyboardEvent) {
+    const key = e.key;
+    if (key === ' ' || key === 'Enter') {
+      e.preventDefault();
+      // e.currentTarget may be typed as EventTarget; cast to HTMLElement then click
+      const target = e.currentTarget as unknown as HTMLAnchorElement | null;
+      target?.click();
+    }
   }
 
   // Format date helper
@@ -267,7 +274,7 @@
                       class="project-card"
                       href={`/projects/${project.ID}`}
                       aria-label={`Open project ${project.title}`}
-                      on:keydown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); (e.currentTarget as HTMLAnchorElement).click(); } }}
+                      onkeydown={handleProjectKeydown}
                     >
                        {#if project.Images && project.Images.length > 0}
                          {@const mainImage = project.Images.find(img => img.is_main) || project.Images[0]}
@@ -388,12 +395,16 @@
     font-size: var(--text-sm);
     color: var(--color-gray-600);
     margin: 0 0 var(--space-3) 0;
+    /* Modern multiline clamp (vendor prefixed) with a standard hint and good fallbacks */
+    line-clamp: 2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    box-orient: vertical;
-    line-clamp: 2;
+    /* Fallbacks for non-WebKit browsers */
     overflow: hidden;
+    text-overflow: ellipsis;
+    display: block; /* ensure block layout when -webkit-box isn't supported */
+    max-height: calc(2 * 1.2em); /* approximate two lines as a graceful fallback */
   }
 
   .project-skills {
