@@ -144,6 +144,12 @@
   function openFileDialog() {
     fileInput.click();
   }
+
+  // Handle alt text input from template (avoid TypeScript casts inside template)
+  function handleAltInput(index: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    updateAlt(index, target.value);
+  }
 </script>
 
 <div class="image-upload">
@@ -169,8 +175,8 @@
   >
     <svg
       class="upload-icon"
-      fill="none"
       stroke="currentColor"
+      aria-hidden="true"
       viewBox="0 0 24 24"
     >
       <path
@@ -201,8 +207,7 @@
               <input
                 type="text"
                 value={preview.alt}
-                oninput={(e) =>
-                  updateAlt(index, (e.target as HTMLInputElement).value)}
+                oninput={(e) => handleAltInput(index, e)}
                 placeholder="Image description (alt text)"
                 class="alt-input"
                 disabled={uploading}
