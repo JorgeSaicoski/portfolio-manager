@@ -379,6 +379,115 @@ audit-view-update: ## View last 50 update operation logs
 
 test: test-backend ## Run all tests
 
+test-setup: ## Setup complete test environment (DB, migrations, cleanup)
+	@echo "$(BOLD)$(BLUE)Setting Up Test Environment$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 1/5: Checking database status...$(RESET)"
+	@podman compose ps portfolio-postgres | grep -q "Up" || \
+		(echo "$(YELLOW)Database not running. Starting...$(RESET)" && podman compose up -d portfolio-postgres && sleep 5)
+	@echo "$(GREEN)✓ Database is running$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 2/5: Creating audit directory...$(RESET)"
+	@mkdir -p backend/audit
+	@echo "$(GREEN)✓ Audit directory ready$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 3/5: Checking .env.test configuration...$(RESET)"
+	@if [ ! -f .env.test ]; then \
+		echo "$(YELLOW)⚠ .env.test not found.$(RESET)"; \
+		if [ -f .env.test.example ]; then \
+			cp .env.test.example .env.test; \
+			echo "$(GREEN)✓ Created .env.test from example$(RESET)"; \
+		else \
+			echo "$(YELLOW)⚠ .env.test.example not found. Using environment defaults.$(RESET)"; \
+		fi \
+	else \
+		echo "$(GREEN)✓ .env.test exists$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(YELLOW)Step 4/5: Applying database migrations...$(RESET)"
+	@podman compose restart portfolio-backend
+	@sleep 3
+	@echo "$(GREEN)✓ Migrations applied$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Step 5/5: Cleaning previous test artifacts...$(RESET)"
+	@rm -f backend/audit/test-*.txt backend/audit/coverage.out backend/audit/coverage.html
+	@echo "$(GREEN)✓ Test artifacts cleaned$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)✓ TEST ENVIRONMENT READY$(RESET)"
+	@echo ""
+	@echo "Run tests with:"
+	@echo "  $(BLUE)make test$(RESET)           - Quick test run"
+	@echo "  $(BLUE)make test-logs$(RESET)      - Full logs to file"
+	@echo "  $(BLUE)make test-fails-log$(RESET) - Only failures"
+
+test-logs: ## Run tests with complete logging to backend/audit/test-output.txt
+	@echo "$(BOLD)$(BLUE)Running Tests with Full Logging$(RESET)"
+	@echo ""
+	@mkdir -p backend/audit
+	@if [ ! -f .env.test ]; then \
+		echo "$(YELLOW)Warning: .env.test not found. Using environment defaults.$(RESET)"; \
+	fi
+	@echo "Running tests (output saved to backend/audit/test-output.txt)..."
+	@cd backend && go test ./cmd/test/... -v 2>&1 | tee audit/test-output.txt; \
+	EXIT_CODE=$${PIPESTATUS[0]}; \
+	echo ""; \
+	echo "========================================="; \
+	echo "           TEST SUMMARY"; \
+	echo "========================================="; \
+	PASSED=$$(grep -c "^--- PASS:" audit/test-output.txt 2>/dev/null || echo "0"); \
+	FAILED=$$(grep -c "^--- FAIL:" audit/test-output.txt 2>/dev/null || echo "0"); \
+	TOTAL=$$((PASSED + FAILED)); \
+	echo "Total Tests: $$TOTAL"; \
+	echo "Passed:      $$PASSED ✓"; \
+	echo "Failed:      $$FAILED ✗"; \
+	echo "========================================="; \
+	echo ""; \
+	echo "Full logs saved to: backend/audit/test-output.txt"; \
+	if [ $$FAILED -gt 0 ]; then \
+		echo ""; \
+		echo "$(RED)Failed Tests:$(RESET)"; \
+		grep "^--- FAIL:" audit/test-output.txt | sed 's/--- FAIL: /  ✗ /' || true; \
+		echo ""; \
+		echo "Run '$(BLUE)make test-fails-log$(RESET)' to see detailed failure logs."; \
+	else \
+		echo "$(GREEN)✓ All tests passed!$(RESET)"; \
+	fi; \
+	exit $$EXIT_CODE
+
+test-fails-log: ## Run tests and save only failures to backend/audit/test-failures.txt
+	@echo "$(BOLD)$(BLUE)Extracting Test Failures$(RESET)"
+	@echo ""
+	@mkdir -p backend/audit
+	@if [ ! -f .env.test ]; then \
+		echo "$(YELLOW)Warning: .env.test not found. Using environment defaults.$(RESET)"; \
+	fi
+	@echo "Running tests and filtering failures..."
+	@cd backend && go test ./cmd/test/... -v 2>&1 | tee /tmp/test-full-output.txt | \
+		grep -A 50 "^--- FAIL:" > audit/test-failures.txt 2>/dev/null || true; \
+	EXIT_CODE=$${PIPESTATUS[0]}; \
+	echo ""; \
+	if [ -s backend/audit/test-failures.txt ]; then \
+		echo "========================================="; \
+		echo "$(RED)          FAILED TESTS$(RESET)"; \
+		echo "========================================="; \
+		cat backend/audit/test-failures.txt; \
+		echo ""; \
+		echo "========================================="; \
+		FAILED=$$(grep -c "^--- FAIL:" backend/audit/test-failures.txt 2>/dev/null || echo "0"); \
+		echo "Total Failures: $$FAILED"; \
+		echo "========================================="; \
+		echo ""; \
+		echo "$(RED)Detailed failure logs saved to: backend/audit/test-failures.txt$(RESET)"; \
+	else \
+		echo "========================================="; \
+		echo "$(GREEN)  ✓ ALL TESTS PASSED!$(RESET)"; \
+		echo "========================================="; \
+		echo "" > backend/audit/test-failures.txt; \
+		echo "No failures to log."; \
+	fi; \
+	rm -f /tmp/test-full-output.txt; \
+	exit $$EXIT_CODE
+
 test-backend: test-db-migrate ## Run backend tests (ensures test DB migrations applied)
 	@echo "$(BLUE)Running backend tests...$(RESET)"
 	@mkdir -p backend/audit
@@ -397,15 +506,27 @@ test-frontend: ## Run frontend tests (if configured)
 	@echo "$(BLUE)Running frontend tests...$(RESET)"
 	@cd frontend && npm test || echo "$(YELLOW)No tests configured$(RESET)"
 
-test-fail-logs: ## Run tests, save full output to file, and show failures
-	@echo "$(BLUE)Running tests and saving output...$(RESET)"
-	@mkdir -p backend/audit
-	@cd backend && go test ./cmd/test/... -v -race -coverprofile=audit/coverage.out 2>&1 | tee audit/test-output.txt
-	@echo ""
-	@echo "$(BLUE)Extracting failures...$(RESET)"
-	@grep -E "(FAIL|Error:|Expected|Actual)" backend/audit/test-output.txt || echo "$(GREEN)No test failures found$(RESET)"
-	@echo ""
-	@echo "$(YELLOW)Full test output saved to: backend/audit/test-output.txt$(RESET)"
+test-db-migrate: ## Apply latest database migrations for tests
+	@echo "$(BLUE)Applying database migrations...$(RESET)"
+	@podman compose restart portfolio-backend
+	@sleep 3
+	@echo "$(GREEN)✓ Migrations applied$(RESET)"
+
+test-one: ## Run a specific test (usage: make test-one TEST=TestName)
+	@if [ -z "$(TEST)" ]; then \
+		echo "$(RED)Error: TEST variable not set$(RESET)"; \
+		echo "Usage: make test-one TEST=TestCategory_Create"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Running test: $(TEST)$(RESET)"
+	@cd backend && go test ./cmd/test/... -v -run "^$(TEST)$$"
+
+test-clean: ## Clean test artifacts
+	@echo "$(BLUE)Cleaning test artifacts...$(RESET)"
+	@rm -f backend/audit/test-*.txt backend/audit/coverage.out backend/audit/coverage.html
+	@echo "$(GREEN)✓ Test artifacts cleaned$(RESET)"
+
+test-fail-logs: test-fails-log ## Alias for test-fails-log
 
 lint: lint-backend lint-frontend ## Run all linters
 
