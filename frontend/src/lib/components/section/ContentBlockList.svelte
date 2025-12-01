@@ -88,6 +88,21 @@
     const fallback = img.parentElement?.querySelector<HTMLElement>('.image-error');
     if (fallback) fallback.style.display = 'block';
   }
+
+  // Parse metadata to get image info
+  function getImageMetadata(content: SectionContent): { source: string; thumbnailUrl?: string; imageId?: number } | null {
+    if (!content.metadata) return null;
+    try {
+      const meta = JSON.parse(content.metadata);
+      return {
+        source: meta.source || 'external',
+        thumbnailUrl: meta.thumbnail_url,
+        imageId: meta.image_id
+      };
+    } catch {
+      return null;
+    }
+  }
 </script>
 
 <div class="content-block-list">
@@ -128,18 +143,33 @@
             {#if content.type === 'text'}
               <p class="text-content">{truncate(content.content)}</p>
             {:else}
+              {@const imageMeta = getImageMetadata(content)}
               <div class="image-container">
-                <img src={content.content} alt="Content preview" onerror={handleImageError} />
+                {#if imageMeta?.thumbnailUrl}
+                  <img src={imageMeta.thumbnailUrl} alt="Content thumbnail" class="thumbnail" onerror={handleImageError} />
+                {:else}
+                  <img src={content.content} alt="Content preview" onerror={handleImageError} />
+                {/if}
                 <div class="image-error" style="display: none;">
                   ❌ Failed to load image
                   <br />
                   <small>{truncate(content.content, 50)}</small>
                 </div>
               </div>
+              {#if imageMeta}
+                <div class="image-meta">
+                  <span class="source-badge" class:uploaded={imageMeta.source === 'uploaded'} class:external={imageMeta.source === 'external'}>
+                    {imageMeta.source === 'uploaded' ? '📤 Uploaded' : '🔗 External URL'}
+                  </span>
+                  {#if imageMeta.imageId}
+                    <small class="text-muted">Image ID: {imageMeta.imageId}</small>
+                  {/if}
+                </div>
+              {/if}
             {/if}
           </div>
 
-          {#if content.metadata}
+          {#if content.metadata && content.type === 'text'}
             <div class="metadata-indicator" title={content.metadata}>
               📋 Has metadata
             </div>
@@ -177,175 +207,3 @@
     </div>
   {/if}
 </div>
-
-<style lang="scss">
-  .content-block-list {
-    width: 100%;
-  }
-
-  .empty-state {
-    padding: var(--space-8);
-    text-align: center;
-    color: var(--color-text-secondary);
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius-md);
-
-    p {
-      margin: 0;
-      font-size: var(--font-size-base);
-    }
-
-    .hint {
-      margin-top: var(--space-2);
-      font-size: var(--font-size-sm);
-      color: var(--color-text-tertiary);
-    }
-  }
-
-  .content-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .content-item {
-    position: relative;
-    padding: var(--space-4);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    transition: all var(--transition-base);
-
-    &:hover {
-      box-shadow: var(--shadow-sm);
-      border-color: var(--color-primary-alpha);
-    }
-
-    &.dragging {
-      opacity: 0.5;
-      transform: scale(0.98);
-    }
-
-    &.drag-over {
-      border-color: var(--color-primary);
-      background: var(--color-primary-alpha);
-      transform: translateY(-2px);
-    }
-  }
-
-  .content-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-type-badge {
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-
-    &.text {
-      background: var(--color-info-alpha);
-      color: var(--color-info);
-    }
-
-    &.image {
-      background: var(--color-success-alpha);
-      color: var(--color-success);
-    }
-  }
-
-  .content-order {
-    padding: var(--space-1) var(--space-2);
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-  }
-
-  .drag-handle {
-    margin-left: auto;
-    cursor: grab;
-    font-size: var(--font-size-lg);
-    color: var(--color-text-secondary);
-    user-select: none;
-    padding: 0 var(--space-2);
-
-    &:active {
-      cursor: grabbing;
-    }
-  }
-
-  .content-preview {
-    margin-bottom: var(--space-3);
-
-    .text-content {
-      margin: 0;
-      padding: var(--space-3);
-      background: var(--color-bg-primary);
-      border-radius: var(--radius-sm);
-      color: var(--color-text-primary);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .image-container {
-      position: relative;
-      max-height: 200px;
-      overflow: hidden;
-      border-radius: var(--radius-sm);
-      background: var(--color-bg-tertiary);
-
-      img {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
-
-      .image-error {
-        padding: var(--space-4);
-        text-align: center;
-        color: var(--color-error);
-        font-size: var(--font-size-sm);
-      }
-    }
-  }
-
-  .metadata-indicator {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    margin-bottom: var(--space-2);
-    background: var(--color-warning-alpha);
-    color: var(--color-warning);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-xs);
-    cursor: help;
-  }
-
-  .content-actions {
-    display: flex;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-  }
-
-  .btn-sm {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--font-size-sm);
-    border-radius: var(--radius-sm);
-  }
-
-  .content-meta {
-    display: flex;
-    gap: var(--space-3);
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--color-border);
-
-    small {
-      color: var(--color-text-tertiary);
-      font-size: var(--font-size-xs);
-    }
-  }
-</style>

@@ -93,8 +93,8 @@
           </div>
         {:else if error}
           <div class="error-state">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg class="icon-stroke" viewBox="0 0 24 24" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h8m-8 4h6" />
             </svg>
             <h3>Error Loading Project</h3>
             <p>{error}</p>

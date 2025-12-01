@@ -330,6 +330,37 @@ function createCategoryStore() {
       }
     },
 
+    // Bulk reorder categories (protected)
+    async bulkReorder(updates: Array<{id: number, position: number}>): Promise<void> {
+      try {
+        const response = await authenticatedFetch(
+          `${CATEGORY_API_URL}/own/reorder`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ items: updates }),
+          }
+        );
+
+        if (!response.ok) {
+          const data: ApiResponse<null> = await response.json();
+          throw new Error(data.error || "Failed to reorder categories");
+        }
+
+        // Update store with new positions
+        update((state) => ({
+          ...state,
+          categories: state.categories.map(cat => {
+            const updated = updates.find(u => u.id === cat.ID);
+            return updated ? { ...cat, position: updated.position } : cat;
+          })
+        }));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        throw new Error(errorMessage);
+      }
+    },
+
     // Clear current category
     clearCurrent(): void {
       update((state) => ({

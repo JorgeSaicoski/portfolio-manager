@@ -129,7 +129,7 @@
             <!-- Error display -->
             {#if error}
               <div class="alert alert-error">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <svg class="icon-fill" width="20" height="20" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
                 {error}
@@ -155,7 +155,7 @@
                 />
                 {#if titleError}
                   <div class="form-error">
-                    <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <svg class="icon icon-fill" width="16" height="16" viewBox="0 0 24 24">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                     {titleError}
@@ -184,7 +184,7 @@
                 ></textarea>
                 {#if descriptionError}
                   <div class="form-error">
-                    <svg class="icon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <svg class="icon icon-fill" width="16" height="16" viewBox="0 0 24 24">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                     {descriptionError}
@@ -211,7 +211,7 @@
                   disabled={isSubmitting || !title.trim() || !description.trim()}
                 >
                   {#if isSubmitting}
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" class="animate-spin">
+                    <svg class="icon-fill animate-spin" width="20" height="20" viewBox="0 0 24 24">
                       <path d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8Z"/>
                     </svg>
                     Creating...
@@ -225,7 +225,7 @@
 
           <div class="card-footer">
             <div class="protection-notice">
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                 <path d="M12 1l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 1z"/>
               </svg>
               <span class="text-sm text-muted">

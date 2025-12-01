@@ -1,0 +1,207 @@
+groups:
+  - name: portfolio_manager_alerts
+    interval: 30s
+    rules:
+      # ===== Service Health Alerts =====
+      - alert: BackendServiceDown
+        expr: up{job="backend-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: backend
+          component: api
+        annotations:
+          summary: "Backend service is down"
+          description: "The portfolio backend service has been down for more than 2 minutes. API endpoints are unavailable."
+
+      - alert: PostgreSQLExporterDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: database
+          component: monitoring
+        annotations:
+          summary: "PostgreSQL exporter is down"
+          description: "PostgreSQL metrics are not being collected. Database monitoring is unavailable."
+
+      # ===== Performance Alerts =====
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for the last 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+
+      - alert: CriticalErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+          service: backend
+          component: api
+        annotations:
+          summary: "CRITICAL: Very high error rate"
+          description: "Error rate is above 15% for the last 2 minutes. Current rate: {{ $value | humanizePercentage }}"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+          component: api
+        annotations:
+          summary: "Slow response time detected"
+          description: "95th percentile response time is above 2 seconds. Current p95: {{ $value | humanizeDuration }}"
+
+      - alert: VerySlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: backend
+          component: api
+        annotations:
+          summary: "CRITICAL: Very slow response time"
+          description: "95th percentile response time is above 5 seconds. Current p95: {{ $value | humanizeDuration }}"
+
+      # ===== Database Alerts =====
+      - alert: HighDatabaseConnections
+        expr: database_connections{state="active"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+          component: connections
+        annotations:
+          summary: "High number of active database connections"
+          description: "Active database connections are above 80 for 5 minutes. Current: {{ $value }}"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: database_connections{state="active"} > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+          component: connections
+        annotations:
+          summary: "CRITICAL: Database connection pool nearly exhausted"
+          description: "Active database connections are above 95. Current: {{ $value }}"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends{datname="portfolio_db"} > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+          component: postgres
+        annotations:
+          summary: "PostgreSQL connection count high"
+          description: "PostgreSQL has more than 90 active connections to portfolio_db. Current: {{ $value }}"
+
+      - alert: LowCacheHitRatio
+        expr: (pg_stat_database_blks_hit{datname="portfolio_db"} / (pg_stat_database_blks_hit{datname="portfolio_db"} + pg_stat_database_blks_read{datname="portfolio_db"})) < 0.90
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+          component: postgres
+        annotations:
+          summary: "Low PostgreSQL cache hit ratio"
+          description: "Cache hit ratio is below 90% for 10 minutes, indicating potential performance issues. Current: {{ $value | humanizePercentage }}"
+
+      - alert: HighDatabaseTransactionRollbacks
+        expr: rate(pg_stat_database_xact_rollback{datname="portfolio_db"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+          component: postgres
+        annotations:
+          summary: "High database transaction rollback rate"
+          description: "Transaction rollback rate is above 10 per second. Current: {{ $value | humanize }}/s"
+
+      # ===== Authentication Alerts =====
+      - alert: HighAuthenticationFailureRate
+        expr: (sum(rate(authentication_attempts_total{status="failure"}[5m])) / sum(rate(authentication_attempts_total[5m]))) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+          service: auth
+          component: authentik
+        annotations:
+          summary: "High authentication failure rate"
+          description: "More than 20% of authentication attempts are failing for 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+
+      - alert: CriticalAuthenticationFailureRate
+        expr: (sum(rate(authentication_attempts_total{status="failure"}[5m])) / sum(rate(authentication_attempts_total[5m]))) > 0.50
+        for: 2m
+        labels:
+          severity: critical
+          service: auth
+          component: authentik
+        annotations:
+          summary: "CRITICAL: Very high authentication failure rate"
+          description: "More than 50% of authentication attempts are failing. Possible attack or service issue. Current rate: {{ $value | humanizePercentage }}"
+
+      - alert: NoAuthenticationAttempts
+        expr: rate(authentication_attempts_total[10m]) == 0
+        for: 30m
+        labels:
+          severity: info
+          service: auth
+          component: authentik
+        annotations:
+          summary: "No authentication attempts detected"
+          description: "No authentication attempts have been recorded for 30 minutes. This might be normal during low usage periods."
+
+      # ===== Business Logic Alerts =====
+      - alert: NoNewPortfolios
+        expr: increase(portfolios_total[24h]) == 0
+        for: 48h
+        labels:
+          severity: info
+          service: business
+          component: portfolios
+        annotations:
+          summary: "No new portfolios created in 48 hours"
+          description: "No new portfolios have been created in the last 48 hours. This might indicate low user activity."
+
+      - alert: HighImageUploadRate
+        expr: rate(images_uploaded_total[5m]) > 10
+        for: 10m
+        labels:
+          severity: info
+          service: business
+          component: images
+        annotations:
+          summary: "High image upload rate detected"
+          description: "Image upload rate is above 10 per second for 10 minutes. Current: {{ $value | humanize }}/s"
+
+      # ===== Resource Alerts =====
+      - alert: PrometheusScrapeFailing
+        expr: up{job="prometheus"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: monitoring
+          component: prometheus
+        annotations:
+          summary: "Prometheus is not able to scrape itself"
+          description: "Prometheus self-monitoring is failing. Check Prometheus logs and configuration."
+
+      - alert: PrometheusScrapeSlowTarget
+        expr: scrape_duration_seconds > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring
+          component: prometheus
+        annotations:
+          summary: "Prometheus target scraping is slow"
+          description: "Scraping {{ $labels.job }} is taking more than 1 second. Current duration: {{ $value | humanizeDuration }}"

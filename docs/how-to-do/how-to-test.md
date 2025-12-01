@@ -26,17 +26,31 @@ Learn how to run tests, write new tests, and debug test failures.
 
 ---
 
+## 📚 Backend Test Suite
+
+Portfolio Manager has **116 comprehensive automated tests** covering all API endpoints.
+
+See [Backend Test Documentation](/backend/cmd/test/README.md) for:
+- Complete test coverage details (portfolios, categories, projects, sections)
+- Test file structure and organization
+- Configuration and environment setup
+- CI/CD integration
+- Container-based testing
+
 ## 📝 Running Tests
 
 ### Quick Test Run
 
 ```bash
-# Run all backend tests
+# Run all backend tests (using Make - recommended)
+make test
+
+# Or run manually
 cd backend
-go test ./...
+go test ./cmd/test/...
 
 # Run with verbose output
-go test -v ./...
+go test -v ./cmd/test/...
 
 # Run specific test file
 go test -v ./cmd/test/portfolio_test.go
@@ -86,26 +100,27 @@ make ci-all
 package main
 
 import (
-    "testing"
-    "github.com/stretchr/testify/assert"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFeature_Create(t *testing.T) {
-    // Arrange - set up test data
-    token := GetTestAuthToken()
-    payload := map[string]interface{}{
-        "title": "Test Feature",
-    }
+	// Arrange - set up test data
+	token := GetTestAuthToken()
+	payload := map[string]interface{}{
+		"title": "Test Feature",
+	}
 
-    // Act - perform the action
-    resp := MakeRequest(t, "POST", "/api/features/own", payload, token)
+	// Act - perform the action
+	resp := MakeRequest(t, "POST", "/api/features/own", payload, token)
 
-    // Assert - verify the result
-    AssertJSONResponse(t, resp, 201, func(body map[string]interface{}) {
-        assert.Contains(t, body, "data")
-        data := body["data"].(map[string]interface{})
-        assert.Equal(t, "Test Feature", data["title"])
-    })
+	// Assert - verify the result
+	AssertJSONResponse(t, resp, 201, func(body map[string]interface{}) {
+		assert.Contains(t, body, "data")
+		data := body["data"].(map[string]interface{})
+		assert.Equal(t, "Test Feature", data["title"])
+	})
 }
 ```
 

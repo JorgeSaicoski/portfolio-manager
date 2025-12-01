@@ -80,8 +80,6 @@
     <div class="empty-state">
       <svg
         class="empty-icon"
-        fill="none"
-        stroke="currentColor"
         viewBox="0 0 24 24"
       >
         <path
@@ -145,11 +143,10 @@
                     onclick={() => startEditingAlt(image.ID)}
                     class="edit-alt-button"
                     title="Edit alt text"
+                    aria-label="Edit alt text"
                   >
                     <svg
                       class="edit-icon"
-                      fill="none"
-                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
                       <path
@@ -312,6 +309,13 @@
   .edit-icon {
     width: 16px;
     height: 16px;
+  }
+
+  /* Use CSS for SVG fill/stroke so Svelte doesn't flag inline svg attributes as obsolete */
+  .empty-icon,
+  .edit-icon {
+    fill: none;
+    stroke: currentColor;
   }
 
   .alt-edit {

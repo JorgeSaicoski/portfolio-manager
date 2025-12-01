@@ -6,35 +6,39 @@
  import { sectionStore } from "$lib/stores/section";
  import type { Category, Section } from "$lib/types/api";
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
+ import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
+ import SectionModal from "$lib/components/admin/SectionModal.svelte";
 
  // Get data from load function
- export let data: { id: number };
+ const { data } = $props() as { data: { id: number } };
 
  // Page parameters
- $: portfolioId = data.id;
+ const portfolioId: number = data.id;
 
  // Component state
- let portfolio: Portfolio | null = null;
- let loading = true;
- let error: string | null = null;
- let isEditing = false;
- let showDeleteModal = false;
+ let portfolio = $state<Portfolio | null>(null);
+ let loading = $state(true);
+ let error = $state<string | null>(null);
+ let isEditing = $state(false);
+ let showDeleteModal = $state(false);
+ let showCategoryModal = $state(false);
+ let showSectionModal = $state(false);
 
  // Categories and Sections
- let categories: Category[] = [];
- let sections: Section[] = [];
- let loadingCategories = false;
- let loadingSections = false;
+ let categories = $state<Category[]>([]);
+ let sections = $state<Section[]>([]);
+ let loadingCategories = $state(false);
+ let loadingSections = $state(false);
 
  // Edit form state
- let editTitle = "";
- let editDescription = "";
- let editError = "";
- let isSubmitting = false;
+ let editTitle = $state("");
+ let editDescription = $state("");
+ let editError = $state("");
+ let isSubmitting = $state(false);
 
  // Form validation
- let titleError = "";
- let descriptionError = "";
+ let titleError = $state("");
+ let descriptionError = $state("");
 
  // Load portfolio on mount
  onMount(async () => {
@@ -51,8 +55,7 @@
    try {
      // Use the new getById function for public access
      await portfolioStore.getById(portfolioId);
-     const state = $portfolioStore;
-     portfolio = state.currentPortfolio;
+     portfolio = $portfolioStore.currentPortfolio;
 
      if (portfolio) {
        // Initialize edit form with current data
@@ -89,51 +92,116 @@
    }
  }
 
- async function moveCategory(category: Category, direction: "up" | "down") {
-   const currentIndex = categories.findIndex((c) => c.ID === category.ID);
-   if (currentIndex === -1) return;
+ // Drag and drop for categories
+ let draggedCategory = $state<Category | null>(null);
+ let draggedOverCategoryIndex = $state<number | null>(null);
 
-   let newPosition: number;
-   if (direction === "up" && currentIndex > 0) {
-     newPosition = categories[currentIndex - 1].position;
-   } else if (direction === "down" && currentIndex < categories.length - 1) {
-     newPosition = categories[currentIndex + 1].position;
-   } else {
-     return; // Can't move further
-   }
+ // Debounce timers for position updates
+ let categoryDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+ let sectionDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+ let savingCategories = $state(false);
+ let savingSections = $state(false);
 
-   try {
-     await categoryStore.updatePosition(category.ID, newPosition);
-     await loadCategories(); // Reload to get updated positions
-   } catch (err) {
-     console.error("Failed to update category position:", err);
+ function handleCategoryDragStart(e: DragEvent, category: Category) {
+   draggedCategory = category;
+   if (e.dataTransfer) {
+     e.dataTransfer.effectAllowed = 'move';
    }
  }
 
- async function moveSection(section: Section, direction: "up" | "down") {
-   const currentIndex = sections.findIndex((s) => s.ID === section.ID);
-   if (currentIndex === -1) return;
+ function handleCategoryDragOver(e: DragEvent, index: number) {
+   if (!draggedCategory) return;
+   e.preventDefault();
+   draggedOverCategoryIndex = index;
+   if (e.dataTransfer) {
+     e.dataTransfer.dropEffect = 'move';
+   }
+ }
 
-   let newPosition: number;
-   if (direction === "up" && currentIndex > 0) {
-     newPosition = sections[currentIndex - 1].position;
-   } else if (direction === "down" && currentIndex < sections.length - 1) {
-     newPosition = sections[currentIndex + 1].position;
-   } else {
-     return; // Can't move further
+ function handleCategoryDragLeave() {
+   draggedOverCategoryIndex = null;
+ }
+
+ async function handleCategoryDrop(e: DragEvent, dropIndex: number) {
+   if (!draggedCategory) return;
+   e.preventDefault();
+
+   const draggedIndex = categories.findIndex(c => c.ID === draggedCategory!.ID);
+   if (draggedIndex === dropIndex) {
+     draggedCategory = null;
+     draggedOverCategoryIndex = null;
+     return;
    }
 
-   try {
-     await sectionStore.updatePosition(section.ID, newPosition);
-     await loadSections(); // Reload to get updated positions
-   } catch (err) {
-     console.error("Failed to update section position:", err);
+   // Reorder array optimistically
+   const reorderedCategories = [...categories];
+   const [removed] = reorderedCategories.splice(draggedIndex, 1);
+   reorderedCategories.splice(dropIndex, 0, removed);
+
+   // Update local state immediately
+   categories = reorderedCategories;
+
+   // Trigger debounced save
+   debouncedReorderCategories(reorderedCategories);
+
+   draggedCategory = null;
+   draggedOverCategoryIndex = null;
+ }
+
+ function handleCategoryDragEnd() {
+   draggedCategory = null;
+   draggedOverCategoryIndex = null;
+ }
+
+ async function debouncedReorderCategories(reorderedList: Category[]) {
+   // Clear existing timer
+   if (categoryDebounceTimer) {
+     clearTimeout(categoryDebounceTimer);
+   }
+
+   // Set saving state
+   savingCategories = true;
+
+   // Start new 2.5 second timer
+   categoryDebounceTimer = setTimeout(async () => {
+     try {
+       // Prepare bulk update payload
+       const updates = reorderedList.map((cat, index) => ({
+         id: cat.ID,
+         position: index + 1
+       }));
+
+       // Call new bulk reorder endpoint
+       await categoryStore.bulkReorder(updates);
+
+       // Reload to sync with server
+       await loadCategories();
+
+       savingCategories = false;
+     } catch (err) {
+       console.error('Failed to reorder categories:', err);
+       alert('Failed to save category order. Please try again.');
+       await loadCategories(); // Revert on error
+       savingCategories = false;
+     }
+   }, 2500); // 2.5 seconds
+ }
+
+ async function handleDeleteCategory(category: Category) {
+   if (confirm(`Are you sure you want to delete the category "${category.title}"? This action cannot be undone.`)) {
+     try {
+       await categoryStore.delete(category.ID);
+       categories = categories.filter(c => c.ID !== category.ID);
+     } catch (err) {
+       console.error('Error deleting category:', err);
+       alert('Failed to delete category. Please try again.');
+     }
    }
  }
 
  // Drag and drop for sections
- let draggedSection: Section | null = null;
- let draggedOverSectionIndex: number | null = null;
+ let draggedSection = $state<Section | null>(null);
+ let draggedOverSectionIndex = $state<number | null>(null);
 
  function handleSectionDragStart(e: DragEvent, section: Section) {
    draggedSection = section;
@@ -170,20 +238,12 @@
    const reorderedSections = [...sections];
    const [removed] = reorderedSections.splice(draggedIndex, 1);
    reorderedSections.splice(dropIndex, 0, removed);
+
+   // Update local state immediately
    sections = reorderedSections;
 
-   // Update positions in backend
-   try {
-     // Update the position of the dragged section to match its new position
-     // Note: Position is 1-based, dropIndex is 0-based
-     const newPosition = dropIndex + 1;
-     await sectionStore.updatePosition(draggedSection.ID, newPosition);
-     await loadSections(); // Reload to get correct positions from server
-   } catch (err) {
-     console.error('Failed to reorder sections:', err);
-     alert('Failed to reorder sections. Please try again.');
-     await loadSections(); // Reload on error to revert
-   }
+   // Trigger debounced save
+   debouncedReorderSections(reorderedSections);
 
    draggedSection = null;
    draggedOverSectionIndex = null;
@@ -192,6 +252,40 @@
  function handleSectionDragEnd() {
    draggedSection = null;
    draggedOverSectionIndex = null;
+ }
+
+ async function debouncedReorderSections(reorderedList: Section[]) {
+   // Clear existing timer
+   if (sectionDebounceTimer) {
+     clearTimeout(sectionDebounceTimer);
+   }
+
+   // Set saving state
+   savingSections = true;
+
+   // Start new 2.5 second timer
+   sectionDebounceTimer = setTimeout(async () => {
+     try {
+       // Prepare bulk update payload
+       const updates = reorderedList.map((sec, index) => ({
+         id: sec.ID,
+         position: index + 1
+       }));
+
+       // Call new bulk reorder endpoint
+       await sectionStore.bulkReorder(updates);
+
+       // Reload to sync with server
+       await loadSections();
+
+       savingSections = false;
+     } catch (err) {
+       console.error('Failed to reorder sections:', err);
+       alert('Failed to save section order. Please try again.');
+       await loadSections(); // Revert on error
+       savingSections = false;
+     }
+   }, 2500); // 2.5 seconds
  }
 
  async function handleDeleteSection(section: Section) {
@@ -340,20 +434,20 @@
      <div class="navbar-actions">
        {#if portfolio && !isEditing}
          <button class="btn btn-outline" onclick={startEdit}>
-           <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-             <path
-               d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-             />
-           </svg>
-           Edit
+           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              />
+            </svg>
+            Edit
          </button>
          <button class="btn btn-error" onclick={openDeleteModal}>
-           <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-             <path
-               d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-             />
-           </svg>
-           Delete
+           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+            Delete
          </button>
        {/if}
      </div>
@@ -377,11 +471,10 @@
          <div class="card-body">
            <div class="text-center">
              <svg
+               class="icon-fill text-error"
                width="48"
                height="48"
-               fill="currentColor"
                viewBox="0 0 24 24"
-               class="text-error"
              >
                <path
                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
@@ -423,9 +516,9 @@
                    <div class="card-body">
                      <div class="flex">
                        <svg
+                         class="icon-fill"
                          width="20"
                          height="20"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -461,7 +554,6 @@
                          class="icon"
                          width="16"
                          height="16"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -499,7 +591,6 @@
                          class="icon"
                          width="16"
                          height="16"
-                         fill="currentColor"
                          viewBox="0 0 24 24"
                        >
                          <path
@@ -555,9 +646,9 @@
                  </div>
                  <div class="feature-icon">
                    <svg
+                     class="icon-fill"
                      width="24"
                      height="24"
-                     fill="currentColor"
                      viewBox="0 0 24 24"
                    >
                      <path
@@ -606,9 +697,14 @@
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
-                <h3>Portfolio Categories</h3>
-                <button class="btn btn-primary btn-sm" onclick={() => goto('/categories')}>
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                <div class="flex" style="align-items: center; gap: var(--space-3);">
+                  <h3>Portfolio Categories</h3>
+                  {#if savingCategories}
+                    <span class="saving-indicator">Saving...</span>
+                  {/if}
+                </div>
+                <button class="btn btn-primary btn-sm" onclick={() => showCategoryModal = true}>
+                  <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   New Category
@@ -624,21 +720,42 @@
               {:else if categories.length === 0}
                 <div class="text-center" style="padding: var(--space-8);">
                   <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
                   <h4>No categories yet</h4>
                   <p class="text-muted">Create your first category for this portfolio</p>
-                  <button class="btn btn-primary" onclick={() => goto('/categories')} style="margin-top: var(--space-4);">
+                  <button class="btn btn-primary" onclick={() => showCategoryModal = true} style="margin-top: var(--space-4);">
                     Create Category
                   </button>
                 </div>
               {:else}
                 <div class="categories-list">
-                  {#each categories as category (category.ID)}
-                    <div class="category-item">
+                  {#each categories as category, index (category.ID)}
+                    <div
+                      role="listitem"
+                      class="category-item"
+                      class:dragging={draggedCategory?.ID === category.ID}
+                      class:drag-over={draggedOverCategoryIndex === index}
+                      draggable={true}
+                      ondragstart={(e) => handleCategoryDragStart(e, category)}
+                      ondragover={(e) => handleCategoryDragOver(e, index)}
+                      ondragleave={handleCategoryDragLeave}
+                      ondrop={(e) => handleCategoryDrop(e, index)}
+                      ondragend={handleCategoryDragEnd}
+                    >
                       <div class="category-header-row">
+                        <div class="drag-handle" title="Drag to reorder">
+                          <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
+                             <circle cx="9" cy="6" r="1.5"/>
+                             <circle cx="15" cy="6" r="1.5"/>
+                             <circle cx="9" cy="12" r="1.5"/>
+                             <circle cx="15" cy="12" r="1.5"/>
+                             <circle cx="9" cy="18" r="1.5"/>
+                             <circle cx="15" cy="18" r="1.5"/>
+                           </svg>
+                        </div>
                         <div class="category-info">
                           <h4 class="category-title">{category.title}</h4>
                           <p class="category-description">{category.description || 'No description'}</p>
@@ -649,32 +766,22 @@
                         <div class="category-actions">
                           <button
                             class="btn-icon"
-                            onclick={() => moveCategory(category, 'up')}
-                            disabled={categories.findIndex(c => c.ID === category.ID) === 0}
-                            title="Move up"
-                          >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon"
-                            onclick={() => moveCategory(category, 'down')}
-                            disabled={categories.findIndex(c => c.ID === category.ID) === categories.length - 1}
-                            title="Move down"
-                          >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon"
                             onclick={() => goto(`/categories/${category.ID}`)}
                             title="View category"
+                            aria-label="View category"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            class="btn-icon delete"
+                            onclick={() => handleDeleteCategory(category)}
+                            title="Delete category"
+                            aria-label="Delete category"
+                          >
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
                         </div>
@@ -690,9 +797,14 @@
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
               <div class="flex" style="justify-content: space-between; align-items: center;">
-                <h3>Portfolio Sections</h3>
-                <button class="btn btn-primary btn-sm" onclick={() => goto('/sections')}>
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
+                <div class="flex" style="align-items: center; gap: var(--space-3);">
+                  <h3>Portfolio Sections</h3>
+                  {#if savingSections}
+                    <span class="saving-indicator">Saving...</span>
+                  {/if}
+                </div>
+                <button class="btn btn-primary btn-sm" onclick={() => showSectionModal = true}>
+                  <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24" style="margin-right: var(--space-1);">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   New Section
@@ -708,13 +820,13 @@
               {:else if sections.length === 0}
                 <div class="text-center" style="padding: var(--space-8);">
                   <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 002-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 002-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                   </div>
                   <h4>No sections yet</h4>
                   <p class="text-muted">Create your first section for this portfolio</p>
-                  <button class="btn btn-primary" onclick={() => goto('/sections')} style="margin-top: var(--space-4);">
+                  <button class="btn btn-primary" onclick={() => showSectionModal = true} style="margin-top: var(--space-4);">
                     Create Section
                   </button>
                 </div>
@@ -722,6 +834,7 @@
                 <div class="sections-list">
                   {#each sections as section, index (section.ID)}
                     <div
+                      role="listitem"
                       class="section-item"
                       class:dragging={draggedSection?.ID === section.ID}
                       class:drag-over={draggedOverSectionIndex === index}
@@ -734,7 +847,7 @@
                     >
                       <div class="section-header-row">
                         <div class="drag-handle" title="Drag to reorder">
-                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
                             <circle cx="9" cy="6" r="1.5"/>
                             <circle cx="15" cy="6" r="1.5"/>
                             <circle cx="9" cy="12" r="1.5"/>
@@ -756,8 +869,9 @@
                             class="btn-icon"
                             onclick={() => goto(`/sections/${section.ID}`)}
                             title="Edit section"
+                            aria-label="Edit section"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
@@ -765,8 +879,9 @@
                             class="btn-icon delete"
                             onclick={() => handleDeleteSection(section)}
                             title="Delete section"
+                            aria-label="Delete section"
                           >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -785,6 +900,29 @@
  </main>
 </div>
 
+{#if showCategoryModal}
+  <CategoryModal
+    portfolio_id={portfolioId}
+    onClose={() => showCategoryModal = false}
+    onSuccess={async () => {
+      showCategoryModal = false;
+      await loadCategories();
+    }}
+  />
+{/if}
+
+{#if showSectionModal}
+  <SectionModal
+    section={null}
+    portfolio_id={portfolioId}
+    onClose={() => showSectionModal = false}
+    onSuccess={async () => {
+      showSectionModal = false;
+      await loadSections();
+    }}
+  />
+{/if}
+
 <DeleteModal
  bind:isOpen={showDeleteModal}
  itemName={portfolio?.title}
@@ -793,150 +931,3 @@
  onClose={() => showDeleteModal = false}
  onConfirm={handleDeletePortfolio}
 />
-
-<style>
-  .sections-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .section-item {
-    background: var(--color-gray-50);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    transition: all 0.2s ease;
-    cursor: move;
-  }
-
-  .section-item:hover {
-    border-color: var(--color-primary-300);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .section-item.dragging {
-    opacity: 0.5;
-    transform: scale(0.98);
-  }
-
-  .section-item.drag-over {
-    border-color: var(--color-primary-500);
-    background: var(--color-primary-50);
-    transform: translateY(-2px);
-  }
-
-  .section-header-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .drag-handle {
-    color: var(--color-gray-400);
-    cursor: grab;
-    display: flex;
-    align-items: center;
-    padding: var(--space-1);
-    transition: color 0.2s ease;
-  }
-
-  .drag-handle:hover {
-    color: var(--color-gray-600);
-  }
-
-  .drag-handle:active {
-    cursor: grabbing;
-  }
-
-  .section-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .section-title {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-gray-900);
-    margin: 0 0 var(--space-1) 0;
-  }
-
-  .section-description {
-    font-size: var(--text-sm);
-    color: var(--color-gray-600);
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .section-meta {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .badge {
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .position-badge {
-    color: var(--color-gray-500);
-    font-size: var(--text-xs);
-    font-weight: 500;
-  }
-
-  .section-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .btn-icon {
-    background: none;
-    border: none;
-    padding: var(--space-2);
-    cursor: pointer;
-    color: var(--color-gray-600);
-    transition: all 0.2s ease;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-icon:hover {
-    background: var(--color-gray-100);
-    color: var(--color-primary-600);
-  }
-
-  .btn-icon.delete:hover {
-    background: var(--color-red-50);
-    color: var(--color-red-600);
-  }
-
-  .empty-icon {
-    color: var(--color-gray-400);
-  }
-
-  @media (max-width: 768px) {
-    .section-header-row {
-      flex-wrap: wrap;
-    }
-
-    .section-meta {
-      flex-basis: 100%;
-      order: 3;
-      margin-top: var(--space-2);
-    }
-
-    .section-actions {
-      order: 2;
-    }
-  }
-</style>
