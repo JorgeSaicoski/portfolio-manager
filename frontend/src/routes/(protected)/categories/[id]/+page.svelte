@@ -17,6 +17,25 @@
   let loadingProjects = $state(false);
   let error = $state<string | null>(null);
 
+  // Backend base to resolve upload URLs when needed
+  const BACKEND_BASE = typeof window !== 'undefined'
+    ? (import.meta.env.VITE_API_URL || 'http://localhost:8000')
+    : 'http://localhost:8000';
+
+  // Ensure BACKEND_BASE doesn't include a trailing /api segment
+  const BACKEND_ORIGIN = BACKEND_BASE.replace(/\/api\/?$/i, '');
+
+  // Helper to resolve image src paths returned by the API.
+  // - If the path is already absolute (/uploads/.. or http(s)://) return as-is
+  // - If the path is relative (uploads/...), prefix the backend origin
+  function resolveImageSrc(path: string | undefined | null) {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    if (path.startsWith('/')) return path; // will be handled by proxy or backend
+    // relative path like "uploads/.."
+    return `${BACKEND_ORIGIN}/${path}`;
+  }
+
   // Load category on mount
   onMount(async () => {
     await loadCategory();
@@ -279,7 +298,7 @@
                        {#if project.Images && project.Images.length > 0}
                          {@const mainImage = project.Images.find(img => img.is_main) || project.Images[0]}
                          <div class="project-image">
-                           <img src={mainImage.thumbnail_url || mainImage.url} alt={mainImage.alt || project.title} />
+                           <img src={resolveImageSrc(mainImage.thumbnail_url || mainImage.url)} alt={mainImage.alt || project.title} />
                          </div>
                        {:else}
                          <div class="project-image-placeholder">

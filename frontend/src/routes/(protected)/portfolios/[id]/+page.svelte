@@ -931,3 +931,26 @@
  onClose={() => showDeleteModal = false}
  onConfirm={handleDeletePortfolio}
 />
+
+<style>
+  /* Ensure icon utility classes work on this page */
+  :global(.icon-stroke) {
+    fill: none !important;
+    stroke: currentColor !important;
+  }
+
+  :global(.icon-fill) {
+    fill: currentColor !important;
+    stroke: none !important;
+  }
+
+  :global(.empty-icon) {
+    fill: none !important;
+    stroke: currentColor !important;
+  }
+
+  /* Ensure SVGs inherit color and have sensible defaults */
+  svg {
+    color: inherit;
+  }
+</style>
