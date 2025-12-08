@@ -93,29 +93,3 @@
   {/if}
 </div>
 
-<style>
-  .project-thumbnail {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    display: block;
-  }
-
-  .no-image-placeholder {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    color: #cbd5e0;
-  }
-
-  .no-image-placeholder svg {
-    width: 32px;
-    height: 32px;
-  }
-</style>

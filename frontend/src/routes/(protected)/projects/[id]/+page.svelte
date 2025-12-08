@@ -239,56 +239,6 @@
   </div>
 {/if}
 
-<style>
-  .project-detail-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-    flex-wrap: wrap;
-    gap: var(--space-4);
-  }
-
-  .detail-header h1 {
-    margin: 0;
-    font-size: var(--text-3xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .header-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-
-  .detail-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .detail-card h3 {
-    margin: 0 0 var(--space-4) 0;
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
-  }
-
-  .detail-item {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
