@@ -148,54 +148,6 @@
               </div>
             </div>
 
-            <!-- Images Section -->
-            {#if project.Images && project.Images.length > 0}
-              <div class="images-section">
-                <h3>Images</h3>
-                <div class="images-container">
-                  <!-- Main Image -->
-                  {#each project.Images as image}
-                    {#if image.is_main}
-                      <div class="main-image-container">
-                        <img
-                          src={image.url}
-                          alt={image.alt || project.title}
-                          class="main-image"
-                          loading="lazy"
-                        />
-                        <p class="image-caption">{image.alt || "Main image"}</p>
-                      </div>
-                    {/if}
-                  {/each}
-
-                  <!-- Thumbnails -->
-                  {#if project.Images.filter(img => !img.is_main).length > 0}
-                    <div class="thumbnails-section">
-                      <h4>Additional Images</h4>
-                      <div class="thumbnails-grid">
-                        {#each project.Images.filter(img => !img.is_main) as image}
-                          <div class="thumbnail-item">
-                            <img
-                              src={image.thumbnail_url || image.url}
-                              alt={image.alt || project.title}
-                              class="thumbnail-image"
-                              loading="lazy"
-                            />
-                          </div>
-                        {/each}
-                      </div>
-                    </div>
-                  {/if}
-                </div>
-              </div>
-            {:else}
-              <div class="no-images">
-                <svg class="icon-stroke" width="48" height="48" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p>No images available</p>
-              </div>
-            {/if}
 
             <!-- Project Details Card -->
             <div class="detail-card">
@@ -314,80 +266,6 @@
     gap: var(--space-2);
   }
 
-  .images-section {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .images-section h3 {
-    margin: 0 0 var(--space-4) 0;
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .main-image-container {
-    margin-bottom: var(--space-6);
-  }
-
-  .main-image {
-    width: 100%;
-    height: auto;
-    max-height: 500px;
-    object-fit: cover;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .image-caption {
-    margin-top: var(--space-2);
-    font-size: var(--text-sm);
-    color: var(--color-gray-600);
-    text-align: center;
-  }
-
-  .thumbnails-section h4 {
-    margin: 0 0 var(--space-3) 0;
-    font-size: var(--text-base);
-    font-weight: 500;
-    color: var(--color-gray-700);
-  }
-
-  .thumbnails-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: var(--space-3);
-  }
-
-  .thumbnail-image {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border-color 0.2s;
-  }
-
-  .thumbnail-image:hover {
-    border-color: var(--color-primary);
-  }
-
-  .no-images {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--space-8);
-    margin-bottom: var(--space-6);
-    text-align: center;
-    color: var(--color-gray-500);
-  }
-
-  .no-images svg {
-    margin: 0 auto var(--space-3) auto;
-  }
 
   .detail-card {
     background: white;

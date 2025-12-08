@@ -19,24 +19,6 @@
   let error = $state<string | null>(null);
   let showProjectModal = $state(false);
 
-  // Backend base to resolve upload URLs when needed
-  const BACKEND_BASE = typeof window !== 'undefined'
-    ? (import.meta.env.VITE_API_URL || 'http://localhost:8000')
-    : 'http://localhost:8000';
-
-  // Ensure BACKEND_BASE doesn't include a trailing /api segment
-  const BACKEND_ORIGIN = BACKEND_BASE.replace(/\/api\/?$/i, '');
-
-  // Helper to resolve image src paths returned by the API.
-  // - If the path is already absolute (/uploads/.. or http(s)://) return as-is
-  // - If the path is relative (uploads/...), prefix the backend origin
-  function resolveImageSrc(path: string | undefined | null) {
-    if (!path) return '';
-    if (/^https?:\/\//i.test(path)) return path;
-    if (path.startsWith('/')) return path; // will be handled by proxy or backend
-    // relative path like "uploads/.."
-    return `${BACKEND_ORIGIN}/${path}`;
-  }
 
   // Load category on mount
   onMount(async () => {
@@ -305,18 +287,6 @@
                       aria-label={`Open project ${project.title}`}
                       onkeydown={handleProjectKeydown}
                     >
-                       {#if project.Images && project.Images.length > 0}
-                         {@const mainImage = project.Images.find(img => img.is_main) || project.Images[0]}
-                         <div class="project-image">
-                           <img src={resolveImageSrc(mainImage.thumbnail_url || mainImage.url)} alt={mainImage.alt || project.title} />
-                         </div>
-                       {:else}
-                         <div class="project-image-placeholder">
-                           <svg class="icon-stroke" width="48" height="48" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                           </svg>
-                         </div>
-                       {/if}
                        <div class="project-info">
                          <h4 class="project-title">{project.title}</h4>
                          <p class="project-description">{project.description}</p>
