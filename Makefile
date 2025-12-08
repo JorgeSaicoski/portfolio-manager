@@ -212,7 +212,7 @@ update: ## Rebuild and restart all services with latest code changes
 	@echo "$(YELLOW)Step 1/3: Stopping containers...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) down
 	@echo "$(YELLOW)Step 2/3: Building images...$(RESET)"
-	@podman compose -f $(COMPOSE_FILE) build --no-cache
+	@podman compose -f $(COMPOSE_FILE) build
 	@echo "$(YELLOW)Step 3/3: Starting services...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) up -d
 	@echo "$(GREEN)✓ All services updated and running with latest code$(RESET)"
@@ -225,7 +225,7 @@ complete-update: ## Rebuild and restart everything with latest code changes
 	@echo "$(GREEN)✓ Containers stopped$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Step 2/3: Building all images (this may take a while)...$(RESET)"
-	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui build --no-cache
+	@podman compose -f $(COMPOSE_FILE) --profile monitoring --profile db-ui build
 	@echo "$(GREEN)✓ Images built$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Step 3/3: Starting all services...$(RESET)"
@@ -245,16 +245,28 @@ complete-update: ## Rebuild and restart everything with latest code changes
 update-backend: ## Rebuild and restart backend with latest code
 	@echo "$(BLUE)Updating backend with latest code...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) down portfolio-backend
-	@podman compose -f $(COMPOSE_FILE) build --no-cache portfolio-backend
+	@podman compose -f $(COMPOSE_FILE) build portfolio-backend
 	@podman compose -f $(COMPOSE_FILE) up -d portfolio-backend
 	@echo "$(GREEN)✓ Backend updated$(RESET)"
 
 update-frontend: ## Rebuild and restart frontend with latest code
 	@echo "$(BLUE)Updating frontend with latest code...$(RESET)"
 	@podman compose -f $(COMPOSE_FILE) down portfolio-frontend
-	@podman compose -f $(COMPOSE_FILE) build --no-cache portfolio-frontend
+	@podman compose -f $(COMPOSE_FILE) build portfolio-frontend
 	@podman compose -f $(COMPOSE_FILE) up -d portfolio-frontend
 	@echo "$(GREEN)✓ Frontend updated$(RESET)"
+
+clean-build: ## Force rebuild all images without cache (slower but ensures clean build)
+	@echo "$(BOLD)$(YELLOW)⚠ Warning: This will do a complete clean rebuild without cache$(RESET)"
+	@echo "$(YELLOW)This may take significantly longer but ensures a fresh build.$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Stopping all containers...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) down
+	@echo "$(YELLOW)Removing old images...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) build --no-cache
+	@echo "$(YELLOW)Starting services...$(RESET)"
+	@podman compose -f $(COMPOSE_FILE) up -d
+	@echo "$(GREEN)✓ Clean build complete$(RESET)"
 
 status: ## Show status of all services
 	@echo "$(BOLD)Service Status:$(RESET)"
@@ -387,8 +399,8 @@ test-setup: ## Setup complete test environment (DB, migrations, cleanup)
 		(echo "$(YELLOW)Database not running. Starting...$(RESET)" && podman compose up -d portfolio-postgres && sleep 5)
 	@echo "$(GREEN)✓ Database is running$(RESET)"
 	@echo ""
-	@echo "$(YELLOW)Step 2/5: Creating audit directory...$(RESET)"
-	@mkdir -p backend/audit
+	@echo "$(YELLOW)Step 2/5: Ensuring uploads and audit directories exist and permissions are correct...$(RESET)"
+	@$(MAKE) fix-upload-permissions >/dev/null 2>&1 || true
 	@echo "$(GREEN)✓ Audit directory ready$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Step 3/5: Checking .env.test configuration...$(RESET)"
@@ -1111,4 +1123,14 @@ setup-vultr-production: ## Setup Vultr server for production
 ci-all: ci-lint ci-test ci-security ci-coverage ## Run all CI checks
 	@echo "$(BOLD)$(GREEN)✓ All CI checks passed!$(RESET)"
 
+##@ Filesystem helpers
 
+fix-upload-permissions: ## Ensure backend uploads and audit directories exist and are writable
+	@echo "$(BLUE)Fixing backend uploads and audit directory permissions...$(RESET)"
+	@mkdir -p backend/uploads/images
+	@mkdir -p backend/audit
+	# Try to change owner to current user (may fail if not permitted)
+	@chown -R $(shell id -u):$(shell id -g) backend/uploads backend/audit 2>/dev/null || true
+	@chmod -R 0755 backend/uploads || true
+	@chmod -R 0755 backend/audit || true
+	@echo "$(GREEN)✓ Uploads and audit permissions fixed$(RESET)"
