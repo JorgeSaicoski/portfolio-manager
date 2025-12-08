@@ -46,7 +46,6 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Image</th>
           <th>Title</th>
           <th>Description</th>
           <th>Client</th>
@@ -57,22 +56,6 @@
       <tbody>
         {#each projects as project}
           <tr>
-            <td>
-              {#if project.Images && project.Images.length > 0}
-                {@const mainImage = project.Images.find(img => img.is_main) || project.Images[0]}
-                <img
-                  src={mainImage.thumbnail_url}
-                  alt={mainImage.alt}
-                  class="project-thumbnail"
-                />
-              {:else}
-                <div class="no-image-placeholder">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              {/if}
-            </td>
             <td>{project.title}</td>
             <td>{project.description?.substring(0, 50) || 'No description'}{project.description && project.description.length > 50 ? '...' : ''}</td>
             <td>{project.client || '-'}</td>
