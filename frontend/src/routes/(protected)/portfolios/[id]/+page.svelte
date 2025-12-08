@@ -933,8 +933,12 @@
 />
 
 <style>
-  /* Ensure icon utility classes work on this page */
-  :global(.icon-stroke) {
+  /* Ensure icon utility classes work on this page - matches +layout.svelte */
+  :global(.icon-stroke),
+  :global(.btn-icon),
+  :global(.edit-icon),
+  :global(.empty-icon),
+  :global(.upload-icon) {
     fill: none !important;
     stroke: currentColor !important;
   }
@@ -942,11 +946,6 @@
   :global(.icon-fill) {
     fill: currentColor !important;
     stroke: none !important;
-  }
-
-  :global(.empty-icon) {
-    fill: none !important;
-    stroke: currentColor !important;
   }
 
   /* Ensure SVGs inherit color and have sensible defaults */

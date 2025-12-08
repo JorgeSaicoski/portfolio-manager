@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { categoryStore } from "$lib/stores/category";
   import type { Category, Project } from "$lib/types/api";
+  import ProjectModal from "$lib/components/admin/ProjectModal.svelte";
 
   // Get data from load function
   let { data }: { data: { id: number } } = $props();
@@ -16,6 +17,7 @@
   let loading = $state(true);
   let loadingProjects = $state(false);
   let error = $state<string | null>(null);
+  let showProjectModal = $state(false);
 
   // Backend base to resolve upload URLs when needed
   const BACKEND_BASE = typeof window !== 'undefined'
@@ -262,8 +264,16 @@
           <!-- Projects in Category -->
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
-              <h3>Projects in this Category</h3>
-              <p class="text-muted">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+              <div>
+                <h3>Projects in this Category</h3>
+                <p class="text-muted">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick={() => showProjectModal = true}>
+                <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Project
+              </button>
             </div>
 
             <div class="card-body">
@@ -333,7 +343,23 @@
   </main>
 </div>
 
+{#if showProjectModal}
+  <ProjectModal
+    project={null}
+    category_id={categoryId}
+    onClose={() => showProjectModal = false}
+    onSuccess={loadProjects}
+  />
+{/if}
+
 <style>
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
   .metadata-grid {
     display: grid;
     grid-template-columns: 1fr;
