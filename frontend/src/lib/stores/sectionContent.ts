@@ -65,17 +65,38 @@ function createSectionContentStore() {
 
     // Get all content blocks for a section (public)
     async getBySectionId(sectionId: number): Promise<SectionContent[]> {
+      console.log("🔍 [SectionContent] GET BY SECTION ID REQUEST:", {
+        url: `${API_BASE_URL}/sections/${sectionId}/contents`,
+        sectionId
+      });
+
       update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const response = await fetch(
           `${API_BASE_URL}/sections/${sectionId}/contents`
         );
-        const data: ApiResponse<SectionContent[]> = await response.json();
+
+        console.log("📡 [SectionContent] GET RESPONSE:", {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+
+        const responseText = await response.text();
+        console.log("📄 [SectionContent] GET RAW RESPONSE:", responseText);
+
+        const data: ApiResponse<SectionContent[]> = JSON.parse(responseText);
+        console.log("✅ [SectionContent] GET PARSED:", {
+          hasData: !!data.data,
+          dataLength: data.data?.length || 0,
+          data: data.data
+        });
 
         if (response.ok && data.data) {
           // Sort by order field
           const sortedContents = data.data.sort((a, b) => a.order - b.order);
+          console.log("📊 [SectionContent] SORTED CONTENTS:", sortedContents);
           update((state) => ({
             ...state,
             contents: sortedContents,
@@ -90,6 +111,10 @@ function createSectionContentStore() {
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
+        console.error("❌ [SectionContent] GET ERROR:", {
+          error,
+          errorMessage
+        });
         update((state) => ({
           ...state,
           loading: false,
@@ -103,6 +128,13 @@ function createSectionContentStore() {
     async create(
       contentData: CreateSectionContentRequest
     ): Promise<SectionContent> {
+      console.log("🚀 [SectionContent] CREATE REQUEST:", {
+        url: `${SECTION_CONTENT_API_URL}/own`,
+        method: "POST",
+        payload: contentData,
+        payloadString: JSON.stringify(contentData)
+      });
+
       update((state) => ({ ...state, loading: true, error: null }));
 
       try {
@@ -113,9 +145,36 @@ function createSectionContentStore() {
             body: JSON.stringify(contentData),
           }
         );
-        const data: ApiResponse<SectionContent> = await response.json();
+
+        console.log("📡 [SectionContent] RESPONSE STATUS:", {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: {
+            contentType: response.headers.get('content-type')
+          }
+        });
+
+        const responseText = await response.text();
+        console.log("📄 [SectionContent] RESPONSE RAW TEXT:", responseText);
+
+        let data: ApiResponse<SectionContent>;
+        try {
+          data = JSON.parse(responseText);
+          console.log("✅ [SectionContent] RESPONSE PARSED JSON:", {
+            hasData: !!data.data,
+            hasError: !!data.error,
+            hasMessage: !!data.message,
+            fullResponse: data
+          });
+        } catch (parseError) {
+          console.error("❌ [SectionContent] JSON PARSE ERROR:", parseError);
+          console.log("Raw response was:", responseText);
+          throw new Error("Failed to parse response as JSON");
+        }
 
         if (response.ok && data.data) {
+          console.log("✅ [SectionContent] SUCCESS - Created content:", data.data);
           update((state) => ({
             ...state,
             contents: [...state.contents, data.data!].sort(
@@ -125,11 +184,21 @@ function createSectionContentStore() {
           }));
           return data.data;
         } else {
+          console.error("❌ [SectionContent] FAILED:", {
+            responseOk: response.ok,
+            hasData: !!data.data,
+            error: data.error,
+            message: data.message
+          });
           throw new Error(data.error || "Failed to create content");
         }
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
+        console.error("❌ [SectionContent] EXCEPTION:", {
+          error,
+          errorMessage
+        });
         update((state) => ({
           ...state,
           loading: false,

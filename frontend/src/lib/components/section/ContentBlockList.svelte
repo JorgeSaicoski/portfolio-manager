@@ -8,8 +8,22 @@
   export let onDelete: (id: number) => void;
   export let editable = true;
 
+  // Debug logging
+  $: {
+    console.log("🔍 [ContentBlockList] Rendering with contents:", {
+      count: contents.length,
+      contents: contents,
+      sectionId
+    });
+  }
+
   let draggedItem: SectionContent | null = null;
   let draggedOverIndex: number | null = null;
+
+  // Helper to get ID (handles both 'id' and 'ID')
+  function getItemId(content: SectionContent): number {
+    return content.id || content.ID || 0;
+  }
 
   function handleDragStart(e: DragEvent, content: SectionContent) {
     if (!editable) return;
@@ -36,7 +50,7 @@
     if (!editable || !draggedItem) return;
     e.preventDefault();
 
-    const draggedIndex = contents.findIndex(c => c.ID === draggedItem!.ID);
+    const draggedIndex = contents.findIndex(c => getItemId(c) === getItemId(draggedItem!));
     if (draggedIndex === dropIndex) {
       draggedItem = null;
       draggedOverIndex = null;
@@ -50,7 +64,7 @@
 
     // Calculate new orders
     const updates = reorderedContents.map((content, index) => ({
-      id: content.ID,
+      id: getItemId(content),
       order: index
     }));
 
@@ -71,7 +85,7 @@
 
   function confirmDelete(content: SectionContent) {
     if (confirm(`Are you sure you want to delete this ${content.type} content block?`)) {
-      onDelete(content.ID);
+      onDelete(getItemId(content));
     }
   }
 
@@ -79,33 +93,19 @@
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   }
-
-  // Handle broken image previews without IDE type errors
-  function handleImageError(e: Event) {
-    const img = e.currentTarget as HTMLImageElement | null;
-    if (!img) return;
-    img.style.display = 'none';
-    const fallback = img.parentElement?.querySelector<HTMLElement>('.image-error');
-    if (fallback) fallback.style.display = 'block';
-  }
-
-  // Parse metadata to get image info
-  function getImageMetadata(content: SectionContent): { source: string; thumbnailUrl?: string; imageId?: number } | null {
-    if (!content.metadata) return null;
-    try {
-      const meta = JSON.parse(content.metadata);
-      return {
-        source: meta.source || 'external',
-        thumbnailUrl: meta.thumbnail_url,
-        imageId: meta.image_id
-      };
-    } catch {
-      return null;
-    }
-  }
 </script>
 
 <div class="content-block-list">
+  <!-- DEBUG INFO -->
+  <div style="background: yellow; padding: 10px; margin-bottom: 10px; border: 2px solid red;">
+    <strong>DEBUG:</strong> Rendering {contents.length} content items
+    <ul style="margin: 10px 0;">
+      {#each contents as c}
+        <li>ID: {getItemId(c)}, Order: {c.order}, Type: {c.type}, Content: {c.content.substring(0, 30)}...</li>
+      {/each}
+    </ul>
+  </div>
+
   {#if contents.length === 0}
     <div class="empty-state">
       <p>No content blocks yet.</p>
@@ -115,10 +115,10 @@
     </div>
   {:else}
     <div class="content-items">
-      {#each contents as content, index (content.ID)}
+      {#each contents as content, index (getItemId(content))}
         <div
           class="content-item"
-          class:dragging={draggedItem?.ID === content.ID}
+          class:dragging={draggedItem && getItemId(draggedItem) === getItemId(content)}
           class:drag-over={draggedOverIndex === index}
           draggable={editable}
           ondragstart={(e) => handleDragStart(e, content)}
@@ -128,8 +128,8 @@
           ondragend={handleDragEnd}
         >
           <div class="content-header">
-            <div class="content-type-badge" class:text={content.type === 'text'} class:image={content.type === 'image'}>
-              {content.type === 'text' ? '📝' : '🖼️'} {content.type}
+            <div class="content-type-badge" class:text={content.type === 'text'}>
+              📝 {content.type}
             </div>
             <div class="content-order">#{content.order}</div>
             {#if editable}
@@ -142,30 +142,6 @@
           <div class="content-preview">
             {#if content.type === 'text'}
               <p class="text-content">{truncate(content.content)}</p>
-            {:else}
-              {@const imageMeta = getImageMetadata(content)}
-              <div class="image-container">
-                {#if imageMeta?.thumbnailUrl}
-                  <img src={imageMeta.thumbnailUrl} alt="Content thumbnail" class="thumbnail" onerror={handleImageError} />
-                {:else}
-                  <img src={content.content} alt="Content preview" onerror={handleImageError} />
-                {/if}
-                <div class="image-error" style="display: none;">
-                  ❌ Failed to load image
-                  <br />
-                  <small>{truncate(content.content, 50)}</small>
-                </div>
-              </div>
-              {#if imageMeta}
-                <div class="image-meta">
-                  <span class="source-badge" class:uploaded={imageMeta.source === 'uploaded'} class:external={imageMeta.source === 'external'}>
-                    {imageMeta.source === 'uploaded' ? '📤 Uploaded' : '🔗 External URL'}
-                  </span>
-                  {#if imageMeta.imageId}
-                    <small class="text-muted">Image ID: {imageMeta.imageId}</small>
-                  {/if}
-                </div>
-              {/if}
             {/if}
           </div>
 
@@ -197,9 +173,9 @@
           {/if}
 
           <div class="content-meta">
-            <small>Created: {new Date(content.CreatedAt).toLocaleDateString()}</small>
-            {#if content.UpdatedAt !== content.CreatedAt}
-              <small>Updated: {new Date(content.UpdatedAt).toLocaleDateString()}</small>
+            <small>Created: {new Date(content.created_at || content.CreatedAt || '').toLocaleDateString()}</small>
+            {#if (content.updated_at || content.UpdatedAt) !== (content.created_at || content.CreatedAt)}
+              <small>Updated: {new Date(content.updated_at || content.UpdatedAt || '').toLocaleDateString()}</small>
             {/if}
           </div>
         </div>
@@ -207,3 +183,107 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .content-block-list {
+    width: 100%;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-12);
+    color: var(--color-gray-600);
+  }
+
+  .hint {
+    font-size: var(--text-sm);
+    margin-top: var(--space-2);
+  }
+
+  .content-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .content-item {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    transition: all 0.2s;
+  }
+
+  .content-item.dragging {
+    opacity: 0.5;
+  }
+
+  .content-item.drag-over {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+
+  .content-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .content-type-badge {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+  }
+
+  .content-order {
+    font-size: var(--text-sm);
+    color: var(--color-gray-500);
+    font-weight: 600;
+  }
+
+  .drag-handle {
+    margin-left: auto;
+    cursor: grab;
+    color: var(--color-gray-400);
+    font-size: 20px;
+    user-select: none;
+  }
+
+  .content-preview {
+    margin-bottom: var(--space-3);
+  }
+
+  .text-content {
+    color: var(--color-gray-700);
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .metadata-indicator {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-info-100);
+    color: var(--color-info-700);
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    margin-bottom: var(--space-3);
+  }
+
+  .content-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .content-meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+  }
+</style>
+

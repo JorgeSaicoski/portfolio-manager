@@ -136,15 +136,19 @@ export interface SectionFilterParams {
 
 // Section Content Types
 export interface SectionContent {
-  ID: number;
+
+  id: number;  // Backend returns lowercase 'id'
+  ID?: number; // Keep for backwards compatibility
   section_id: number;
   type: 'text' | 'image';
   content: string;
   order: number;
   metadata: string | null;
-  owner_id: string;
-  CreatedAt: string;
-  UpdatedAt: string;
+  owner_id?: string;
+  created_at: string;  // Backend returns lowercase
+  updated_at: string;  // Backend returns lowercase
+  CreatedAt?: string;  // Keep for backwards compatibility
+  UpdatedAt?: string;  // Keep for backwards compatibility
 }
 
 export interface CreateSectionContentRequest {
