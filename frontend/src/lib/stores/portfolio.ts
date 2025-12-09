@@ -1,10 +1,7 @@
 import { writable } from "svelte/store";
 import { authenticatedFetch } from "./auth";
 import { browser } from "$app/environment";
-import { createDebugLogger } from "$lib/utils/debug";
 import { transformPortfolio, transformPortfolios } from "$lib/utils/transform";
-
-const debug = createDebugLogger("PortfolioStore");
 
 const API_BASE_URL = browser
   ? import.meta.env.VITE_API_URL || "http://localhost:8000/api"
@@ -41,15 +38,14 @@ function createPortfolioStore() {
     currentPortfolio: null,
   });
 
-  debug.info("Portfolio store initialized", { API_BASE_URL, PORTFOLIO_API_URL });
+  // Portfolio store initialized
 
   return {
     subscribe,
 
     async getOwn(page = 1, limit = 10) {
       const url = `${PORTFOLIO_API_URL}/own?page=${page}&limit=${limit}`;
-      debug.request({ method: "GET", url });
-      debug.storeUpdate("portfolioStore", "getOwn", { page, limit });
+      // request: GET ${url}
 
       update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
@@ -57,20 +53,12 @@ function createPortfolioStore() {
         const response = await authenticatedFetch(url);
         const data: ApiResponse<any[]> = await response.json();
 
-        debug.response({
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+        // response logged
 
         if (response.ok) {
           const rawPortfolios = data.data || [];
           const portfolios = transformPortfolios(rawPortfolios);
-          debug.storeUpdate("portfolioStore", "getOwn.success", {
-            portfoliosCount: portfolios.length,
-            portfolios
-          });
+          // getOwn.success
 
           update((state: PortfolioState) => ({
             ...state,
@@ -79,11 +67,11 @@ function createPortfolioStore() {
           }));
           return portfolios;
         } else {
-          debug.error("Failed to load portfolios", data.error);
+          // failed to load portfolios
           throw new Error(data.error || "Failed to load portfolios");
         }
       } catch (error) {
-        debug.error("Error loading portfolios", error);
+        // error loading portfolios
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state: PortfolioState) => ({
@@ -97,8 +85,7 @@ function createPortfolioStore() {
 
     async getById(id: number) {
       const url = `${API_BASE_URL}/portfolios/id/${id}`;
-      debug.request({ method: "GET", url });
-      debug.storeUpdate("portfolioStore", "getById", { id });
+      // request: GET ${url}
 
       update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
@@ -107,17 +94,12 @@ function createPortfolioStore() {
         const response = await fetch(url);
         const data: ApiResponse<any> = await response.json();
 
-        debug.response({
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+        // response logged
 
         if (response.ok) {
           const rawPortfolio = data.data;
           const portfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
-          debug.storeUpdate("portfolioStore", "getById.success", { portfolio });
+          // getById.success
 
           update((state: PortfolioState) => ({
             ...state,
@@ -126,11 +108,11 @@ function createPortfolioStore() {
           }));
           return { ...data, data: portfolio };
         } else {
-          debug.error("Failed to load portfolio", data.error);
+          // failed to load portfolio
           throw new Error(data.error || "Failed to load portfolio");
         }
       } catch (error) {
-        debug.error("Error loading portfolio", error);
+        // error loading portfolio
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state: PortfolioState) => ({
@@ -145,8 +127,7 @@ function createPortfolioStore() {
 
     async create(portfolioData: Partial<Portfolio>) {
       const url = `${PORTFOLIO_API_URL}/own`;
-      debug.request({ method: "POST", url, body: portfolioData });
-      debug.storeUpdate("portfolioStore", "create", { portfolioData });
+      // request: POST ${url}
 
       update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
@@ -157,17 +138,12 @@ function createPortfolioStore() {
         });
         const data: ApiResponse<any> = await response.json();
 
-        debug.response({
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+        // response logged
 
         if (response.ok) {
           const rawPortfolio = data.data;
           const newPortfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
-          debug.storeUpdate("portfolioStore", "create.success", { newPortfolio });
+          // create.success
 
           update((state: PortfolioState) => ({
             ...state,
@@ -176,11 +152,11 @@ function createPortfolioStore() {
           }));
           return { ...data, data: newPortfolio };
         } else {
-          debug.error("Failed to create portfolio", data.error);
+          // failed to create portfolio
           throw new Error(data.error || "Failed to create portfolio");
         }
       } catch (error) {
-        debug.error("Error creating portfolio", error);
+        // error creating portfolio
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state: PortfolioState) => ({
@@ -194,8 +170,7 @@ function createPortfolioStore() {
 
     async update(id: number, portfolioData: Partial<Portfolio>) {
       const url = `${PORTFOLIO_API_URL}/own/${id}`;
-      debug.request({ method: "PUT", url, body: portfolioData });
-      debug.storeUpdate("portfolioStore", "update", { id, portfolioData });
+      // request: PUT ${url}
 
       update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
@@ -206,17 +181,12 @@ function createPortfolioStore() {
         });
         const data: ApiResponse<any> = await response.json();
 
-        debug.response({
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+        // response logged
 
         if (response.ok) {
           const rawPortfolio = data.data;
           const updatedPortfolio = rawPortfolio ? transformPortfolio(rawPortfolio) : null;
-          debug.storeUpdate("portfolioStore", "update.success", { updatedPortfolio });
+          // update.success
 
           update((state: PortfolioState) => ({
             ...state,
@@ -227,11 +197,11 @@ function createPortfolioStore() {
           }));
           return { ...data, data: updatedPortfolio };
         } else {
-          debug.error("Failed to update portfolio", data.error);
+          // failed to update portfolio
           throw new Error(data.error || "Failed to update portfolio");
         }
       } catch (error) {
-        debug.error("Error updating portfolio", error);
+        // error updating portfolio
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state: PortfolioState) => ({
@@ -245,8 +215,7 @@ function createPortfolioStore() {
 
     async delete(id: number) {
       const url = `${PORTFOLIO_API_URL}/own/${id}`;
-      debug.request({ method: "DELETE", url });
-      debug.storeUpdate("portfolioStore", "delete", { id });
+      // request: DELETE ${url}
 
       update((state: PortfolioState) => ({ ...state, loading: true, error: null }));
 
@@ -255,15 +224,10 @@ function createPortfolioStore() {
           method: "DELETE",
         });
 
-        debug.response({
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data: response.ok ? "Success" : "Failed"
-        });
+        // response logged
 
         if (response.ok) {
-          debug.storeUpdate("portfolioStore", "delete.success", { id });
+          // delete.success
 
           update((state: PortfolioState) => ({
             ...state,
@@ -272,11 +236,11 @@ function createPortfolioStore() {
           }));
         } else {
           const data: ApiResponse = await response.json();
-          debug.error("Failed to delete portfolio", data.error);
+          // failed to delete portfolio
           throw new Error(data.error || "Failed to delete portfolio");
         }
       } catch (error) {
-        debug.error("Error deleting portfolio", error);
+        // error deleting portfolio
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error occurred";
         update((state: PortfolioState) => ({

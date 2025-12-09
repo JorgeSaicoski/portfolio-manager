@@ -61,19 +61,12 @@
         try {
             if (category) {
                 // Update existing category (portfolio cannot be changed)
-                console.log('CategoryModal: Updating category', {
-                    categoryID: category.ID,
-                    data: { title, description }
-                });
                 const result = await categoryStore.update(category.ID, { title, description });
-                console.log('CategoryModal: Category updated successfully', result);
                 toast.success('Category updated successfully!');
             } else {
                 // Create new category
                 const requestData = { title, description, portfolio_id };
-                console.log('CategoryModal: Creating category with data:', requestData);
                 const result = await categoryStore.create(requestData);
-                console.log('CategoryModal: Category created successfully', result);
                 toast.success('Category created successfully!');
             }
             onSuccess();

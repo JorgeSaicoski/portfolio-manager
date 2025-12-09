@@ -62,12 +62,7 @@
     try {
       if (section) {
         // Update existing section (portfolio cannot be changed)
-        console.log('SectionForm: Updating section', {
-          sectionID: section.ID,
-          data: { title, description, type }
-        });
         await sectionStore.update(section.ID, { title, description, type });
-        console.log('SectionForm: Section updated successfully');
         toast.success('Section updated successfully!');
       } else {
         // Create new section
@@ -77,9 +72,7 @@
           type,
           portfolio_id,
         };
-        console.log('SectionForm: Creating section with data:', requestData);
         await sectionStore.create(requestData);
-        console.log('SectionForm: Section created successfully');
         toast.success('Section created successfully!');
       }
       onSuccess();

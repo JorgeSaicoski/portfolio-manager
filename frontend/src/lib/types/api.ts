@@ -59,43 +59,10 @@ export interface UpdateCategoryRequest {
   description?: string;
 }
 
-// Image Types
-export interface Image {
-  ID: number;
-  url: string;
-  thumbnail_url: string;
-  file_name: string;
-  file_size: number;
-  mime_type: string;
-  alt: string;
-  owner_id: string;
-  type: string;
-  entity_id: number;
-  entity_type: string;
-  is_main: boolean;
-  position: number;
-  CreatedAt: string;
-  UpdatedAt: string;
-}
-
-export interface UploadImageRequest {
-  file: File;
-  entity_type: 'project' | 'portfolio' | 'section';
-  entity_id: number;
-  alt?: string;
-}
-
-export interface UpdateImageRequest {
-  alt?: string;
-  is_main?: boolean;
-  position?: number;
-}
-
 // Project Types
 export interface Project {
   ID: number;
   title: string;
-  Images?: Image[];
   description: string;
   skills?: string[];
   client?: string;
@@ -169,15 +136,19 @@ export interface SectionFilterParams {
 
 // Section Content Types
 export interface SectionContent {
-  ID: number;
+
+  id: number;  // Backend returns lowercase 'id'
+  ID?: number; // Keep for backwards compatibility
   section_id: number;
   type: 'text' | 'image';
   content: string;
   order: number;
   metadata: string | null;
-  owner_id: string;
-  CreatedAt: string;
-  UpdatedAt: string;
+  owner_id?: string;
+  created_at: string;  // Backend returns lowercase
+  updated_at: string;  // Backend returns lowercase
+  CreatedAt?: string;  // Keep for backwards compatibility
+  UpdatedAt?: string;  // Keep for backwards compatibility
 }
 
 export interface CreateSectionContentRequest {

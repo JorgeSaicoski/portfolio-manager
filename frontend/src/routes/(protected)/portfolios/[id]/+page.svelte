@@ -50,7 +50,6 @@
  async function loadPortfolio() {
    loading = true;
    error = null;
-   console.log(portfolioId);
 
    try {
      // Use the new getById function for public access
@@ -721,7 +720,7 @@
                 <div class="text-center" style="padding: var(--space-8);">
                   <div class="empty-icon" style="font-size: 48px; margin-bottom: var(--space-4);">
                     <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 002 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
                   <h4>No categories yet</h4>
@@ -931,3 +930,25 @@
  onClose={() => showDeleteModal = false}
  onConfirm={handleDeletePortfolio}
 />
+
+<style>
+  /* Ensure icon utility classes work on this page - matches +layout.svelte */
+  :global(.icon-stroke),
+  :global(.btn-icon),
+  :global(.edit-icon),
+  :global(.empty-icon),
+  :global(.upload-icon) {
+    fill: none !important;
+    stroke: currentColor !important;
+  }
+
+  :global(.icon-fill) {
+    fill: currentColor !important;
+    stroke: none !important;
+  }
+
+  /* Ensure SVGs inherit color and have sensible defaults */
+  svg {
+    color: inherit;
+  }
+</style>

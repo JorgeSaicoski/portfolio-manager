@@ -16,11 +16,6 @@
   let user = $derived($auth.user);
   let isAuthenticated = $derived($auth.isAuthenticated);
 
-  // Reactive debug for auth
-  $effect(() => {
-    console.log('[dashboard/+page.svelte] auth state - isAuthenticated:', isAuthenticated, 'user:', user);
-  });
-
   // UI state
   let sidebarOpen = $state(false);
   let sidebarCollapsed = $state(false);

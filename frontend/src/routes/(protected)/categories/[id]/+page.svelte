@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { categoryStore } from "$lib/stores/category";
   import type { Category, Project } from "$lib/types/api";
+  import ProjectModal from "$lib/components/admin/ProjectModal.svelte";
 
   // Get data from load function
   let { data }: { data: { id: number } } = $props();
@@ -16,6 +17,8 @@
   let loading = $state(true);
   let loadingProjects = $state(false);
   let error = $state<string | null>(null);
+  let showProjectModal = $state(false);
+
 
   // Load category on mount
   onMount(async () => {
@@ -243,8 +246,16 @@
           <!-- Projects in Category -->
           <div class="card" style="margin-top: var(--space-6);">
             <div class="card-header">
-              <h3>Projects in this Category</h3>
-              <p class="text-muted">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+              <div>
+                <h3>Projects in this Category</h3>
+                <p class="text-muted">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick={() => showProjectModal = true}>
+                <svg class="icon-stroke" width="16" height="16" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Project
+              </button>
             </div>
 
             <div class="card-body">
@@ -276,18 +287,6 @@
                       aria-label={`Open project ${project.title}`}
                       onkeydown={handleProjectKeydown}
                     >
-                       {#if project.Images && project.Images.length > 0}
-                         {@const mainImage = project.Images.find(img => img.is_main) || project.Images[0]}
-                         <div class="project-image">
-                           <img src={mainImage.thumbnail_url || mainImage.url} alt={mainImage.alt || project.title} />
-                         </div>
-                       {:else}
-                         <div class="project-image-placeholder">
-                           <svg class="icon-stroke" width="48" height="48" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                           </svg>
-                         </div>
-                       {/if}
                        <div class="project-info">
                          <h4 class="project-title">{project.title}</h4>
                          <p class="project-description">{project.description}</p>
@@ -314,282 +313,12 @@
   </main>
 </div>
 
-<style>
-  .metadata-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-  }
+{#if showProjectModal}
+  <ProjectModal
+    project={null}
+    category_id={categoryId}
+    onClose={() => showProjectModal = false}
+    onSuccess={loadProjects}
+  />
+{/if}
 
-  .metadata-grid > div {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .badge {
-    display: inline-block;
-    padding: var(--space-1) var(--space-3);
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-    border-radius: var(--radius-full);
-    font-size: var(--text-sm);
-    font-weight: 500;
-  }
-
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .project-card {
-    background: var(--color-gray-50);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: block;
-  }
-
-  .project-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .project-image {
-    width: 100%;
-    height: 180px;
-    overflow: hidden;
-  }
-
-  .project-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .project-image-placeholder {
-    width: 100%;
-    height: 180px;
-    background: var(--color-gray-200);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-gray-400);
-  }
-
-  .project-info {
-    padding: var(--space-4);
-  }
-
-  .project-title {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    color: var(--color-gray-900);
-    margin: 0 0 var(--space-2) 0;
-  }
-
-  .project-description {
-    font-size: var(--text-sm);
-    color: var(--color-gray-600);
-    margin: 0 0 var(--space-3) 0;
-    /* Modern multiline clamp (vendor prefixed) with a standard hint and good fallbacks */
-    line-clamp: 2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    /* Fallbacks for non-WebKit browsers */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block; /* ensure block layout when -webkit-box isn't supported */
-    max-height: calc(2 * 1.2em); /* approximate two lines as a graceful fallback */
-  }
-
-  .project-skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .skill-tag {
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-2);
-    background: white;
-    color: var(--color-gray-700);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-gray-300);
-  }
-
-  .navbar {
-    background: white;
-    border-bottom: 1px solid var(--color-gray-200);
-    padding: var(--space-4) 0;
-  }
-
-  .navbar-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-4);
-  }
-
-  .navbar-brand {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .navbar-title {
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-    margin: 0;
-  }
-
-  .breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-  }
-
-  .breadcrumb-item {
-    display: flex;
-    align-items: center;
-  }
-
-  .breadcrumb-item:not(:last-child)::after {
-    content: "/";
-    margin-left: var(--space-2);
-    color: var(--color-gray-400);
-  }
-
-  .breadcrumb-item.active {
-    color: var(--color-gray-900);
-    font-weight: 500;
-  }
-
-  .navbar-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .main-content {
-    padding: var(--space-8) 0;
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
-  }
-
-  .text-center {
-    text-align: center;
-  }
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    margin: var(--space-4) auto;
-    border: 4px solid var(--color-gray-200);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .text-muted {
-    color: var(--color-gray-600);
-  }
-
-  .text-base {
-    color: var(--color-gray-900);
-  }
-
-  .text-error {
-    color: var(--color-error);
-  }
-
-  .card {
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: var(--space-6);
-  }
-
-  .card-header {
-    padding: var(--space-6);
-    border-bottom: 1px solid var(--color-gray-200);
-  }
-
-  .card-header h2 {
-    margin: 0 0 var(--space-2) 0;
-    font-size: var(--text-2xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .card-header h3 {
-    margin: 0 0 var(--space-1) 0;
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-gray-900);
-  }
-
-  .card-body {
-    padding: var(--space-6);
-  }
-
-  .form-group {
-    margin-bottom: var(--space-6);
-  }
-
-  .form-group:last-child {
-    margin-bottom: 0;
-  }
-
-  .form-label {
-    display: block;
-    margin-bottom: var(--space-2);
-    font-weight: 500;
-    color: var(--color-gray-700);
-  }
-
-  .form-row {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: center;
-    margin-top: var(--space-4);
-  }
-
-  @media (max-width: 768px) {
-    .navbar-container {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .navbar-actions {
-      width: 100%;
-      flex-wrap: wrap;
-    }
-
-    .breadcrumb {
-      flex-wrap: wrap;
-    }
-
-    .projects-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

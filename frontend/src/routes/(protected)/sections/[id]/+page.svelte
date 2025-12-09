@@ -26,6 +26,7 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
+
   // Load section on mount
   onMount(async () => {
     await loadSection();
@@ -368,6 +369,7 @@
                   <p class="text-muted">Loading content blocks...</p>
                 </div>
               {:else if viewMode === 'list'}
+
                 <ContentBlockList
                   sectionId={sectionId}
                   {contents}
@@ -580,3 +582,4 @@
     }
   }
 </style>
+

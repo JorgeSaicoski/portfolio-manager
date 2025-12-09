@@ -63,19 +63,12 @@
         try {
             if (section) {
                 // Update existing section (portfolio cannot be changed)
-                console.log('SectionModal: Updating section', {
-                    sectionID: section.ID,
-                    data: { title, description, type }
-                });
                 const result = await sectionStore.update(section.ID, { title, description, type });
-                console.log('SectionModal: Section updated successfully', result);
                 toast.success('Section updated successfully!');
             } else {
                 // Create new section
                 const requestData = { title, description, type, portfolio_id };
-                console.log('SectionModal: Creating section with data:', requestData);
                 const result = await sectionStore.create(requestData);
-                console.log('SectionModal: Section created successfully', result);
                 toast.success('Section created successfully!');
             }
             onSuccess();
