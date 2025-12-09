@@ -1127,7 +1127,6 @@ ci-all: ci-lint ci-test ci-security ci-coverage ## Run all CI checks
 
 fix-upload-permissions: ## Ensure backend uploads and audit directories exist and are writable
 	@echo "$(BLUE)Fixing backend uploads and audit directory permissions...$(RESET)"
-	@mkdir -p backend/uploads/images
 	@mkdir -p backend/audit
 	# Try to change owner to current user (may fail if not permitted)
 	@chown -R $(shell id -u):$(shell id -g) backend/uploads backend/audit 2>/dev/null || true
