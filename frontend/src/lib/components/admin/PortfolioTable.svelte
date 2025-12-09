@@ -16,7 +16,6 @@
     try {
       const data = await portfolioStore.getOwn(1, 100);
       portfolios = data || [];
-      console.log('[PortfolioTable.svelte] onMount - loaded portfolios:', portfolios);
     } catch (error) {
       console.error('[PortfolioTable.svelte] Error loading portfolios:', error);
     } finally {
@@ -24,14 +23,8 @@
     }
   });
 
-  // Reactive debug when portfolios change
-  $: if (portfolios) {
-    console.debug('[PortfolioTable.svelte] portfolios changed - count:', portfolios.length);
-  }
-
-  // View helper with debug
+  // View helper
   function viewPortfolio(p: Portfolio) {
-    console.log('[PortfolioTable.svelte] viewPortfolio - navigating to portfolio:', p);
     goto(`/portfolios/${p.ID}`);
   }
 
@@ -90,12 +83,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </button>
-                <button class="btn-icon edit" onclick={() => { console.log('[PortfolioTable.svelte] edit clicked:', portfolio); onEdit(portfolio); }} aria-label="Edit portfolio">
+                <button class="btn-icon edit" onclick={() => { onEdit(portfolio); }} aria-label="Edit portfolio">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-                <button class="btn-icon delete" onclick={() => { console.log('[PortfolioTable.svelte] delete clicked id:', portfolio.ID); onDelete(portfolio.ID); }} aria-label="Delete portfolio">
+                <button class="btn-icon delete" onclick={() => { onDelete(portfolio.ID); }} aria-label="Delete portfolio">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>

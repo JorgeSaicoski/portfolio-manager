@@ -3,7 +3,7 @@ import { browser } from "$app/environment";
 const DEBUG_ENABLED = browser &&
   (import.meta.env.VITE_DEBUG === "true" ||
    import.meta.env.DEV === true ||
-   localStorage.getItem("debug") === "true");
+   (typeof localStorage !== 'undefined' && localStorage.getItem("debug") === "true"));
 
 type LogLevel = "info" | "warn" | "error" | "request" | "response";
 
@@ -41,13 +41,17 @@ class DebugLogger {
       error: "❌",
       request: "📤",
       response: "📥"
-    };
+    } as Record<LogLevel, string>;
 
-    console.group(`${levelEmoji[level]} [${timestamp}] ${this.prefix} - ${message}`);
-    if (args.length > 0) {
-      args.forEach(arg => console.log(arg));
+    const header = `${levelEmoji[level]} [${timestamp}] ${this.prefix} - ${message}`;
+    // Use console methods directly to avoid environments without console.group
+    if (level === 'error') {
+      console.error(header, ...args);
+    } else if (level === 'warn') {
+      console.warn(header, ...args);
+    } else {
+      console.log(header, ...args);
     }
-    console.groupEnd();
   }
 
   info(message: string, ...args: unknown[]): void {
@@ -77,7 +81,7 @@ class DebugLogger {
     if (!this.enabled) return;
 
     const { url, status, statusText, data: responseData, error } = data;
-    const level = status >= 400 ? "error" : "response";
+    const level = status >= 400 ? "error" : "response" as LogLevel;
 
     this.formatMessage(
       level,
@@ -124,16 +128,22 @@ export function createDebugLogger(prefix: string): DebugLogger {
 // Enable debug mode at runtime
 export function enableDebug(): void {
   if (browser) {
-    localStorage.setItem("debug", "true");
-    console.log("Debug mode enabled. Reload the page to see debug logs.");
+    try {
+      localStorage.setItem("debug", "true");
+    } catch (e) {
+      // ignore storage errors
+    }
   }
 }
 
 // Disable debug mode at runtime
 export function disableDebug(): void {
   if (browser) {
-    localStorage.removeItem("debug");
-    console.log("Debug mode disabled. Reload the page.");
+    try {
+      localStorage.removeItem("debug");
+    } catch (e) {
+      // ignore storage errors
+    }
   }
 }
 

@@ -57,10 +57,6 @@
 
             if (project) {
                 // Update existing project (category cannot be changed)
-                console.log('ProjectModal: Updating project', {
-                    projectID: project.ID,
-                    data: { title, description, skills: skillsArray, client, link }
-                });
                 const result = await projectStore.update(project.ID, {
                     title,
                     description,
@@ -68,7 +64,6 @@
                     client: client || undefined,
                     link: link || undefined
                 });
-                console.log('ProjectModal: Project updated successfully', result);
                 toast.success('Project updated successfully!');
             } else {
                 // Create new project
@@ -80,9 +75,7 @@
                     client: client || undefined,
                     link: link || undefined
                 };
-                console.log('ProjectModal: Creating project with data:', requestData);
                 const result = await projectStore.create(requestData);
-                console.log('ProjectModal: Project created successfully', result);
                 toast.success('Project created successfully!');
             }
             onSuccess();
