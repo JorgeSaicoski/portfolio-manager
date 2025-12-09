@@ -26,14 +26,6 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
-  // Debug logging for contents changes
-  $effect(() => {
-    console.log("🎯 [Section Page] Contents changed:", {
-      count: contents.length,
-      contents: contents,
-      sectionId
-    });
-  });
 
   // Load section on mount
   onMount(async () => {
@@ -58,24 +50,13 @@
   // Load section contents
   async function loadContents() {
     if (!sectionId) return;
-    console.log("📥 [Section Page] Loading contents for section:", sectionId);
     contentLoading = true;
     try {
-      const fetchedContents = await sectionContentStore.getBySectionId(sectionId);
-      console.log("📦 [Section Page] Fetched contents:", {
-        count: fetchedContents.length,
-        contents: fetchedContents
-      });
-      contents = fetchedContents;
-      console.log("✅ [Section Page] Contents assigned:", {
-        count: contents.length,
-        contents: contents
-      });
+      contents = await sectionContentStore.getBySectionId(sectionId);
     } catch (err) {
-      console.error('❌ [Section Page] Failed to load contents:', err);
+      console.error('Failed to load contents:', err);
     } finally {
       contentLoading = false;
-      console.log("🏁 [Section Page] Loading complete. contentLoading =", contentLoading);
     }
   }
 
@@ -388,23 +369,6 @@
                   <p class="text-muted">Loading content blocks...</p>
                 </div>
               {:else if viewMode === 'list'}
-                <!-- PARENT DEBUG PANEL -->
-                <div style="background: lime; padding: 15px; margin-bottom: 15px; border: 3px solid blue;">
-                  <strong>PARENT DEBUG:</strong> About to pass {contents.length} items to ContentBlockList
-                  <br />
-                  <strong>contentLoading:</strong> {contentLoading}
-                  <br />
-                  <strong>showContentEditor:</strong> {showContentEditor}
-                  <br />
-                  <strong>viewMode:</strong> {viewMode}
-                  <br />
-                  <strong>Contents array:</strong>
-                  <ul style="margin: 5px 0;">
-                    {#each contents as c}
-                      <li>ID: {c.ID}, Order: {c.order}, Content: {c.content.substring(0, 30)}</li>
-                    {/each}
-                  </ul>
-                </div>
 
                 <ContentBlockList
                   sectionId={sectionId}

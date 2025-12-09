@@ -8,15 +8,6 @@
   export let onDelete: (id: number) => void;
   export let editable = true;
 
-  // Debug logging
-  $: {
-    console.log("🔍 [ContentBlockList] Rendering with contents:", {
-      count: contents.length,
-      contents: contents,
-      sectionId
-    });
-  }
-
   let draggedItem: SectionContent | null = null;
   let draggedOverIndex: number | null = null;
 
@@ -96,16 +87,6 @@
 </script>
 
 <div class="content-block-list">
-  <!-- DEBUG INFO -->
-  <div style="background: yellow; padding: 10px; margin-bottom: 10px; border: 2px solid red;">
-    <strong>DEBUG:</strong> Rendering {contents.length} content items
-    <ul style="margin: 10px 0;">
-      {#each contents as c}
-        <li>ID: {getItemId(c)}, Order: {c.order}, Type: {c.type}, Content: {c.content.substring(0, 30)}...</li>
-      {/each}
-    </ul>
-  </div>
-
   {#if contents.length === 0}
     <div class="empty-state">
       <p>No content blocks yet.</p>
