@@ -56,8 +56,8 @@
         }
     }
 
-    // Validate link when it changes
-    $: if (link !== undefined) {
+    // Validate link on blur to avoid interrupting user while typing
+    function handleLinkBlur() {
         validateLink(link);
     }
 
@@ -236,6 +236,7 @@
                             class:error={linkError}
                             placeholder="https://example.com (optional)"
                             bind:value={link}
+                            on:blur={handleLinkBlur}
                             disabled={loading}
                     />
                     {#if linkError}
