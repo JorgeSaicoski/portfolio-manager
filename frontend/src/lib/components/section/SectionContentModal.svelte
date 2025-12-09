@@ -15,6 +15,10 @@
   let loading = false;
   let error: string | null = null;
 
+  // Debouncing state for reordering
+  let contentDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let savingContents = false;
+
   // Subscribe to store
   $: storeState = $sectionContentStore;
   $: contents = storeState.contents;
@@ -82,6 +86,52 @@
     }
   }
 
+  // Handle content reordering with debouncing
+  function handleReorderContents(reorderedContents: SectionContent[]) {
+    // Update local state immediately for instant UI feedback
+    contents = reorderedContents;
+
+    // Trigger debounced save
+    debouncedReorderContents(reorderedContents);
+  }
+
+  async function debouncedReorderContents(reorderedList: SectionContent[]) {
+    // Clear existing timer
+    if (contentDebounceTimer) {
+      clearTimeout(contentDebounceTimer);
+    }
+
+    // Set saving state
+    savingContents = true;
+
+    // Start new 2.5 second timer
+    contentDebounceTimer = setTimeout(async () => {
+      try {
+        // Prepare bulk update payload
+        const updates = reorderedList.map((content, index) => {
+          const id = content.id || content.ID || 0;
+          return {
+            id: id,
+            order: index
+          };
+        });
+
+        // Call reorder endpoint
+        await sectionContentStore.reorderContents(updates);
+
+        // Reload to sync with server
+        await loadContents();
+
+        savingContents = false;
+      } catch (err) {
+        console.error('Failed to reorder contents:', err);
+        alert('Failed to save content order. Please try again.');
+        await loadContents(); // Revert on error
+        savingContents = false;
+      }
+    }, 2500); // 2.5 seconds
+  }
+
   function handleCancel() {
     showEditor = false;
     editingContent = null;
@@ -143,6 +193,7 @@
                 {contents}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onReorder={handleReorderContents}
                 editable={true}
               />
             {/if}

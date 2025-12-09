@@ -6,6 +6,7 @@
   export let contents: SectionContent[] = [];
   export let onEdit: (content: SectionContent) => void;
   export let onDelete: (id: number) => void;
+  export let onReorder: (reorderedContents: SectionContent[]) => void;
   export let editable = true;
 
   let draggedItem: SectionContent | null = null;
@@ -48,22 +49,16 @@
       return;
     }
 
-    // Reorder array
+    // Reorder array optimistically
     const reorderedContents = [...contents];
     const [removed] = reorderedContents.splice(draggedIndex, 1);
     reorderedContents.splice(dropIndex, 0, removed);
 
-    // Calculate new orders
-    const updates = reorderedContents.map((content, index) => ({
-      id: getItemId(content),
-      order: index
-    }));
+    // Update local contents immediately for instant UI feedback
+    contents = reorderedContents;
 
-    // Update via store
-    sectionContentStore.reorderContents(updates).catch((err: unknown) => {
-      console.error('Failed to reorder contents:', err);
-      alert('Failed to reorder content blocks. Please try again.');
-    });
+    // Notify parent to handle debounced save
+    onReorder(reorderedContents);
 
     draggedItem = null;
     draggedOverIndex = null;

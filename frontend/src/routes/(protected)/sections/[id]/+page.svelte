@@ -26,6 +26,10 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
+  // Debouncing state for reordering
+  let contentDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let savingContents = $state(false);
+
 
   // Load section on mount
   onMount(async () => {
@@ -101,6 +105,52 @@
       console.error('Failed to delete content:', err);
       alert('Failed to delete content. Please try again.');
     }
+  }
+
+  // Handle content reordering with debouncing
+  function handleReorderContents(reorderedContents: SectionContent[]) {
+    // Update local state immediately for instant UI feedback
+    contents = reorderedContents;
+
+    // Trigger debounced save
+    debouncedReorderContents(reorderedContents);
+  }
+
+  async function debouncedReorderContents(reorderedList: SectionContent[]) {
+    // Clear existing timer
+    if (contentDebounceTimer) {
+      clearTimeout(contentDebounceTimer);
+    }
+
+    // Set saving state
+    savingContents = true;
+
+    // Start new 2.5 second timer
+    contentDebounceTimer = setTimeout(async () => {
+      try {
+        // Prepare bulk update payload
+        const updates = reorderedList.map((content, index) => {
+          const id = content.id || content.ID || 0;
+          return {
+            id: id,
+            order: index
+          };
+        });
+
+        // Call reorder endpoint
+        await sectionContentStore.reorderContents(updates);
+
+        // Reload to sync with server
+        await loadContents();
+
+        savingContents = false;
+      } catch (err) {
+        console.error('Failed to reorder contents:', err);
+        alert('Failed to save content order. Please try again.');
+        await loadContents(); // Revert on error
+        savingContents = false;
+      }
+    }, 2500); // 2.5 seconds
   }
 
   function handleCancelEdit() {
@@ -316,6 +366,14 @@
                 </div>
                 {#if !showContentEditor}
                   <div style="display: flex; gap: var(--space-2); align-items: center;">
+                    <!-- Saving indicator -->
+                    {#if savingContents}
+                      <span class="text-muted" style="font-size: 0.875rem; display: flex; align-items: center; gap: var(--space-1);">
+                        <span class="spinner-sm"></span>
+                        Saving order...
+                      </span>
+                    {/if}
+
                     <!-- View Mode Toggle -->
                     <div style="display: flex; gap: var(--space-1); background: var(--color-gray-100); border-radius: var(--radius-md); padding: var(--space-1);">
                       <button
@@ -375,6 +433,7 @@
                   {contents}
                   onEdit={handleEditContent}
                   onDelete={handleDeleteContent}
+                  onReorder={handleReorderContents}
                   editable={true}
                 />
               {:else}
