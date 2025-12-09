@@ -1,9 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
-import { createDebugLogger } from '$lib/utils/debug';
-
-const debug = createDebugLogger('AuthStore');
 
 const AUTHENTIK_URL = import.meta.env.VITE_AUTHENTIK_URL || 'http://localhost:9000';
 const AUTHENTIK_CLIENT_ID = import.meta.env.VITE_AUTHENTIK_CLIENT_ID || 'portfolio-manager';
@@ -442,15 +439,7 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  debug.request({
-    method: options.method || 'GET',
-    url,
-    body: options.body,
-    headers: getAuthHeaders()
-  });
-
   if (!(await auth.ensureAuth())) {
-    debug.error('Not authenticated - auth check failed');
     throw new Error('Not authenticated');
   }
 
@@ -473,14 +462,7 @@ export async function authenticatedFetch(
     headers
   });
 
-  debug.response({
-    url,
-    status: response.status,
-    statusText: response.statusText,
-  });
-
   if (response.status === 401) {
-    debug.warn('Authentication expired - clearing auth state');
     auth.clearAuth();
     throw new Error('Authentication expired');
   }
