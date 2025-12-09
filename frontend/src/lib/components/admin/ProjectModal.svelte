@@ -19,6 +19,7 @@
     let link = project?.link || '';
     let loading = false;
     let categoryError = false;
+    let linkError = '';
     let categoryName = ''; // will hold the category name
 
     // Keep local form values in sync if `project` prop changes
@@ -28,6 +29,36 @@
         skills = project.skills?.join(', ') ?? skills;
         client = project.client ?? client;
         link = project.link ?? link;
+    }
+
+    // Validate URL to prevent XSS attacks
+    function validateLink(url: string): boolean {
+        if (!url) {
+            linkError = '';
+            return true; // Empty link is valid (optional field)
+        }
+
+        try {
+            const parsedUrl = new URL(url);
+            const scheme = parsedUrl.protocol.toLowerCase();
+            
+            // Only allow http and https protocols
+            if (scheme !== 'http:' && scheme !== 'https:') {
+                linkError = 'Link must use http:// or https:// protocol';
+                return false;
+            }
+            
+            linkError = '';
+            return true;
+        } catch (e) {
+            linkError = 'Please enter a valid URL (e.g., https://example.com)';
+            return false;
+        }
+    }
+
+    // Validate link when it changes
+    $: if (link !== undefined) {
+        validateLink(link);
     }
 
     // Load category name on mount
@@ -47,6 +78,12 @@
 
         categoryError = false;
         loading = true;
+
+        // Validate link before submitting
+        if (!validateLink(link)) {
+            loading = false;
+            return;
+        }
 
         try {
             // Parse skills from comma-separated string
@@ -107,6 +144,10 @@
         color: var(--color-error, #ef4444);
         font-size: 0.875rem;
         margin-top: 0.25rem;
+    }
+
+    .form-input.error {
+        border-color: var(--color-error, #ef4444);
     }
 </style>
 
@@ -192,10 +233,15 @@
                             id="link"
                             type="url"
                             class="form-input"
+                            class:error={linkError}
                             placeholder="https://example.com (optional)"
                             bind:value={link}
                             disabled={loading}
                     />
+                    {#if linkError}
+                        <p class="form-error">{linkError}</p>
+                    {/if}
+                    <p class="form-hint">Only http:// and https:// URLs are allowed</p>
                 </div>
             </div>
 
