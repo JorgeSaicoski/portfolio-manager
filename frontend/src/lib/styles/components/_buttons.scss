@@ -246,20 +246,85 @@
 
 // === ICON ONLY BUTTONS ===
 .btn-icon {
-  padding: var(--space-3);
-  aspect-ratio: 1;
-  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-base);
+
+  &:hover {
+    background: var(--color-gray-50);
+    border-color: var(--color-gray-400);
+    color: var(--color-gray-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  // Edit button variant
+  &.edit {
+    color: var(--color-gray-600);
+    border-color: var(--color-gray-300);
+
+    &:hover {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-400);
+      color: var(--color-gray-700);
+    }
+  }
+
+  // Delete button variant
+  &.delete {
+    color: var(--color-error-600);
+    border-color: var(--color-error-300);
+
+    &:hover {
+      background: var(--color-error-50);
+      border-color: var(--color-error-400);
+      color: var(--color-error-700);
+    }
+  }
+
+  // Size variants
   &.btn-sm {
-    padding: var(--space-2);
+    width: 28px;
+    height: 28px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
   
   &.btn-lg {
-    padding: var(--space-4);
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
-  
+
+  // SVG icon styling
   svg {
-    width: 1.25em;
-    height: 1.25em;
+    stroke: currentColor;
+    fill: none;
+    width: 16px;
+    height: 16px;
+    display: block;
+    flex-shrink: 0;
   }
 }
 

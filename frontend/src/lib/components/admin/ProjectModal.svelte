@@ -236,7 +236,7 @@
                             class:error={linkError}
                             placeholder="https://example.com (optional)"
                             bind:value={link}
-                            on:blur={handleLinkBlur}
+                            onblur={handleLinkBlur}
                             disabled={loading}
                     />
                     {#if linkError}

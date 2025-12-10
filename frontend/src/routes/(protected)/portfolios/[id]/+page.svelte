@@ -8,6 +8,7 @@
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
  import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
  import SectionModal from "$lib/components/admin/SectionModal.svelte";
+ import IconButton from "$lib/components/ui/IconButton.svelte";
 
  // Get data from load function
  const { data } = $props() as { data: { id: number } };
@@ -763,26 +764,16 @@
                           <span class="position-badge">Position: {category.position}</span>
                         </div>
                         <div class="category-actions">
-                          <button
-                            class="btn-icon"
+                          <IconButton
+                            type="view"
                             onclick={() => goto(`/categories/${category.ID}`)}
-                            title="View category"
-                            aria-label="View category"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon delete"
+                            label="View category"
+                          />
+                          <IconButton
+                            type="delete"
                             onclick={() => handleDeleteCategory(category)}
-                            title="Delete category"
-                            aria-label="Delete category"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                            label="Delete category"
+                          />
                         </div>
                       </div>
                     </div>
@@ -864,26 +855,16 @@
                           <span class="position-badge">Position: {section.position}</span>
                         </div>
                         <div class="section-actions">
-                          <button
-                            class="btn-icon"
+                          <IconButton
+                            type="edit"
                             onclick={() => goto(`/sections/${section.ID}`)}
-                            title="Edit section"
-                            aria-label="Edit section"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon delete"
+                            label="Edit section"
+                          />
+                          <IconButton
+                            type="delete"
                             onclick={() => handleDeleteSection(section)}
-                            title="Delete section"
-                            aria-label="Delete section"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                            label="Delete section"
+                          />
                         </div>
                       </div>
                     </div>

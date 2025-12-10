@@ -77,7 +77,7 @@
   const metaFor = (c: SectionContent | null) => getImageMetadata(c);
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="image-gallery">
   {#if imageContents.length === 0}

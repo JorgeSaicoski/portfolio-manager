@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { portfolioStore, type Portfolio } from '$lib/stores/portfolio';
   import { projectStore, type Project } from '$lib/stores/project';
+  import IconButton from '$lib/components/ui/IconButton.svelte';
 
   // Props
   export let onEditPortfolio: (id: number) => void;
@@ -67,16 +68,16 @@
                 <p class="item-meta">Updated {formatTimeAgo(portfolio.UpdatedAt)}</p>
               </div>
               <div class="item-actions">
-                <button class="btn-icon edit" onclick={() => onEditPortfolio(portfolio.ID)} aria-label="Edit portfolio">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button class="btn-icon delete" onclick={() => onDeletePortfolio(portfolio.ID)} aria-label="Delete portfolio">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <IconButton
+                  type="edit"
+                  onclick={() => onEditPortfolio(portfolio.ID)}
+                  label="Edit portfolio"
+                />
+                <IconButton
+                  type="delete"
+                  onclick={() => onDeletePortfolio(portfolio.ID)}
+                  label="Delete portfolio"
+                />
               </div>
             </div>
           {/each}
@@ -105,16 +106,16 @@
                 <p class="item-meta">{project.description?.substring(0, 50) || 'No description'}{project.description && project.description.length > 50 ? '...' : ''}</p>
               </div>
               <div class="item-actions">
-                <button class="btn-icon edit" onclick={() => onEditProject(project.ID)} aria-label="Edit project">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button class="btn-icon delete" onclick={() => onDeleteProject(project.ID)} aria-label="Delete project">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <IconButton
+                  type="edit"
+                  onclick={() => onEditProject(project.ID)}
+                  label="Edit project"
+                />
+                <IconButton
+                  type="delete"
+                  onclick={() => onDeleteProject(project.ID)}
+                  label="Delete project"
+                />
               </div>
             </div>
           {/each}
