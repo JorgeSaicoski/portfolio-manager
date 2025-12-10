@@ -340,7 +340,7 @@
                     <!-- Saving indicator -->
                     {#if savingContents}
                       <span class="text-muted" style="font-size: 0.875rem; display: flex; align-items: center; gap: var(--space-1);">
-                        <span class="spinner-sm"></span>
+                        <LoadingSpinner size="sm" inline={true} />
                         Saving order...
                       </span>
                     {/if}
