@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { sectionStore } from "$lib/stores/section";
   import { sectionContentStore } from "$lib/stores/sectionContent";
+  import { createDebouncedReorder } from "$lib/utils/debouncedReorder";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -30,15 +31,31 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
-  // Debouncing state for reordering
-  let contentDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // Debounced reordering state
   let savingContents = $state(false);
+  
+  // Create debounced reorder handler
+  const { handleReorder: debouncedReorder, cleanup: cleanupReorder } = createDebouncedReorder(
+    sectionContentStore,
+    loadContents,
+    {
+      onSavingChange: (saving) => savingContents = saving,
+      onError: (err) => {
+        alert('Failed to save content order. Please try again.');
+      }
+    }
+  );
 
 
   // Load section on mount
   onMount(async () => {
     await loadSection();
     await loadContents();
+  });
+
+  // Cleanup on destroy
+  onDestroy(() => {
+    cleanupReorder();
   });
 
   async function loadSection() {
@@ -117,44 +134,7 @@
     contents = reorderedContents;
 
     // Trigger debounced save
-    debouncedReorderContents(reorderedContents);
-  }
-
-  async function debouncedReorderContents(reorderedList: SectionContent[]) {
-    // Clear existing timer
-    if (contentDebounceTimer) {
-      clearTimeout(contentDebounceTimer);
-    }
-
-    // Set saving state
-    savingContents = true;
-
-    // Start new 2.5 second timer
-    contentDebounceTimer = setTimeout(async () => {
-      try {
-        // Prepare bulk update payload
-        const updates = reorderedList.map((content, index) => {
-          const id = content.id || content.ID || 0;
-          return {
-            id: id,
-            order: index
-          };
-        });
-
-        // Call reorder endpoint
-        await sectionContentStore.reorderContents(updates);
-
-        // Reload to sync with server
-        await loadContents();
-
-        savingContents = false;
-      } catch (err) {
-        console.error('Failed to reorder contents:', err);
-        alert('Failed to save content order. Please try again.');
-        await loadContents(); // Revert on error
-        savingContents = false;
-      }
-    }, 2500); // 2.5 seconds
+    debouncedReorder(reorderedContents);
   }
 
   function handleCancelEdit() {
