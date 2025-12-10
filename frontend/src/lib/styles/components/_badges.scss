@@ -1,0 +1,77 @@
+// src/lib/styles/components/_badges.scss
+// ===================================
+// BADGE COMPONENTS
+// Reusable badge/tag component styles with color variants
+// ===================================
+
+// === BASE BADGE STYLES ===
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: all var(--transition-base);
+}
+
+// === SIZE VARIANTS ===
+.badge-sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+}
+
+// Medium is the default size (uses base .badge styles)
+.badge-md {
+  // No additional styles needed - base .badge class provides default medium styles
+}
+
+.badge-lg {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-base);
+}
+
+// === SHAPE VARIANTS ===
+.badge-rounded {
+  border-radius: var(--radius-full);
+}
+
+// === COLOR VARIANTS ===
+.badge-default {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
+}
+
+.badge-primary {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: color-mix(in srgb, var(--color-primary) 100%, black 20%);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.badge-success {
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: color-mix(in srgb, var(--color-success) 100%, black 20%);
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
+}
+
+.badge-warning {
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 100%, black 20%);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 20%, transparent);
+}
+
+.badge-error {
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: color-mix(in srgb, var(--color-error) 100%, black 20%);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
+.badge-info {
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
+  color: color-mix(in srgb, var(--color-info) 100%, black 20%);
+  border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
+}
