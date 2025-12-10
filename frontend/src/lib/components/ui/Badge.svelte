@@ -11,7 +11,7 @@
     variant?: BadgeVariant;
     size?: BadgeSize;
     rounded?: boolean;
-    children?: import('svelte').Snippet;
+    children?: any;
   }
 
   let {
