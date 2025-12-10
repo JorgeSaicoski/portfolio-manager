@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { sectionStore } from "$lib/stores/section";
   import { sectionContentStore } from "$lib/stores/sectionContent";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
@@ -9,6 +9,7 @@
   import Badge from "$lib/components/ui/Badge.svelte";
   import PageNavbar from "$lib/components/layout/PageNavbar.svelte";
   import CardHeader from "$lib/components/ui/CardHeader.svelte";
+  import { createContentReorderingHandlers } from "$lib/utils/contentReordering";
   // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
@@ -31,14 +32,25 @@
   let viewMode: 'list' | 'gallery' = $state('list');
 
   // Debouncing state for reordering
-  let contentDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let savingContents = $state(false);
 
+
+  // Create reordering handlers
+  const reorderingHandlers = createContentReorderingHandlers({
+    onContentsUpdate: (newContents) => { contents = newContents; },
+    onSavingUpdate: (saving) => { savingContents = saving; },
+    onReloadContents: loadContents
+  });
 
   // Load section on mount
   onMount(async () => {
     await loadSection();
     await loadContents();
+  });
+
+  // Cleanup on destroy
+  onDestroy(() => {
+    reorderingHandlers.cleanup();
   });
 
   async function loadSection() {
@@ -112,50 +124,7 @@
   }
 
   // Handle content reordering with debouncing
-  function handleReorderContents(reorderedContents: SectionContent[]) {
-    // Update local state immediately for instant UI feedback
-    contents = reorderedContents;
-
-    // Trigger debounced save
-    debouncedReorderContents(reorderedContents);
-  }
-
-  async function debouncedReorderContents(reorderedList: SectionContent[]) {
-    // Clear existing timer
-    if (contentDebounceTimer) {
-      clearTimeout(contentDebounceTimer);
-    }
-
-    // Set saving state
-    savingContents = true;
-
-    // Start new 2.5 second timer
-    contentDebounceTimer = setTimeout(async () => {
-      try {
-        // Prepare bulk update payload
-        const updates = reorderedList.map((content, index) => {
-          const id = content.id || content.ID || 0;
-          return {
-            id: id,
-            order: index
-          };
-        });
-
-        // Call reorder endpoint
-        await sectionContentStore.reorderContents(updates);
-
-        // Reload to sync with server
-        await loadContents();
-
-        savingContents = false;
-      } catch (err) {
-        console.error('Failed to reorder contents:', err);
-        alert('Failed to save content order. Please try again.');
-        await loadContents(); // Revert on error
-        savingContents = false;
-      }
-    }, 2500); // 2.5 seconds
-  }
+  const handleReorderContents = reorderingHandlers.handleReorderContents;
 
   function handleCancelEdit() {
     showContentEditor = false;
