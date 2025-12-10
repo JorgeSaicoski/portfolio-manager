@@ -27,7 +27,13 @@
   }: Props = $props();
 
   // Build CSS classes
-  const buttonClass = $derived(`btn-icon ${type} ${size !== 'md' ? `btn-${size}` : ''}`);
+  const buttonClass = $derived(
+    [
+      'btn-icon',
+      type === 'edit' ? 'edit' : type === 'delete' ? 'delete' : type === 'view' ? 'view' : '',
+      size === 'sm' ? 'btn-sm' : size === 'lg' ? 'btn-lg' : ''
+    ].filter(Boolean).join(' ')
+  );
 </script>
 
 <button
