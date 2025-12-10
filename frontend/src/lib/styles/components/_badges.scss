@@ -24,11 +24,6 @@
   font-size: var(--text-xs);
 }
 
-.badge-md {
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
-}
-
 .badge-lg {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-base);
@@ -72,6 +67,6 @@
 
 .badge-info {
   background: color-mix(in srgb, var(--color-info) 10%, transparent);
-  color: color-mix(in srgb, var(--color-info) 100%, black 40%);
+  color: color-mix(in srgb, var(--color-info) 100%, black 20%);
   border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
 }
