@@ -1,6 +1,7 @@
 <script lang="ts">
   import { portfolioStore, type Portfolio } from '$lib/stores/portfolio';
   import { toastStore as toast } from '$lib/stores/toast';
+  import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 
   // Props
   export let portfolio: Portfolio | null = null; // null for create, object for edit
@@ -93,7 +94,7 @@
         </button>
         <button type="submit" class="btn btn-primary" disabled={loading}>
           {#if loading}
-            <span class="loading-spinner"></span>
+            <LoadingSpinner size="sm" inline />
           {/if}
           {portfolio ? 'Update' : 'Create'} Portfolio
         </button>

@@ -4,6 +4,7 @@
     import { toastStore as toast } from '$lib/stores/toast';
     import { onMount } from 'svelte';
     import type { Section } from '$lib/types/api';
+    import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 
     // Props (convert from runes $props usage to export lets)
     export let section: Section | null = null;
@@ -173,7 +174,7 @@
                 </button>
                 <button type="submit" class="btn btn-primary" disabled={loading}>
                     {#if loading}
-                        <span class="loading-spinner"></span>
+                        <LoadingSpinner size="sm" inline />
                     {/if}
                     {section ? 'Update' : 'Create'} Section
                 </button>

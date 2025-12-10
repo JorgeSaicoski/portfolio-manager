@@ -2,6 +2,7 @@
   import { imageStore } from "$lib/stores/image";
   import { toastStore } from "$lib/stores/toast";
   import type { Image } from "$lib/types/api";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
 
   export let images: Image[] = [];
   export let onUpdate: (() => void) | undefined = undefined;
@@ -77,20 +78,12 @@
 
 <div class="image-gallery">
   {#if images.length === 0}
-    <div class="empty-state">
-      <svg
-        class="empty-icon"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-        />
-      </svg>
-      <p class="empty-text">No images uploaded yet</p>
-    </div>
+    <EmptyState
+      icon="🖼️"
+      title="No images uploaded yet"
+      message="Upload images to get started"
+      size="sm"
+    />
   {:else}
     <div class="gallery-grid">
       {#each images as image (image.ID)}
