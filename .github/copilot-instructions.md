@@ -95,7 +95,14 @@ Portfolio Manager is a modern, secure portfolio management platform with a micro
    </style>
    ```
 
-3. **Best Practices**
+3. **Architecture Guidelines**
+   - **Components**: All reusable components go in `src/lib/components/`
+   - **Styles**: All styles go in `src/lib/styles/`
+   - **Pages**: Routes in `src/routes/` should be minimal - import components from `lib`
+   - **Never** create components directly in route files
+   - Keep route files focused on data fetching and layout composition
+
+4. **Best Practices**
    - Follow Svelte best practices
    - Use Prettier for formatting
    - Keep components small and focused
@@ -103,8 +110,8 @@ Portfolio Manager is a modern, secure portfolio management platform with a micro
 
 ### General Best Practices
 
-- **DRY** (Don't Repeat Yourself)
-- **KISS** (Keep It Simple, Stupid)
+- **DRY Principle** – Don't Repeat Yourself
+- **KISS Principle** – Keep It Simple, Stupid
 - Write self-documenting code
 - Add comments only for complex logic
 - Use meaningful variable names
@@ -222,7 +229,7 @@ Follow conventional commits format:
 <footer>
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+Types: `feat`, `fix`, `docs`, `style` (formatting), `refactor`, `test`, `chore`
 
 Example:
 ```
@@ -307,10 +314,18 @@ portfolio-manager/
 
 ### Backend API Endpoint Pattern
 ```go
-// Handler
+// Handler - Always validate ownership/authorization
 func (h *Handler) GetPortfolio(c *gin.Context) {
     id := c.Param("id")
-    portfolio, err := h.service.GetPortfolio(id)
+    
+    // Extract user ID from JWT claims
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+    
+    portfolio, err := h.service.GetPortfolio(id, userID.(string))
     if err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Portfolio not found"})
         return
@@ -318,13 +333,16 @@ func (h *Handler) GetPortfolio(c *gin.Context) {
     c.JSON(http.StatusOK, portfolio)
 }
 
-// Service
-func (s *Service) GetPortfolio(id string) (*Portfolio, error) {
+// Service - Always scope queries by user to prevent unauthorized access
+func (s *Service) GetPortfolio(id string, userID string) (*Portfolio, error) {
     var portfolio Portfolio
-    err := s.db.First(&portfolio, id).Error
+    // IMPORTANT: Always include userID in WHERE clause to prevent IDOR vulnerabilities
+    err := s.db.Where("id = ? AND owner_id = ?", id, userID).First(&portfolio).Error
     return &portfolio, err
 }
 ```
+
+**Security Note**: Always validate that the authenticated user has permission to access the requested resource. Never trust the ID parameter alone - always scope database queries by the authenticated user's ID to prevent Insecure Direct Object Reference (IDOR) vulnerabilities.
 
 ### Frontend API Call Pattern
 ```typescript
