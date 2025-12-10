@@ -131,19 +131,25 @@
             <div class="content-actions">
               <button
                 type="button"
-                class="btn-sm btn-outline"
+                class="btn-icon"
                 onclick={() => onEdit(content)}
                 title="Edit content"
+                aria-label="Edit content"
               >
-                ✏️ Edit
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
               </button>
               <button
                 type="button"
-                class="btn-sm btn-destructive"
+                class="btn-icon delete"
                 onclick={() => confirmDelete(content)}
                 title="Delete content"
+                aria-label="Delete content"
               >
-                🗑️ Delete
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
             </div>
           {/if}
@@ -159,107 +165,4 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .content-block-list {
-    width: 100%;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-12);
-    color: var(--color-gray-600);
-  }
-
-  .hint {
-    font-size: var(--text-sm);
-    margin-top: var(--space-2);
-  }
-
-  .content-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .content-item {
-    background: white;
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    transition: all 0.2s;
-  }
-
-  .content-item.dragging {
-    opacity: 0.5;
-  }
-
-  .content-item.drag-over {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-  }
-
-  .content-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-type-badge {
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-  }
-
-  .content-order {
-    font-size: var(--text-sm);
-    color: var(--color-gray-500);
-    font-weight: 600;
-  }
-
-  .drag-handle {
-    margin-left: auto;
-    cursor: grab;
-    color: var(--color-gray-400);
-    font-size: 20px;
-    user-select: none;
-  }
-
-  .content-preview {
-    margin-bottom: var(--space-3);
-  }
-
-  .text-content {
-    color: var(--color-gray-700);
-    margin: 0;
-    white-space: pre-wrap;
-  }
-
-  .metadata-indicator {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    background: var(--color-info-100);
-    color: var(--color-info-700);
-    border-radius: var(--radius-md);
-    font-size: var(--text-xs);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-actions {
-    display: flex;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-meta {
-    display: flex;
-    gap: var(--space-4);
-    font-size: var(--text-xs);
-    color: var(--color-gray-500);
-  }
-</style>
 
