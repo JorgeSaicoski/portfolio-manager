@@ -2,6 +2,7 @@
   import type { SectionContent } from "$lib/types/api";
   import { sectionContentStore } from "$lib/stores";
   import IconButton from "$lib/components/ui/IconButton.svelte";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
 
   export let sectionId: number;
   export let contents: SectionContent[] = [];
@@ -84,12 +85,12 @@
 
 <div class="content-block-list">
   {#if contents.length === 0}
-    <div class="empty-state">
-      <p>No content blocks yet.</p>
-      {#if editable}
-        <p class="hint">Add content blocks to build your section.</p>
-      {/if}
-    </div>
+    <EmptyState
+      icon="📝"
+      title="No content blocks yet"
+      message={editable ? "Add content blocks to build your section" : ""}
+      size="sm"
+    />
   {:else}
     <div class="content-items">
       {#each contents as content, index (getItemId(content))}

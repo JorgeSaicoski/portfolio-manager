@@ -5,6 +5,7 @@
   import { sectionContentStore } from "$lib/stores/sectionContent";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
@@ -243,10 +244,7 @@
     <div class="container">
       <!-- Loading state -->
       {#if loading}
-        <div class="text-center">
-          <div class="loading-spinner"></div>
-          <p class="text-muted">Loading section...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading section..." />
       {/if}
 
       <!-- Error state -->

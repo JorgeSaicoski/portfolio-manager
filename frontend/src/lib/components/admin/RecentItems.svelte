@@ -3,6 +3,8 @@
   import { portfolioStore, type Portfolio } from '$lib/stores/portfolio';
   import { projectStore, type Project } from '$lib/stores/project';
   import IconButton from '$lib/components/ui/IconButton.svelte';
+  import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
+  import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
   // Props
   export let onEditPortfolio: (id: number) => void;
@@ -56,9 +58,14 @@
     </div>
     <div class="list-content">
       {#if loading}
-        <p class="text-muted">Loading...</p>
+        <LoadingSpinner size="sm" text="Loading..." />
       {:else if recentPortfolios.length === 0}
-        <p class="text-muted">No portfolios yet</p>
+        <EmptyState
+          size="sm"
+          icon="📂"
+          title="No portfolios yet"
+          message="Create your first portfolio to get started"
+        />
       {:else}
         <div class="list-items">
           {#each recentPortfolios as portfolio}
@@ -94,9 +101,14 @@
     </div>
     <div class="list-content">
       {#if loading}
-        <p class="text-muted">Loading...</p>
+        <LoadingSpinner size="sm" text="Loading..." />
       {:else if recentProjects.length === 0}
-        <p class="text-muted">No projects yet</p>
+        <EmptyState
+          size="sm"
+          icon="💼"
+          title="No projects yet"
+          message="Create your first project to showcase your work"
+        />
       {:else}
         <div class="list-items">
           {#each recentProjects as project}
