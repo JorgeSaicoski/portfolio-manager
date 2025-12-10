@@ -24,6 +24,11 @@
   font-size: var(--text-xs);
 }
 
+// Medium is the default size (uses base .badge styles)
+.badge-md {
+  // No additional styles needed - base .badge class provides default medium styles
+}
+
 .badge-lg {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-base);
@@ -43,7 +48,7 @@
 
 .badge-primary {
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  color: var(--color-primary-dark);
+  color: color-mix(in srgb, var(--color-primary) 100%, black 30%);
   border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
