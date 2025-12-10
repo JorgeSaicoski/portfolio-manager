@@ -11,6 +11,8 @@
  import IconButton from "$lib/components/ui/IconButton.svelte";
  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
  import Badge from "$lib/components/ui/Badge.svelte";
+ import PageNavbar from "$lib/components/layout/PageNavbar.svelte";
+ import CardHeader from "$lib/components/ui/CardHeader.svelte";
 
  // Get data from load function
  const { data } = $props() as { data: { id: number } };
@@ -412,49 +414,17 @@
 
 <div class="section bg-gray-50">
  <!-- Header with navigation -->
- <nav class="navbar">
-   <div class="navbar-container">
-     <div class="navbar-brand">
-       <h1 class="navbar-title">Portfolio Manager</h1>
-       <div class="breadcrumb">
-         <div class="breadcrumb-item">
-           <button onclick={goToDashboard} class="btn btn-ghost btn-sm">
-             Dashboard
-           </button>
-         </div>
-         <div class="breadcrumb-item">
-           <button onclick={goBack} class="btn btn-ghost btn-sm">
-             Portfolios
-           </button>
-         </div>
-         <div class="breadcrumb-item active">
-           {portfolio?.title || "Loading..."}
-         </div>
-       </div>
-     </div>
-
-     <div class="navbar-actions">
-       {#if portfolio && !isEditing}
-         <button class="btn btn-outline" onclick={startEdit}>
-           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-              <path
-                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-              />
-            </svg>
-            Edit
-         </button>
-         <button class="btn btn-error" onclick={openDeleteModal}>
-           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
-            Delete
-         </button>
-       {/if}
-     </div>
-   </div>
- </nav>
+ <PageNavbar
+   breadcrumbs={[
+     { label: 'Dashboard', onClick: goToDashboard },
+     { label: 'Portfolios', onClick: goBack },
+     { label: portfolio?.title || 'Loading...', active: true }
+   ]}
+   actions={portfolio && !isEditing ? [
+     { label: 'Edit', onClick: startEdit, variant: 'outline' },
+     { label: 'Delete', onClick: openDeleteModal, variant: 'outline' }
+   ] : []}
+ />
 
  <!-- Main content -->
  <main class="main-content">
