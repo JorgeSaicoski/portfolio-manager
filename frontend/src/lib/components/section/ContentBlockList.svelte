@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { SectionContent } from "$lib/types/api";
-  import { sectionContentStore } from "$lib/stores";
   import IconButton from "$lib/components/ui/IconButton.svelte";
   import EmptyState from "$lib/components/ui/EmptyState.svelte";
   import Badge from "$lib/components/ui/Badge.svelte";
