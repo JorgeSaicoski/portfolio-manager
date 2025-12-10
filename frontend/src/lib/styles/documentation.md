@@ -1,3 +1,53 @@
+# Style System Documentation
+
+## 📐 **Style Architecture**
+
+### ⚠️ **Critical Guidelines**
+
+**ALL styles must be centralized in `/src/lib/styles/` folder.**
+
+#### ✅ Correct Approach
+```
+src/lib/styles/
+├── global.scss                    # Main entry point
+└── components/
+    ├── _buttons.scss              # Button styles
+    ├── _cards.scss                # Card layouts
+    ├── _forms.scss                # Form inputs
+    ├── _content-blocks.scss       # Content blocks
+    └── ... (other components)
+```
+
+#### ❌ Wrong Approach
+```svelte
+<!-- DON'T: Inline styles in components -->
+<style>
+  .my-custom-button {
+    background: blue;
+  }
+</style>
+```
+
+#### 🎯 Why Centralized Styles?
+
+1. **Single Source of Truth** - All design decisions in one location
+2. **Easier for UX/UI Specialists** - No hunting through component files
+3. **Consistency** - Prevents duplicate or conflicting styles
+4. **Maintainability** - Update once, applies everywhere
+5. **Better Collaboration** - Designers own the styles folder
+6. **Performance** - Single compiled CSS file, better caching
+
+#### 📝 When to Use Component-Level Styles
+
+**Only use component `<style>` blocks for:**
+- Global CSS fixes (like `:global(.icon-stroke)`)
+- Component-specific layout that CANNOT be reused
+- Temporary overrides (document with TODO comment)
+
+**In 99% of cases, add styles to the appropriate file in `/src/lib/styles/components/`**
+
+---
+
 ## 🎨 **Design Tokens**
 
 ### Color System
