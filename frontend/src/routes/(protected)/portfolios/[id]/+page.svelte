@@ -421,8 +421,8 @@
      { label: portfolio?.title || 'Loading...', active: true }
    ]}
    actions={portfolio && !isEditing ? [
-     { label: 'Edit', onClick: startEdit, variant: 'outline' },
-     { label: 'Delete', onClick: openDeleteModal, variant: 'outline' }
+     { label: 'Edit', onClick: startEdit, variant: 'outline', icon: 'edit' },
+     { label: 'Delete', onClick: openDeleteModal, variant: 'outline', icon: 'trash' }
    ] : []}
  />
 
