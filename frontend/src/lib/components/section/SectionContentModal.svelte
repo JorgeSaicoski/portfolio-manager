@@ -16,16 +16,12 @@
   let loading = false;
   let error: string | null = null;
 
-  // Debounced reordering state
-  let savingContents = false;
-  
   // Create debounced reorder handler
   const { handleReorder: debouncedReorder, cleanup: cleanupReorder } = createDebouncedReorder(
     sectionContentStore,
     loadContents,
     {
-      onSavingChange: (saving) => savingContents = saving,
-      onError: (err) => {
+      onError: () => {
         alert('Failed to save content order. Please try again.');
       }
     }

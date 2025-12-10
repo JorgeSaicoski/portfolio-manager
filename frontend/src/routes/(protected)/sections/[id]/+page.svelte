@@ -40,7 +40,7 @@
     loadContents,
     {
       onSavingChange: (saving) => savingContents = saving,
-      onError: (err) => {
+      onError: () => {
         alert('Failed to save content order. Please try again.');
       }
     }
