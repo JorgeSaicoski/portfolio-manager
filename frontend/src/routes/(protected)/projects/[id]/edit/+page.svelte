@@ -6,6 +6,7 @@
   import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
   import AdminTopBar from '$lib/components/admin/AdminTopBar.svelte';
   import ProjectForm from '$lib/components/admin/ProjectForm.svelte';
+  import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
   import type { Project } from '$lib/types/api';
@@ -87,10 +88,7 @@
       <!-- Content -->
       <main class="admin-content">
         {#if loading}
-          <div class="loading-state">
-            <div class="loading-spinner-large"></div>
-            <p>Loading project...</p>
-          </div>
+          <LoadingSpinner size="lg" text="Loading project..." />
         {:else if error}
           <div class="error-state">
             <svg class="icon-stroke" viewBox="0 0 24 24" width="48" height="48">

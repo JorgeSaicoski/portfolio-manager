@@ -4,6 +4,8 @@
   import { categoryStore } from "$lib/stores/category";
   import type { Category, Project } from "$lib/types/api";
   import ProjectModal from "$lib/components/admin/ProjectModal.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
 
   // Get data from load function
   let { data }: { data: { id: number } } = $props();
@@ -144,10 +146,7 @@
     <div class="container">
       <!-- Loading state -->
       {#if loading}
-        <div class="text-center">
-          <div class="loading-spinner"></div>
-          <p class="text-muted">Loading category...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading category..." />
       {/if}
 
       <!-- Error state -->
@@ -203,7 +202,7 @@
               <div class="form-group">
                 <span class="form-label">Position</span>
                 <p class="text-base">
-                  <span class="badge">{category.position}</span>
+                  <Badge variant="info">{category.position}</Badge>
                 </p>
               </div>
 

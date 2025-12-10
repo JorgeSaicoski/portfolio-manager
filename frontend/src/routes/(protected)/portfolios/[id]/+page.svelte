@@ -9,6 +9,8 @@
  import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
  import SectionModal from "$lib/components/admin/SectionModal.svelte";
  import IconButton from "$lib/components/ui/IconButton.svelte";
+ import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+ import Badge from "$lib/components/ui/Badge.svelte";
 
  // Get data from load function
  const { data } = $props() as { data: { id: number } };
@@ -459,10 +461,7 @@
    <div class="container">
      <!-- Loading state -->
      {#if loading}
-       <div class="text-center">
-         <div class="loading-spinner"></div>
-         <p class="text-muted">Loading portfolio...</p>
-       </div>
+       <LoadingSpinner size="lg" text="Loading portfolio..." />
      {/if}
 
      <!-- Error state -->
@@ -761,7 +760,7 @@
                           <p class="category-description">{category.description || 'No description'}</p>
                         </div>
                         <div class="category-meta">
-                          <span class="position-badge">Position: {category.position}</span>
+                          <Badge variant="info" size="sm">Position: {category.position}</Badge>
                         </div>
                         <div class="category-actions">
                           <IconButton
@@ -851,8 +850,8 @@
                           <p class="section-description">{section.description || 'No description'}</p>
                         </div>
                         <div class="section-meta">
-                          <span class="badge">{section.type || 'default'}</span>
-                          <span class="position-badge">Position: {section.position}</span>
+                          <Badge variant="primary">{section.type || 'default'}</Badge>
+                          <Badge variant="info" size="sm">Position: {section.position}</Badge>
                         </div>
                         <div class="section-actions">
                           <IconButton
