@@ -8,6 +8,11 @@
  import DeleteModal from "$lib/components/utils/DeleteModal.svelte";
  import CategoryModal from "$lib/components/admin/CategoryModal.svelte";
  import SectionModal from "$lib/components/admin/SectionModal.svelte";
+ import IconButton from "$lib/components/ui/IconButton.svelte";
+ import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+ import Badge from "$lib/components/ui/Badge.svelte";
+ import PageNavbar from "$lib/components/layout/PageNavbar.svelte";
+ import CardHeader from "$lib/components/ui/CardHeader.svelte";
 
  // Get data from load function
  const { data } = $props() as { data: { id: number } };
@@ -409,59 +414,24 @@
 
 <div class="section bg-gray-50">
  <!-- Header with navigation -->
- <nav class="navbar">
-   <div class="navbar-container">
-     <div class="navbar-brand">
-       <h1 class="navbar-title">Portfolio Manager</h1>
-       <div class="breadcrumb">
-         <div class="breadcrumb-item">
-           <button onclick={goToDashboard} class="btn btn-ghost btn-sm">
-             Dashboard
-           </button>
-         </div>
-         <div class="breadcrumb-item">
-           <button onclick={goBack} class="btn btn-ghost btn-sm">
-             Portfolios
-           </button>
-         </div>
-         <div class="breadcrumb-item active">
-           {portfolio?.title || "Loading..."}
-         </div>
-       </div>
-     </div>
-
-     <div class="navbar-actions">
-       {#if portfolio && !isEditing}
-         <button class="btn btn-outline" onclick={startEdit}>
-           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-              <path
-                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-              />
-            </svg>
-            Edit
-         </button>
-         <button class="btn btn-error" onclick={openDeleteModal}>
-           <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
-            Delete
-         </button>
-       {/if}
-     </div>
-   </div>
- </nav>
+ <PageNavbar
+   breadcrumbs={[
+     { label: 'Dashboard', onClick: goToDashboard },
+     { label: 'Portfolios', onClick: goBack },
+     { label: portfolio?.title || 'Loading...', active: true }
+   ]}
+   actions={portfolio && !isEditing ? [
+     { label: 'Edit', onClick: startEdit, variant: 'outline', icon: 'edit' },
+     { label: 'Delete', onClick: openDeleteModal, variant: 'outline', icon: 'trash' }
+   ] : []}
+ />
 
  <!-- Main content -->
  <main class="main-content">
    <div class="container">
      <!-- Loading state -->
      {#if loading}
-       <div class="text-center">
-         <div class="loading-spinner"></div>
-         <p class="text-muted">Loading portfolio...</p>
-       </div>
+       <LoadingSpinner size="lg" text="Loading portfolio..." />
      {/if}
 
      <!-- Error state -->
@@ -760,29 +730,19 @@
                           <p class="category-description">{category.description || 'No description'}</p>
                         </div>
                         <div class="category-meta">
-                          <span class="position-badge">Position: {category.position}</span>
+                          <Badge variant="info" size="sm">Position: {category.position}</Badge>
                         </div>
                         <div class="category-actions">
-                          <button
-                            class="btn-icon"
+                          <IconButton
+                            type="view"
                             onclick={() => goto(`/categories/${category.ID}`)}
-                            title="View category"
-                            aria-label="View category"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon delete"
+                            label="View category"
+                          />
+                          <IconButton
+                            type="delete"
                             onclick={() => handleDeleteCategory(category)}
-                            title="Delete category"
-                            aria-label="Delete category"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                            label="Delete category"
+                          />
                         </div>
                       </div>
                     </div>
@@ -860,30 +820,20 @@
                           <p class="section-description">{section.description || 'No description'}</p>
                         </div>
                         <div class="section-meta">
-                          <span class="badge">{section.type || 'default'}</span>
-                          <span class="position-badge">Position: {section.position}</span>
+                          <Badge variant="primary">{section.type || 'default'}</Badge>
+                          <Badge variant="info" size="sm">Position: {section.position}</Badge>
                         </div>
                         <div class="section-actions">
-                          <button
-                            class="btn-icon"
+                          <IconButton
+                            type="edit"
                             onclick={() => goto(`/sections/${section.ID}`)}
-                            title="Edit section"
-                            aria-label="Edit section"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            class="btn-icon delete"
+                            label="Edit section"
+                          />
+                          <IconButton
+                            type="delete"
                             onclick={() => handleDeleteSection(section)}
-                            title="Delete section"
-                            aria-label="Delete section"
-                          >
-                            <svg class="btn-icon icon-stroke" width="16" height="16" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                            label="Delete section"
+                          />
                         </div>
                       </div>
                     </div>

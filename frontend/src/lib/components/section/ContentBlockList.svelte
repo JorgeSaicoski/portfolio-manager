@@ -1,11 +1,14 @@
 <script lang="ts">
   import type { SectionContent } from "$lib/types/api";
-  import { sectionContentStore } from "$lib/stores";
+  import IconButton from "$lib/components/ui/IconButton.svelte";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
 
   export let sectionId: number;
   export let contents: SectionContent[] = [];
   export let onEdit: (content: SectionContent) => void;
   export let onDelete: (id: number) => void;
+  export let onReorder: (reorderedContents: SectionContent[]) => void;
   export let editable = true;
 
   let draggedItem: SectionContent | null = null;
@@ -48,22 +51,16 @@
       return;
     }
 
-    // Reorder array
+    // Reorder array optimistically
     const reorderedContents = [...contents];
     const [removed] = reorderedContents.splice(draggedIndex, 1);
     reorderedContents.splice(dropIndex, 0, removed);
 
-    // Calculate new orders
-    const updates = reorderedContents.map((content, index) => ({
-      id: getItemId(content),
-      order: index
-    }));
+    // Update local contents immediately for instant UI feedback
+    contents = reorderedContents;
 
-    // Update via store
-    sectionContentStore.reorderContents(updates).catch((err: unknown) => {
-      console.error('Failed to reorder contents:', err);
-      alert('Failed to reorder content blocks. Please try again.');
-    });
+    // Notify parent to handle debounced save
+    onReorder(reorderedContents);
 
     draggedItem = null;
     draggedOverIndex = null;
@@ -88,12 +85,12 @@
 
 <div class="content-block-list">
   {#if contents.length === 0}
-    <div class="empty-state">
-      <p>No content blocks yet.</p>
-      {#if editable}
-        <p class="hint">Add content blocks to build your section.</p>
-      {/if}
-    </div>
+    <EmptyState
+      icon="📝"
+      title="No content blocks yet"
+      message={editable ? "Add content blocks to build your section" : ""}
+      size="sm"
+    />
   {:else}
     <div class="content-items">
       {#each contents as content, index (getItemId(content))}
@@ -109,9 +106,9 @@
           ondragend={handleDragEnd}
         >
           <div class="content-header">
-            <div class="content-type-badge" class:text={content.type === 'text'}>
+            <Badge variant="primary" rounded>
               📝 {content.type}
-            </div>
+            </Badge>
             <div class="content-order">#{content.order}</div>
             {#if editable}
               <div class="drag-handle" title="Drag to reorder">
@@ -134,22 +131,16 @@
 
           {#if editable}
             <div class="content-actions">
-              <button
-                type="button"
-                class="btn-sm btn-outline"
+              <IconButton
+                type="edit"
                 onclick={() => onEdit(content)}
-                title="Edit content"
-              >
-                ✏️ Edit
-              </button>
-              <button
-                type="button"
-                class="btn-sm btn-destructive"
+                label="Edit content"
+              />
+              <IconButton
+                type="delete"
                 onclick={() => confirmDelete(content)}
-                title="Delete content"
-              >
-                🗑️ Delete
-              </button>
+                label="Delete content"
+              />
             </div>
           {/if}
 
@@ -164,107 +155,4 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .content-block-list {
-    width: 100%;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-12);
-    color: var(--color-gray-600);
-  }
-
-  .hint {
-    font-size: var(--text-sm);
-    margin-top: var(--space-2);
-  }
-
-  .content-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .content-item {
-    background: white;
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    transition: all 0.2s;
-  }
-
-  .content-item.dragging {
-    opacity: 0.5;
-  }
-
-  .content-item.drag-over {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-  }
-
-  .content-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-type-badge {
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-  }
-
-  .content-order {
-    font-size: var(--text-sm);
-    color: var(--color-gray-500);
-    font-weight: 600;
-  }
-
-  .drag-handle {
-    margin-left: auto;
-    cursor: grab;
-    color: var(--color-gray-400);
-    font-size: 20px;
-    user-select: none;
-  }
-
-  .content-preview {
-    margin-bottom: var(--space-3);
-  }
-
-  .text-content {
-    color: var(--color-gray-700);
-    margin: 0;
-    white-space: pre-wrap;
-  }
-
-  .metadata-indicator {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    background: var(--color-info-100);
-    color: var(--color-info-700);
-    border-radius: var(--radius-md);
-    font-size: var(--text-xs);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-actions {
-    display: flex;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
-  }
-
-  .content-meta {
-    display: flex;
-    gap: var(--space-4);
-    font-size: var(--text-xs);
-    color: var(--color-gray-500);
-  }
-</style>
 

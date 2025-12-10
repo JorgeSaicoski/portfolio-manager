@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SectionContent } from "$lib/types/api";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
 
   export let contents: SectionContent[] = [];
 
@@ -77,13 +78,15 @@
   const metaFor = (c: SectionContent | null) => getImageMetadata(c);
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="image-gallery">
   {#if imageContents.length === 0}
-    <div class="empty-state">
-      <p>No images in this section yet.</p>
-    </div>
+    <EmptyState
+      icon="🖼️"
+      title="No images in this section yet"
+      size="sm"
+    />
   {:else}
     <div class="gallery-grid">
       {#each imageContents as content, index (content.ID)}

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import type { Section, SectionContent } from "$lib/types/api";
   import { sectionContentStore } from "$lib/stores";
   import ContentBlockEditor from "./ContentBlockEditor.svelte";
   import ContentBlockList from "./ContentBlockList.svelte";
+  import { createContentReorderingHandlers } from "$lib/utils/contentReordering";
 
   export let section: Section;
   export let isOpen = false;
@@ -15,16 +16,30 @@
   let loading = false;
   let error: string | null = null;
 
+  // Debouncing state for reordering
+  let savingContents = false;
+
   // Subscribe to store
   $: storeState = $sectionContentStore;
   $: contents = storeState.contents;
   $: loading = storeState.loading;
   $: error = storeState.error;
 
+  // Create reordering handlers
+  const reorderingHandlers = createContentReorderingHandlers({
+    onContentsUpdate: (newContents) => { contents = newContents; },
+    onSavingUpdate: (saving) => { savingContents = saving; },
+    onReloadContents: loadContents
+  });
+
   onMount(() => {
     if (isOpen && section) {
       loadContents();
     }
+  });
+
+  onDestroy(() => {
+    reorderingHandlers.cleanup();
   });
 
   $: if (isOpen && section) {
@@ -81,6 +96,9 @@
       alert('Failed to delete content. Please try again.');
     }
   }
+
+  // Handle content reordering with debouncing
+  const handleReorderContents = reorderingHandlers.handleReorderContents;
 
   function handleCancel() {
     showEditor = false;
@@ -143,6 +161,7 @@
                 {contents}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onReorder={handleReorderContents}
                 editable={true}
               />
             {/if}

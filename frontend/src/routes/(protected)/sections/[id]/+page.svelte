@@ -1,10 +1,15 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { sectionStore } from "$lib/stores/section";
   import { sectionContentStore } from "$lib/stores/sectionContent";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import PageNavbar from "$lib/components/layout/PageNavbar.svelte";
+  import CardHeader from "$lib/components/ui/CardHeader.svelte";
+  import { createContentReorderingHandlers } from "$lib/utils/contentReordering";
   // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
@@ -26,11 +31,26 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
+  // Debouncing state for reordering
+  let savingContents = $state(false);
+
+
+  // Create reordering handlers
+  const reorderingHandlers = createContentReorderingHandlers({
+    onContentsUpdate: (newContents) => { contents = newContents; },
+    onSavingUpdate: (saving) => { savingContents = saving; },
+    onReloadContents: loadContents
+  });
 
   // Load section on mount
   onMount(async () => {
     await loadSection();
     await loadContents();
+  });
+
+  // Cleanup on destroy
+  onDestroy(() => {
+    reorderingHandlers.cleanup();
   });
 
   async function loadSection() {
@@ -103,6 +123,9 @@
     }
   }
 
+  // Handle content reordering with debouncing
+  const handleReorderContents = reorderingHandlers.handleReorderContents;
+
   function handleCancelEdit() {
     showContentEditor = false;
     editingContent = null;
@@ -146,57 +169,24 @@
 
 <div class="section bg-gray-50">
   <!-- Header with navigation -->
-  <nav class="navbar">
-    <div class="navbar-container">
-      <div class="navbar-brand">
-        <h1 class="navbar-title">Portfolio Manager</h1>
-        <div class="breadcrumb">
-          <div class="breadcrumb-item">
-            <button onclick={goToDashboard} class="btn btn-ghost btn-sm">
-              Dashboard
-            </button>
-          </div>
-          <div class="breadcrumb-item">
-            <button onclick={goBack} class="btn btn-ghost btn-sm">
-              Sections
-            </button>
-          </div>
-          <div class="breadcrumb-item active">
-            {section?.title || "Loading..."}
-          </div>
-        </div>
-      </div>
-
-      <div class="navbar-actions">
-        {#if section}
-          <button class="btn btn-outline" onclick={goBack}>
-            <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-            </svg>
-            Back to Portfolio
-          </button>
-          {#if section.portfolio_id}
-            <button class="btn btn-outline" onclick={goToPortfolio}>
-              <svg class="icon-fill" width="16" height="16" viewBox="0 0 24 24">
-                <path d="M12 2l-5.5 9h11z M12 22l5.5-9h-11z M5.5 11L12 2 18.5 11z" />
-              </svg>
-              View Portfolio
-            </button>
-          {/if}
-        {/if}
-      </div>
-    </div>
-  </nav>
+  <PageNavbar
+    breadcrumbs={[
+      { label: 'Dashboard', onClick: goToDashboard },
+      { label: 'Sections', onClick: goBack },
+      { label: section?.title || 'Loading...', active: true }
+    ]}
+    actions={section ? [
+      { label: 'Back to Portfolio', icon: 'arrow-left', onClick: goBack, variant: 'outline' },
+      ...(section.portfolio_id ? [{ label: 'View Portfolio', onClick: goToPortfolio, variant: 'outline' }] : [])
+    ] : []}
+  />
 
   <!-- Main content -->
   <main class="main-content">
     <div class="container">
       <!-- Loading state -->
       {#if loading}
-        <div class="text-center">
-          <div class="loading-spinner"></div>
-          <p class="text-muted">Loading section...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading section..." />
       {/if}
 
       <!-- Error state -->
@@ -251,7 +241,7 @@
               <div class="form-group">
                 <span class="form-label">Type</span>
                 <p class="text-base">
-                  <span class="badge">{section.type || "text"}</span>
+                  <Badge variant="primary">{section.type || "text"}</Badge>
                 </p>
               </div>
 
@@ -316,6 +306,14 @@
                 </div>
                 {#if !showContentEditor}
                   <div style="display: flex; gap: var(--space-2); align-items: center;">
+                    <!-- Saving indicator -->
+                    {#if savingContents}
+                      <span class="text-muted" style="font-size: 0.875rem; display: flex; align-items: center; gap: var(--space-1);">
+                        <LoadingSpinner size="sm" inline={true} />
+                        Saving order...
+                      </span>
+                    {/if}
+
                     <!-- View Mode Toggle -->
                     <div style="display: flex; gap: var(--space-1); background: var(--color-gray-100); border-radius: var(--radius-md); padding: var(--space-1);">
                       <button
@@ -375,6 +373,7 @@
                   {contents}
                   onEdit={handleEditContent}
                   onDelete={handleDeleteContent}
+                  onReorder={handleReorderContents}
                   editable={true}
                 />
               {:else}

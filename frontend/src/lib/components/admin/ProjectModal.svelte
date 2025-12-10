@@ -4,6 +4,7 @@
     import { toastStore as toast } from '$lib/stores/toast';
     import { onMount } from 'svelte';
     import type { Project } from '$lib/types/api';
+    import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 
     // Props
     export let project: Project | null = null;
@@ -236,7 +237,7 @@
                             class:error={linkError}
                             placeholder="https://example.com (optional)"
                             bind:value={link}
-                            on:blur={handleLinkBlur}
+                            onblur={handleLinkBlur}
                             disabled={loading}
                     />
                     {#if linkError}
@@ -252,7 +253,7 @@
                 </button>
                 <button type="submit" class="btn btn-primary" disabled={loading}>
                     {#if loading}
-                        <span class="loading-spinner"></span>
+                        <LoadingSpinner size="sm" inline />
                     {/if}
                     {project ? 'Update' : 'Create'} Project
                 </button>

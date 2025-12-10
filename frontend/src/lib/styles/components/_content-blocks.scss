@@ -225,6 +225,9 @@
   display: flex;
   gap: var(--space-2);
   margin-bottom: var(--space-2);
+
+  // Icon button styles are defined globally in _buttons.scss
+  // Using .btn-icon, .btn-icon.edit, and .btn-icon.delete classes
 }
 
 // === CONTENT META ===
