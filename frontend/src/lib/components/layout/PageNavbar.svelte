@@ -12,7 +12,15 @@
 
   interface Action {
     label: string;
-    /** Optional icon to display before the label. Supported values: 'arrow-left', 'plus', 'edit', 'settings', 'view' */
+    /**
+     * Optional icon to display before the label.
+     * Supported values:
+     * - 'arrow-left': Back/navigation arrow
+     * - 'plus': Add/create new item
+     * - 'edit': Edit/modify action
+     * - 'settings': Settings/configuration
+     * - 'view': View/visibility action
+     */
     icon?: 'arrow-left' | 'plus' | 'edit' | 'settings' | 'view';
     onClick: () => void;
     variant?: 'outline' | 'primary' | 'ghost';
