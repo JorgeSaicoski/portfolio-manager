@@ -3,13 +3,13 @@
   import { onMount, onDestroy } from "svelte";
   import { sectionStore } from "$lib/stores/section";
   import { sectionContentStore } from "$lib/stores/sectionContent";
-  import { createDebouncedReorder } from "$lib/utils/debouncedReorder";
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Badge from "$lib/components/ui/Badge.svelte";
   import PageNavbar from "$lib/components/layout/PageNavbar.svelte";
   import CardHeader from "$lib/components/ui/CardHeader.svelte";
+  import { createContentReorderingHandlers } from "$lib/utils/contentReordering";
   // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
@@ -31,21 +31,16 @@
   let contentLoading = $state(false);
   let viewMode: 'list' | 'gallery' = $state('list');
 
-  // Debounced reordering state
+  // Debouncing state for reordering
   let savingContents = $state(false);
 
-  // Create debounced reorder handler
-  const { handleReorder: debouncedReorder, cleanup: cleanupReorder } = createDebouncedReorder(
-    sectionContentStore,
-    loadContents,
-    {
-      onSavingChange: (saving) => savingContents = saving,
-      onError: () => {
-        alert('Failed to save content order. Please try again.');
-      }
-    }
-  );
 
+  // Create reordering handlers
+  const reorderingHandlers = createContentReorderingHandlers({
+    onContentsUpdate: (newContents) => { contents = newContents; },
+    onSavingUpdate: (saving) => { savingContents = saving; },
+    onReloadContents: loadContents
+  });
 
   // Load section on mount
   onMount(async () => {
@@ -55,7 +50,7 @@
 
   // Cleanup on destroy
   onDestroy(() => {
-    cleanupReorder();
+    reorderingHandlers.cleanup();
   });
 
   async function loadSection() {
@@ -129,13 +124,7 @@
   }
 
   // Handle content reordering with debouncing
-  function handleReorderContents(reorderedContents: SectionContent[]) {
-    // Update local state immediately for instant UI feedback
-    contents = reorderedContents;
-
-    // Trigger debounced save
-    debouncedReorder(reorderedContents);
-  }
+  const handleReorderContents = reorderingHandlers.handleReorderContents;
 
   function handleCancelEdit() {
     showContentEditor = false;

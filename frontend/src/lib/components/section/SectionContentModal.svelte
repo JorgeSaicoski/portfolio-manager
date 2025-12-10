@@ -2,9 +2,9 @@
   import { onMount, onDestroy } from 'svelte';
   import type { Section, SectionContent } from "$lib/types/api";
   import { sectionContentStore } from "$lib/stores";
-  import { createDebouncedReorder } from "$lib/utils/debouncedReorder";
   import ContentBlockEditor from "./ContentBlockEditor.svelte";
   import ContentBlockList from "./ContentBlockList.svelte";
+  import { createContentReorderingHandlers } from "$lib/utils/contentReordering";
 
   export let section: Section;
   export let isOpen = false;
@@ -16,22 +16,18 @@
   let loading = false;
   let error: string | null = null;
 
-  // Create debounced reorder handler
-  const { handleReorder: debouncedReorder, cleanup: cleanupReorder } = createDebouncedReorder(
-    sectionContentStore,
-    loadContents,
-    {
-      onError: () => {
-        alert('Failed to save content order. Please try again.');
-      }
-    }
-  );
-
   // Subscribe to store
   $: storeState = $sectionContentStore;
   $: contents = storeState.contents;
   $: loading = storeState.loading;
   $: error = storeState.error;
+
+  // Create reordering handlers
+  const reorderingHandlers = createContentReorderingHandlers({
+    onContentsUpdate: (newContents) => { contents = newContents; },
+    onSavingUpdate: () => { /* Modal doesn't display saving indicator */ },
+    onReloadContents: loadContents
+  });
 
   onMount(() => {
     if (isOpen && section) {
@@ -40,7 +36,7 @@
   });
 
   onDestroy(() => {
-    cleanupReorder();
+    reorderingHandlers.cleanup();
   });
 
   $: if (isOpen && section) {
@@ -99,13 +95,7 @@
   }
 
   // Handle content reordering with debouncing
-  function handleReorderContents(reorderedContents: SectionContent[]) {
-    // Update local state immediately for instant UI feedback
-    contents = reorderedContents;
-
-    // Trigger debounced save
-    debouncedReorder(reorderedContents);
-  }
+  const handleReorderContents = reorderingHandlers.handleReorderContents;
 
   function handleCancel() {
     showEditor = false;
