@@ -33,7 +33,7 @@
 
   // Debounced reordering state
   let savingContents = $state(false);
-  
+
   // Create debounced reorder handler
   const { handleReorder: debouncedReorder, cleanup: cleanupReorder } = createDebouncedReorder(
     sectionContentStore,
@@ -187,8 +187,8 @@
       { label: section?.title || 'Loading...', active: true }
     ]}
     actions={section ? [
-      { label: 'Back to Portfolio', icon: 'arrow-left', onClick: goBack, variant: 'outline' },
-      ...(section.portfolio_id ? [{ label: 'View Portfolio', onClick: goToPortfolio, variant: 'outline' }] : [])
+      { label: 'Back to Portfolio', icon: 'arrow-left', onClick: goBack, variant: 'outline' as const },
+      ...(section.portfolio_id ? [{ label: 'View Portfolio', onClick: goToPortfolio, variant: 'outline' as const }] : [])
     ] : []}
   />
 
@@ -320,7 +320,7 @@
                     <!-- Saving indicator -->
                     {#if savingContents}
                       <span class="text-muted" style="font-size: 0.875rem; display: flex; align-items: center; gap: var(--space-1);">
-                        <span class="spinner-sm"></span>
+                        <LoadingSpinner size="sm" inline={true} />
                         Saving order...
                       </span>
                     {/if}
@@ -592,4 +592,3 @@
     }
   }
 </style>
-

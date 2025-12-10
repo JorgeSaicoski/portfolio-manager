@@ -39,14 +39,13 @@
     }
   });
 
-  $: if (isOpen && section) {
-    loadContents();
-  }
-
-  // Cleanup on destroy
   onDestroy(() => {
     cleanupReorder();
   });
+
+  $: if (isOpen && section) {
+    loadContents();
+  }
 
   async function loadContents() {
     try {
