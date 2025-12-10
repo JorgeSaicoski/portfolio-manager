@@ -1,5 +1,6 @@
 import type { SectionContent } from '$lib/types/api';
 import { sectionContentStore } from '$lib/stores';
+import { toastStore } from '$lib/stores/toast';
 
 export interface ContentReorderingCallbacks {
   onContentsUpdate: (contents: SectionContent[]) => void;
@@ -59,7 +60,7 @@ export function createContentReorderingHandlers(callbacks: ContentReorderingCall
         onSavingUpdate(false);
       } catch (err) {
         console.error('Failed to reorder contents:', err);
-        alert('Failed to save content order. Please try again.');
+        toastStore.error('Failed to save content order. Please try again.');
         await onReloadContents(); // Revert on error
         onSavingUpdate(false);
       }

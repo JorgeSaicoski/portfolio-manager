@@ -62,7 +62,10 @@
       <div class="navbar-actions">
         {#each actions as action}
           <button
-            class="btn btn-{action.variant || 'outline'}"
+            class="btn"
+            class:btn-outline={!action.variant || action.variant === 'outline'}
+            class:btn-primary={action.variant === 'primary'}
+            class:btn-ghost={action.variant === 'ghost'}
             onclick={action.onClick}
           >
             {#if action.icon === 'arrow-left'}
