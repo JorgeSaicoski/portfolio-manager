@@ -176,8 +176,8 @@
       { label: section?.title || 'Loading...', active: true }
     ]}
     actions={section ? [
-      { label: 'Back to Portfolio', icon: 'arrow-left', onClick: goBack, variant: 'outline' as const },
-      ...(section.portfolio_id ? [{ label: 'View Portfolio', onClick: goToPortfolio, variant: 'outline' as const }] : [])
+      { label: 'Back to Portfolio', icon: 'arrow-left', onClick: goBack, variant: 'outline' },
+      ...(section.portfolio_id ? [{ label: 'View Portfolio', onClick: goToPortfolio, variant: 'outline' }] : [])
     ] : []}
   />
 
