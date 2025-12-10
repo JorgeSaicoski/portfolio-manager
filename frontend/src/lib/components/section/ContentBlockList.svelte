@@ -3,6 +3,7 @@
   import { sectionContentStore } from "$lib/stores";
   import IconButton from "$lib/components/ui/IconButton.svelte";
   import EmptyState from "$lib/components/ui/EmptyState.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
 
   export let sectionId: number;
   export let contents: SectionContent[] = [];
@@ -106,9 +107,9 @@
           ondragend={handleDragEnd}
         >
           <div class="content-header">
-            <div class="content-type-badge" class:text={content.type === 'text'}>
+            <Badge variant="primary" rounded>
               📝 {content.type}
-            </div>
+            </Badge>
             <div class="content-order">#{content.order}</div>
             {#if editable}
               <div class="drag-handle" title="Drag to reorder">

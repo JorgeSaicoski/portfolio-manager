@@ -6,6 +6,7 @@
   import ContentBlockList from "$lib/components/section/ContentBlockList.svelte";
   import ContentBlockEditor from "$lib/components/section/ContentBlockEditor.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
   // ContentImageGallery will be lazy-loaded dynamically in the template to avoid a static import type error
   import type { Section, SectionContent } from "$lib/types/api";
 
@@ -299,7 +300,7 @@
               <div class="form-group">
                 <span class="form-label">Type</span>
                 <p class="text-base">
-                  <span class="badge">{section.type || "text"}</span>
+                  <Badge variant="primary">{section.type || "text"}</Badge>
                 </p>
               </div>
 
