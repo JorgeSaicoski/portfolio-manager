@@ -20,12 +20,21 @@
     rounded = false,
     children
   }: Props = $props();
-
-  // Build CSS classes
-  const badgeClass = $derived(`badge badge-${variant} badge-${size} ${rounded ? 'badge-rounded' : ''}`);
 </script>
 
-<span class={badgeClass}>
+<span 
+  class="badge"
+  class:badge-default={variant === 'default'}
+  class:badge-primary={variant === 'primary'}
+  class:badge-success={variant === 'success'}
+  class:badge-warning={variant === 'warning'}
+  class:badge-error={variant === 'error'}
+  class:badge-info={variant === 'info'}
+  class:badge-sm={size === 'sm'}
+  class:badge-md={size === 'md'}
+  class:badge-lg={size === 'lg'}
+  class:badge-rounded={rounded}
+>
   {@render children?.()}
 </span>
 
