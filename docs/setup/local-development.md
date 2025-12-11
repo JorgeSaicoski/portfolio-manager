@@ -27,7 +27,6 @@ Complete guide to setting up your local development environment for Portfolio Ma
 
 - **Bruno** or **Postman** - API testing
 - **pgAdmin** or **DBeaver** - Database management
-- **VS Code** - Recommended IDE
 
 ## Quick Setup (5 minutes)
 
@@ -238,7 +237,7 @@ make up
 
 ## IDE Setup
 
-### VS Code
+### VS Codium
 
 Recommended extensions:
 - **Go** - For backend development
