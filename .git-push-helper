@@ -1,0 +1,3 @@
+#!/bin/bash
+# This is a helper to push the current branch
+git push -u origin $(git branch --show-current)
