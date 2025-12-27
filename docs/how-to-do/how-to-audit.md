@@ -56,6 +56,27 @@ ls -lh /opt/portfolio-manager/backend/logs/
 
 ### Quick Daily Audit (5 minutes)
 
+**Option A: Using Makefile Commands (Recommended for Local)**
+
+```bash
+# 1. Export all logs locally
+make audit-export
+
+# 2. View recent create operations
+make audit-view-create
+
+# 3. View recent delete operations
+make audit-view-delete
+
+# 4. View recent update operations
+make audit-view-update
+
+# 5. Watch audit logs in real-time (press Ctrl+C to stop)
+make audit-logs
+```
+
+**Option B: SSH to Server**
+
 ```bash
 # SSH to server
 ssh deploy@your-server-ip
@@ -91,6 +112,33 @@ Generate reports for:
 ## 📝 Part 1: Review Audit Logs (20 minutes)
 
 ### Step 1.1: Access Server and Logs
+
+**Option A: Export Logs Locally (Recommended)**
+
+From your local machine, you can export all audit and error logs to your local `backend/audit-export/` directory:
+
+```bash
+# Export logs from the running container to local directory
+make audit-export
+```
+
+This will:
+- Create `backend/audit-export/audit/` with all audit logs
+- Create `backend/audit-export/errors/` with all error logs
+- Show you a summary of exported files
+
+You can then review logs locally without SSH:
+```bash
+# View logs in your local directory
+cd backend/audit-export/audit
+ls -lh
+
+# View specific log files
+less create.log
+less delete.log
+```
+
+**Option B: SSH to Server**
 
 ```bash
 # SSH to server
@@ -666,6 +714,42 @@ cat audit_create.log | jq '{time, userID, operation}'
    - Create audit procedures document
    - Define what's "suspicious"
    - Set retention policies
+
+---
+
+## 🚀 Quick Reference: Makefile Audit Commands
+
+Portfolio Manager provides convenient Makefile commands for auditing:
+
+### Export Logs Locally
+```bash
+make audit-export
+```
+Exports all audit and error logs from the container to `backend/audit-export/` directory on your local machine.
+- Creates `backend/audit-export/audit/` with audit logs (create, update, delete)
+- Creates `backend/audit-export/errors/` with error logs
+- Shows summary of exported files
+
+### View Recent Operations
+```bash
+# View last 50 CREATE operations
+make audit-view-create
+
+# View last 50 DELETE operations
+make audit-view-delete
+
+# View last 50 UPDATE operations
+make audit-view-update
+```
+
+### Watch Logs in Real-Time
+```bash
+make audit-logs
+```
+Tails all audit logs in real-time. Press Ctrl+C to stop.
+
+### Complete List
+Run `make help` and look for the "📊 Audit & Monitoring" section for all available commands.
 
 ---
 

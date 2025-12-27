@@ -317,6 +317,32 @@ if resource.OwnerID != userID {
 
 ## Querying Logs
 
+### Exporting Logs Locally
+
+The easiest way to access logs is to export them to your local machine:
+
+```bash
+# Export all audit and error logs from container to backend/audit-export/
+make audit-export
+```
+
+This command will:
+1. Create `backend/audit-export/audit/` directory with all audit logs:
+   - `create.log` - All successful CREATE operations
+   - `update.log` - All successful UPDATE operations
+   - `delete.log` - All successful DELETE operations
+2. Create `backend/audit-export/errors/` directory with all error logs:
+   - `error.log` - All errors from any operation
+3. Display a summary of exported files with sizes
+
+After export, you can analyze logs locally:
+```bash
+cd backend/audit-export/audit
+ls -lh
+```
+
+**Note**: The `backend/audit-export/` directory is git-ignored and will be recreated each time you run the export command.
+
 ### Find all creates by user
 ```bash
 grep '"userID":"user123"' audit/create.log | jq .
