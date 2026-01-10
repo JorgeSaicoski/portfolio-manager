@@ -53,7 +53,6 @@ Get up and running in 5-10 minutes with minimal configuration. Perfect for start
 
 - **Bruno** or **Postman** - API testing
 - **pgAdmin** or **DBeaver** - Database management
-- **VS Code** - Recommended IDE
 
 ### Setup Steps
 
@@ -613,7 +612,7 @@ make up
 
 ## IDE Setup
 
-### VS Code
+### VS Codium
 
 Recommended extensions:
 - **Go** - For backend development
